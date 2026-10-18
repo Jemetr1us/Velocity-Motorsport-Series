@@ -1,0 +1,1063 @@
+{
+  "f1": [
+    {
+      "name": "Richard Mille LM Motorsport F1",
+      "engine": "CEO: Mikos | LM CEO · Director: Lawie (gay bitch)",
+      "color": "#a78bfa",
+      "drivers": [
+        {
+          "num": "19",
+          "code": "MD1",
+          "name": "Peters",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "1",
+          "code": "MD2",
+          "name": "Lory",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "03",
+          "code": "RD2",
+          "name": "Skirmis",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Scuderia Ferrari",
+      "engine": "CEO: pringle- jem #1 fan",
+      "color": "#dc143c",
+      "drivers": [
+        {
+          "num": "3",
+          "code": "MD1",
+          "name": "Nick",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "12",
+          "code": "MD2",
+          "name": "Ageftyg2",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "67",
+          "code": "RD1",
+          "name": "Vitality",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "43",
+          "code": "RD2",
+          "name": "yokesecapo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Vodafone McLaren",
+      "engine": "CEO: Neon | Hacked · Director: Zachary | McLaren Director",
+      "color": "#ff8000",
+      "drivers": [
+        {
+          "num": "27",
+          "code": "MD1",
+          "name": "gkf",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "17",
+          "code": "MD2",
+          "name": "Theo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "Veyro",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Renault Sport Formula 1 Team",
+      "engine": "CEO: Neon | Hacked",
+      "color": "#60a5fa",
+      "drivers": [
+        {
+          "num": "93",
+          "code": "MD1",
+          "name": "Amin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "56",
+          "code": "MD2",
+          "name": "Rox",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "Batwert (@Batwert1249)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Aero Apex Racing",
+      "engine": "CEO: Flekzy | Aero Team Owner · Director: Ernesto2013 | AAR Team Director",
+      "color": "#7c3aed",
+      "drivers": [
+        {
+          "num": "41",
+          "code": "MD1",
+          "name": "Karazu Arin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "Flare (@Dr_DapperBowtie)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "81",
+          "code": "RD2",
+          "name": "Infinity",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Mercedes-AMG",
+      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: Kuzey | Merc Director",
+      "color": "#00d2be",
+      "drivers": [
+        {
+          "num": "14",
+          "code": "MD1",
+          "name": "Unironically",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "98",
+          "code": "MD2",
+          "name": "Emirović",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "5",
+          "code": "RD1",
+          "name": "Leo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Hertz Porsche",
+      "engine": "CEO: yake | JHP - ATP CEO",
+      "color": "#b9a96a",
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "luddster (@luddestuttar)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "17",
+          "code": "MD2",
+          "name": "Igorexe",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "RD1",
+          "name": "Sun_Rise",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Vanguard Sabre Motorsport",
+      "engine": "CEO: POnight_LAlloy",
+      "color": "#7f1010",
+      "drivers": [
+        {
+          "num": "69",
+          "code": "MD1",
+          "name": "Nath",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "25",
+          "code": "MD2",
+          "name": "Waffle",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "GlitchGP F1 Team",
+      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
+      "color": "#8e3bb5",
+      "drivers": [
+        {
+          "num": "77",
+          "code": "MD1",
+          "name": "Bence",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "20",
+          "code": "MD2",
+          "name": "SCKIBLES",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "RD1",
+          "name": "Yuki",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "60",
+          "code": "RD2",
+          "name": "EL_KRAZY",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Tarigy's Motorsport Team F1",
+      "engine": "CEO: Flande | Tarigy's CEO",
+      "color": "#1438d4",
+      "drivers": [
+        {
+          "num": "26",
+          "code": "MD1",
+          "name": "ShadowRex",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "92",
+          "code": "MD2",
+          "name": "Maldonado",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "0",
+          "code": "RD1",
+          "name": "Octi",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "BMW Sauber F1 Team",
+      "engine": "CEO: Jamie | BMW Sauber CEO · Director: G spot | of BMW",
+      "color": "#7dd3fc",
+      "drivers": [
+        {
+          "num": "48",
+          "code": "MD1",
+          "name": "Sly",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "MD2",
+          "name": "Diego",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "9",
+          "code": "RD1",
+          "name": "Vein Blong",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    }
+  ],
+  "f2": [
+    {
+      "name": "LM Performance F2",
+      "engine": "CEO: Mikos | LM CEO · Director: Lawie (gay bitch)",
+      "color": "#a78bfa",
+      "drivers": [
+        {
+          "num": "03",
+          "code": "MD1",
+          "name": "Skirmis",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "19",
+          "code": "MD2",
+          "name": "Peters",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "91",
+          "code": "RD1",
+          "name": "Ukizi",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Renault Sport Formula 2 Team",
+      "engine": "CEO: Neon | Renault & McLaren CEO",
+      "color": "#d9a300",
+      "drivers": [
+        {
+          "num": "23",
+          "code": "MD1",
+          "name": "Gamrin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "Soap<3 (local femboy)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "29",
+          "code": "RD1",
+          "name": "Gui",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Tarigy's Motorsport Team F2",
+      "engine": "CEO: Flande | Tarigy's CEO · Director: Lauuu | Tarigy's Director",
+      "color": "#7b2cbf",
+      "drivers": [
+        {
+          "num": "0",
+          "code": "MD1",
+          "name": "Octi",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "dante",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "AF Corsa",
+      "engine": "CEO: pringle- jem #1 fan",
+      "color": "#ef0000",
+      "drivers": [
+        {
+          "num": "52",
+          "code": "MD1",
+          "name": "Dino",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "MD2",
+          "name": "ZAYN",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "18",
+          "code": "RD1",
+          "name": "Halo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "Boj",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "GlitchGP F2 Team",
+      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
+      "color": "#8e3bb5",
+      "drivers": [
+        {
+          "num": "22",
+          "code": "MD2",
+          "name": "Yuki",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "33",
+          "code": "RD1",
+          "name": "RuTa",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Vanguard Sabre Racing",
+      "engine": "CEO: POnight_LAlloy",
+      "color": "#7f1010",
+      "drivers": [
+        {
+          "num": "27",
+          "code": "MD1",
+          "name": "Lewis",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "97",
+          "code": "MD2",
+          "name": "Nahim",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "41",
+          "code": "RD1",
+          "name": "Penguin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "36",
+          "code": "RD2",
+          "name": "Jimmy",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Aero Apex Racing F2",
+      "engine": "CEO: Flekzy | Aero Team Owner",
+      "color": "#2496d2",
+      "drivers": [
+        {
+          "num": "10",
+          "code": "MD1",
+          "name": "EXO_Kyo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "Fb",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD3",
+          "name": "Hazza",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Racing Point F2",
+      "engine": "CEO: G spot | of BMW",
+      "color": "#d100ff",
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "unknown-user",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "55",
+          "code": "RD1",
+          "name": "JULES",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Carti Racing Association",
+      "engine": "CEO: Tiyu | Carti CEO · Director: Zak",
+      "color": "#555555",
+      "drivers": [
+        {
+          "num": "1",
+          "code": "MD1",
+          "name": "Juantoes",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "26",
+          "code": "MD2",
+          "name": "Crocs",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "jeremiah_spookie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Nissan Nissmo",
+      "engine": "CEO: Ford | Nissan CEO · Director: Alone | NRX Director",
+      "color": "#dbe4cf",
+      "drivers": [
+        {
+          "num": "95",
+          "code": "MD1",
+          "name": "Alien",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "24",
+          "code": "MD2",
+          "name": "Zaphira",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "RD2",
+          "name": "Vittorioso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "BMW Sauber F2 Team",
+      "engine": "CEO: Jamie | BMW Sauber CEO",
+      "color": "#7dd3fc",
+      "drivers": [
+        {
+          "num": "46",
+          "code": "MD1",
+          "name": "HB~",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "17",
+          "code": "MD2",
+          "name": "AO",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    }
+  ],
+  "f3": [
+    {
+      "name": "LMP",
+      "engine": "CEO: Mikos | LM CEO · Director: Lawie (gay bitch)",
+      "color": "#a78bfa",
+      "drivers": [
+        {
+          "num": "53",
+          "code": "MD1",
+          "name": "Piko",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "99",
+          "code": "MD3",
+          "name": "Jeffz",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "34",
+          "code": "RD1",
+          "name": "Kriekel",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Tarigy's Motorsport Team F3",
+      "engine": "CEO: Flande | Tarigy's CEO · Director: Lauuu | Tarigy's Director",
+      "color": "#f59e0b",
+      "drivers": [
+        {
+          "num": "11",
+          "code": "MD1",
+          "name": "Fabián",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "27",
+          "code": "MD2",
+          "name": "Lancelot",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD3",
+          "name": "El_Manco010",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Aston Martin Racing F3",
+      "engine": "CEO: G spot | of BMW",
+      "color": "#22c55e",
+      "drivers": [
+        {
+          "num": "5",
+          "code": "MD1",
+          "name": "Sam",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "21",
+          "code": "MD2",
+          "name": "Tta",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "88",
+          "code": "MD3",
+          "name": "Maslo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "78",
+          "code": "RD1",
+          "name": "Mikey",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Renault Sport Formula 3 Team",
+      "engine": "CEO: Neon | Hacked · Director: Doxxi (@BUBOJEPES2)",
+      "color": "#60a5fa",
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "HONOR3D (@Aarnavs_shadow)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "19",
+          "code": "MD2",
+          "name": "Palmsesra",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "55",
+          "code": "MD3",
+          "name": "Rice",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Carti Racing Association F3",
+      "engine": "CEO: Tiyu | Carti CEO · Director: Zak",
+      "color": "#ec4899",
+      "drivers": [
+        {
+          "num": "3",
+          "code": "MD1",
+          "name": "ukkiett",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "77",
+          "code": "MD2",
+          "name": "Wibz",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "13",
+          "code": "RD1",
+          "name": "Chipi menor",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Aero Apex Racing F3",
+      "engine": "CEO: Flekzy | Aero Team Owner",
+      "color": "#7c3aed",
+      "drivers": [
+        {
+          "num": "77",
+          "code": "MD1",
+          "name": "Nyiko",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "Elden",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "95",
+          "code": "MD3",
+          "name": "BETICOSSS",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Pola Sabre Motorsports",
+      "engine": "CEO: POnight_LAlloy · Director: Malik (@Malil1401)",
+      "color": "#1e40af",
+      "drivers": [
+        {
+          "num": "28",
+          "code": "MD1",
+          "name": "Dark Shadow",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "10",
+          "code": "MD2",
+          "name": "Elf",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "04",
+          "code": "MD3",
+          "name": "Bartos",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "RD1",
+          "name": "Alistair",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Anonymous Juniors",
+      "engine": "CEO: pringle- jem #1 fan",
+      "color": "#dc143c",
+      "drivers": [
+        {
+          "num": "56",
+          "code": "MD1",
+          "name": "Piti",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "18",
+          "code": "MD2",
+          "name": "Halo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "65",
+          "code": "MD3",
+          "name": "Ducky",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "1",
+          "code": "RD1",
+          "name": "Majd",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "Kogun Technologies F3 Team",
+      "engine": "CEO: Altin | Kogun CEO · Director: Whapples",
+      "color": "#eab308",
+      "drivers": [
+        {
+          "num": "45",
+          "code": "MD1",
+          "name": "ellie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "96",
+          "code": "MD2",
+          "name": "Avda",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "45",
+          "code": "MD3",
+          "name": "Marin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "Dunstsoocerking4",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "BMW Sauber F3 Team",
+      "engine": "CEO: Jamie | BMW Sauber CEO",
+      "color": "#7dd3fc",
+      "drivers": [
+        {
+          "num": "5",
+          "code": "MD1",
+          "name": "Kashin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "37",
+          "code": "MD2",
+          "name": "Elias",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "34",
+          "code": "MD3",
+          "name": "syxe",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "17",
+          "code": "RD1",
+          "name": "Genghis",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    },
+    {
+      "name": "GlitchGP F3",
+      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
+      "color": "#00d2be",
+      "drivers": [
+        {
+          "num": "19",
+          "code": "MD1",
+          "name": "Hakeman",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "77",
+          "code": "MD2",
+          "name": "Bence",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "RD1",
+          "name": "Leo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
+    }
+  ]
+}
