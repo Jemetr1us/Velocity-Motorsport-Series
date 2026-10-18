@@ -1,0 +1,29 @@
+name: Check for lineup changes
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Pull lineups from Discord
+        run: node scripts/update-lineups.mjs
+        env:
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          LINEUPS_CHANNEL_ID: ${{ vars.LINEUPS_CHANNEL_ID }}
+      - name: Commit if lineups changed
+        run: |
+          git config user.name  "vms-lineup-bot"
+          git config user.email "vms-lineup-bot@users.noreply.github.com"
+          git add data/lineups.json
+          git diff --cached --quiet || (git commit -m "Update lineups from Discord" && git push)
