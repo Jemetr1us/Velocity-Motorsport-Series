@@ -53,9 +53,9 @@
           "pods": 0
         },
         {
-          "num": "67",
+          "num": "—",
           "code": "RD1",
-          "name": "Vitality",
+          "name": "Vitality I I 67",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -95,6 +95,14 @@
           "num": "—",
           "code": "RD1",
           "name": "Veyro",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "D̶Y̶N̶I̶X̶",
           "pts": 0,
           "wins": 0,
           "pods": 0
