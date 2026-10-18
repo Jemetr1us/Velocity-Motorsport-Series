@@ -1352,7 +1352,7 @@ function rpDraw(t,instant){
 renderNext(); renderSeriesCards(); renderStandings(); renderCalendar(); renderResults(); renderTeams(); renderChampions(); renderTitleFight(); renderHeadToHead();
  
 
-const VIEWS=['home', 'standings', 'calendar', 'results', 'teams', 'about', 'join'];
+const VIEWS=['home', 'standings', 'calendar', 'results', 'news', 'teams', 'about', 'join'];
 function go(v){
   if(!VIEWS.includes(v)) v='home';
   document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='view-'+v));
@@ -1361,6 +1361,7 @@ function go(v){
   try{ window.scrollTo(0,0); }catch(err){}
   closeModal();
   if(v==='standings') stPane(stp.p); else rpStop();
+  if(v==='news') loadNews();
 }
 document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]'); if(!a) return; const v=a.getAttribute('href').slice(1); if(VIEWS.includes(v)){e.preventDefault();go(v);}});
 try{ window.addEventListener('hashchange',()=>go(location.hash.slice(1))); }catch(err){}
@@ -1517,6 +1518,58 @@ function renderRecords(){
     nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b));
     document.querySelectorAll('.tm-pane').forEach(x=>x.classList.toggle('on',x.dataset.p===b.dataset.p));
     if(b.dataset.p==='tmh2h') renderHeadToHead();};
+})();
+
+/* ───────── News: FIA announcements + media (data/fia.json, data/media.json — written by the Discord sync) ───────── */
+const nw={tab:'fia',fia:null,media:null,at:0};
+function nwDate(iso){ try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }catch(e){ return ''; } }
+function nwSafe(u){ return /^(https?:\/\/|media\/)/.test(u||'')?u:''; }
+function nwRich(t){
+  let s=esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  s=s.replace(/(https?:\/\/(?:[^\s<&]|&amp;)+)/g,u=>'<a href="'+u+'" target="_blank" rel="noopener">'+u+'</a>');
+  return s.replace(/\n/g,'<br>');
+}
+function nwFile(it,f,tile){
+  const u=nwSafe(f.path);
+  if(!u) return '<a class="nw-ext" href="'+esc(it.url)+'" target="_blank" rel="noopener">'+esc(f.name||'Open on Discord')+' ↗</a>';
+  if(f.type==='image') return '<img class="nw-img" loading="lazy" src="'+esc(u)+'" alt="'+esc(f.name||'')+'" data-zoom="'+esc(u)+'">';
+  if(f.type==='video') return '<video class="nw-vid" controls preload="metadata" src="'+esc(u)+'"></video>';
+  return '<a class="nw-ext" href="'+esc(u)+'" target="_blank" rel="noopener">📎 '+esc(f.name||'Download')+'</a>';
+}
+function nwLinks(it){ return (it.links||[]).map(l=>nwSafe(l)?'<a class="nw-ext" href="'+esc(l)+'" target="_blank" rel="noopener">'+esc(l.replace(/^https?:\/\//,''))+' ↗</a>':'').join(''); }
+function renderNews(){
+  const box=document.getElementById('newsBoard'); if(!box) return;
+  const items=nw[nw.tab];
+  if(items===null){ box.innerHTML='<div class="empty">Loading…</div>'; return; }
+  if(!items.length){ box.innerHTML='<div class="empty">'+(nw.tab==='fia'?'No FIA announcements yet.':'No media yet.')+'</div>'; return; }
+  if(nw.tab==='fia'){
+    box.innerHTML='<div class="nw-list">'+items.map(it=>'<article class="nw-card"><div class="nw-meta"><b>'+esc(it.author)+'</b><span>'+esc(nwDate(it.date))+'</span></div>'+
+      (it.text?'<div class="nw-text">'+nwRich(it.text)+'</div>':'')+
+      ((it.files||[]).length?'<div class="nw-files">'+it.files.map(f=>nwFile(it,f)).join('')+'</div>':'')+
+      (nwLinks(it)?'<div class="nw-files">'+nwLinks(it)+'</div>':'')+'</article>').join('')+'</div>';
+  }else{
+    box.innerHTML='<div class="nw-grid">'+items.map(it=>'<article class="nw-tile"><div class="nw-media">'+
+      ((it.files||[]).map(f=>nwFile(it,f)).join('')+nwLinks(it))+'</div><div class="nw-cap"><div class="nw-meta"><b>'+esc(it.author)+'</b><span>'+esc(nwDate(it.date))+'</span></div>'+
+      (it.text?'<div class="nw-text">'+nwRich(it.text)+'</div>':'')+'</div></article>').join('')+'</div>';
+  }
+}
+async function loadNews(force){
+  renderNews();
+  if(!force&&nw.fia&&nw.media&&Date.now()-nw.at<5*60*1000) return;
+  const get=async f=>{ try{ const r=await fetch('data/'+f+'?t='+Date.now(),{cache:'no-store'}); return r.ok?await r.json():[]; }catch(e){ return []; } };
+  const [fia,media]=await Promise.all([get('fia.json'),get('media.json')]);
+  nw.fia=fia; nw.media=media; nw.at=Date.now(); renderNews();
+}
+(function(){
+  const nav=document.getElementById('newsSub'); if(!nav) return;
+  nav.onclick=e=>{ const b=e.target.closest('button[data-p]'); if(!b) return;
+    nav.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); nw.tab=b.dataset.p; renderNews(); };
+  document.getElementById('newsBoard').addEventListener('click',e=>{
+    const z=e.target.closest('[data-zoom]'); if(!z) return;
+    const o=document.createElement('div'); o.className='nw-light'; o.innerHTML='<img src="'+esc(z.dataset.zoom)+'" alt="">';
+    o.onclick=()=>o.remove(); document.body.appendChild(o); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const o=document.querySelector('.nw-light'); if(o) o.remove(); } });
+  setInterval(()=>{ const v=document.getElementById('view-news'); if(v&&v.classList.contains('on')&&!document.hidden) loadNews(true); },5*60*1000);
 })();
 
 /* ───────── live lineup sync ─────────
