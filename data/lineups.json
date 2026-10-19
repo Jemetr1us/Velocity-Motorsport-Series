@@ -270,24 +270,8 @@
           "pods": 0
         },
         {
-          "num": "20",
-          "code": "MD2",
-          "name": "SCKIBLES",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "22",
-          "code": "RD1",
-          "name": "Yuki",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
           "num": "60",
-          "code": "RD2",
+          "code": "RD1",
           "name": "EL_KRAZY",
           "pts": 0,
           "wins": 0,
@@ -309,9 +293,9 @@
           "pods": 0
         },
         {
-          "num": "92",
+          "num": "43",
           "code": "MD2",
-          "name": "Maldonado",
+          "name": "Ferchu",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -489,17 +473,25 @@
       "color": "#8e3bb5",
       "drivers": [
         {
-          "num": "22",
-          "code": "MD2",
-          "name": "Yuki",
+          "num": "33",
+          "code": "MD1",
+          "name": "RuTa",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "33",
+          "num": "—",
+          "code": "MD2",
+          "name": "FFAAXOLV The ORIGINAL🗕 🗗 🗙",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
           "code": "RD1",
-          "name": "RuTa",
+          "name": "Yuki",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -1050,9 +1042,17 @@
           "pods": 0
         },
         {
-          "num": "77",
+          "num": "33",
           "code": "MD2",
-          "name": "Bence",
+          "name": "Chicken_Bake",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "20",
+          "code": "MD3",
+          "name": "SCKIBLES",
           "pts": 0,
           "wins": 0,
           "pods": 0
