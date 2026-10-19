@@ -7,7 +7,16 @@ import { readFile, writeFile, mkdir, readdir, rm, access } from 'node:fs/promise
 import { parseLineupText } from './lineup-parser.mjs';
 
 const token = process.env.DISCORD_BOT_TOKEN;
-const lineupIds = process.env.LINEUPS_CHANNEL_ID || '', fiaId = (process.env.FIA_CHANNEL_ID || '').trim(), mediaId = (process.env.MEDIA_CHANNEL_ID || '').trim();
+const lineupIds = process.env.LINEUPS_CHANNEL_ID || '';
+const fiaId = (process.env.FIA_CHANNEL_ID || '').trim();
+const mediaId = (process.env.MEDIA_CHANNEL_ID || '').trim();
+
+const parseAllowedIds = value => new Set(
+  (value || '').split(',').map(id => id.trim()).filter(Boolean)
+);
+
+const fiaAllowedIds = parseAllowedIds(process.env.FIA_ALLOWED_USER_IDS);
+const mediaAllowedIds = parseAllowedIds(process.env.MEDIA_ALLOWED_USER_IDS);
 if (!token) { console.log('DISCORD_BOT_TOKEN not set – nothing to do.'); process.exit(0); }
 
 const ROOT = new URL('../', import.meta.url);
