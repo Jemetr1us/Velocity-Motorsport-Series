@@ -25,6 +25,8 @@ jobs:
           LINEUPS_CHANNEL_ID: ${{ vars.LINEUPS_CHANNEL_ID }}
           FIA_CHANNEL_ID: ${{ vars.FIA_CHANNEL_ID }}
           MEDIA_CHANNEL_ID: ${{ vars.MEDIA_CHANNEL_ID }}
+          FIA_ALLOWED_USER_IDS: ${{ vars.FIA_ALLOWED_USER_IDS }}
+          MEDIA_ALLOWED_USER_IDS: ${{ vars.MEDIA_ALLOWED_USER_IDS }}
 
       - name: Commit website data and media
         run: |
