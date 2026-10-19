@@ -97,8 +97,14 @@ async function download(a, name) {
   await mkdir(new URL('media/', ROOT), { recursive: true });
   await writeFile(dest, Buffer.from(await r.arrayBuffer())); return true;
 }
-async function buildFeed(channelId, limit) {
-  const msgs = (await api(`/channels/${channelId}/messages?limit=${limit}`)).filter(m => m.type === 0 || m.type === 19); // newest first
+async function buildFeed(channelId, limit, allowedIds, label) {
+  const msgs = (await api(`/channels/${channelId}/messages?limit=${limit}`))
+    .filter(m =>
+      (m.type === 0 || m.type === 19) &&
+      allowedIds.has(m.author?.id)
+    );
+
+  console.log(`${label}: ${msgs.length} approved posts`);
   const ctx = await contextFor(channelId, msgs);
   const items = [];
   for (const m of msgs) {
@@ -119,7 +125,23 @@ async function buildFeed(channelId, limit) {
   }
   return items;
 }
-async function syncFeed(label, channelId, file, limit) {
+async function syncFeed(label, channelId, file, limit, allowedIds) {
+  if (!channelId) {
+    console.log(`${label}: channel id not set, skipped`);
+    return;
+  }
+
+  const old = await readJson(file, []);
+
+  if (!allowedIds.size) {
+    console.log(`${label}: whitelist is empty; clearing feed for safety`);
+    await writeIfChanged(file, [], old);
+    return;
+  }
+
+  const items = await buildFeed(channelId, limit, allowedIds, label);
+  await writeIfChanged(file, items, old);
+}
   if (!channelId) { console.log(`${label}: channel id not set, skipped`); return; }
   const old = await readJson(file, []);
   const items = await buildFeed(channelId, limit);
