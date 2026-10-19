@@ -156,6 +156,6 @@ async function cleanMedia() {
 }
 
 await syncLineups();
-await syncFeed('FIA', fiaId, 'data/fia.json', 30);
-await syncFeed('Media', mediaId, 'data/media.json', 50);
+await syncFeed('FIA', fiaId, 'data/fia.json', 30, fiaAllowedIds);
+await syncFeed('Media', mediaId, 'data/media.json', 50, mediaAllowedIds);
 await cleanMedia();
