@@ -1467,17 +1467,38 @@ function renderRecords(){
     const s=rs.series, r=roundsWithResults(s).find(x=>x.rnd===rs.rnd);
     if(!r){box.innerHTML='';return;}
     const rows=D.results[rkey(r,s)]||[];
-    const idxs=rows.map((x,i)=>i).filter(i=>!bad.test(rows[i].note||'')&&rows[i].pos>=1&&rows[i].pos<=3).sort((a,b)=>rows[a].pos-rows[b].pos).slice(0,3);
+    /* one card per finishing position (P1, P2, P3). Two drivers on the same position share a card that flips on hover. */
+    const byPos={};
+    rows.forEach((x,i)=>{ if(bad.test(x.note||'')||x.pos<1||x.pos>3) return; (byPos[x.pos]=byPos[x.pos]||[]).push(i); });
+    const groups=Object.keys(byPos).map(Number).sort((a,b)=>a-b).slice(0,3).map(pos=>byPos[pos].slice(0,2));
+    const idxs=[].concat(...groups);
     if(!idxs.length){box.innerHTML='';return;}
-    box.innerHTML=`<div class="lp-pod">${idxs.map(i=>rows[i]).map(x=>`<div class="lp-c p${x.pos}" data-name="${esc(x.name)}" style="--c:${esc(colorOf(s,x.team,x.name))}"><div class="lp-pos">${x.pos}</div><div class="lp-n">${esc(x.name)}</div><div class="lp-t">${esc(x.team||'')}</div>
-      <div class="lp-tags">${x.pole?'<span class="tag pole">Pole</span>':''}${x.fl?'<span class="tag fl">Fastest Lap</span>':''}</div><div class="lp-p">${x.pts}<small>PTS</small></div>${x.gap?`<div class="lp-gap">${esc(x.gap)}</div>`:''}${x.note?`<div class="lp-note">${esc(x.note)}</div>`:''}</div>`).join('')}</div>`;
-    box.onclick=e=>{const c=e.target.closest('[data-name]'); if(c) openDriver(rs.series,c.dataset.name);};
+    const face=(x,cls,tie)=>`<div class="lp-c p${x.pos}${cls}" data-name="${esc(x.name)}" style="--c:${esc(colorOf(s,x.team,x.name))}"><div class="lp-pos">${x.pos}</div><div class="lp-n">${esc(x.name)}</div><div class="lp-t">${esc(x.team||'')}</div>
+      <div class="lp-tags">${x.pole?'<span class="tag pole">Pole</span>':''}${x.fl?'<span class="tag fl">Fastest Lap</span>':''}</div><div class="lp-p">${x.pts}<small>PTS</small></div>${x.gap?`<div class="lp-gap">${esc(x.gap)}</div>`:''}${x.note?`<div class="lp-note">${esc(x.note)}</div>`:''}${tie?`<div class="lp-tie">⇄ ${tie}</div>`:''}</div>`;
+    box.innerHTML=`<div class="lp-pod">${groups.map(g=>{
+      const x=rows[g[0]];
+      if(g.length<2) return face(x,'','');
+      const y=rows[g[1]];
+      return `<div class="lp-flip p${x.pos}" tabindex="0" aria-label="P${x.pos} is shared by ${esc(x.name)} and ${esc(y.name)}. Hover to flip."><div class="lp-in">${face(x,' lp-front',`Tied P${x.pos} · 1 of 2 · hover to flip`)}${face(y,' lp-back',`Tied P${x.pos} · 2 of 2`)}</div></div>`;
+    }).join('')}</div>`;
+    box.onclick=e=>{
+      const f=e.target.closest('.lp-flip');
+      if(f&&window.matchMedia&&matchMedia('(hover:none)').matches&&!e.target.closest('.lp-n')){ f.classList.toggle('flipped'); return; }
+      const c=e.target.closest('[data-name]'); if(c) openDriver(rs.series,c.dataset.name);
+    };
     /* the table below carries on from P4 — drop the rows already on the podium */
     if(rbd){
       const trs=rbd.querySelectorAll('tbody tr'); idxs.forEach(i=>{ if(trs[i]) trs[i].remove(); });
       if(!rbd.querySelector('tbody tr')) rbd.style.display='none';
     }
   }
+  if(!document.getElementById('lp-flip-css')){ const st=document.createElement('style'); st.id='lp-flip-css'; st.textContent=
+   '.lp-flip{perspective:1400px;outline:none}.lp-flip.p2{order:-1}.lp-flip .lp-in{display:grid;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,.2,.2,1)}'+
+   '.lp-flip .lp-c{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden}.lp-flip .lp-c:hover{transform:none}'+
+   '.lp-flip .lp-back,.lp-flip .lp-back:hover{transform:rotateY(180deg)}'+
+   '.lp-flip:hover .lp-in,.lp-flip:focus .lp-in,.lp-flip.flipped .lp-in{transform:rotateY(180deg)}'+
+   '.lp-tie{margin-top:10px;font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--c);opacity:.9}'+
+   '@media(max-width:800px){.lp-flip.p1{order:-1}.lp-flip.p2{order:0}}'; document.head.appendChild(st); }
   const rb=$('resBoard');
   if(rb){
     rb.insertAdjacentHTML('beforebegin','<div id="lpBoard" style="margin-bottom:22px"></div>');
