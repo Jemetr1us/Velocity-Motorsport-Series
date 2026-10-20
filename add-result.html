@@ -32,6 +32,7 @@ td input,td select{padding:7px 8px;font-size:13px}
 td.pos{width:64px}td.pos input{width:54px;text-align:center;font-weight:700;color:var(--pink);padding:7px 4px}td.pos.manual input,tr.posman td.pos input{border-color:var(--warn)}
 td.chk{width:46px;text-align:center}td.chk input{width:auto;transform:scale(1.25)}
 td.pts input{width:62px;text-align:center}
+td.gp input{width:92px}
 td.x{width:96px;white-space:nowrap}
 .scroll{overflow-x:auto}
 .hint{color:var(--mut);font-size:12px;line-height:1.5}
@@ -68,12 +69,12 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
     <summary>⚡ Quick paste (one driver per line, in finishing order)</summary>
     <p class="hint">Copy the result from Discord and paste it here. Position numbers you paste are kept if they differ from the normal order (e.g. two drivers on <code>1</code>).
       Add <code>DNF</code>, <code>DNS</code> or <code>DSq</code> at the end of a line, <code>pole</code> / <code>fl</code> anywhere for bonuses,
-      or <code>- Team Name</code> to set the team. Example: <code>2. Douzy fl</code> &nbsp; <code>Lory - Richard Mille LM Motorsport F1</code> &nbsp; <code>Nick DNF</code></p>
+      <code>+12.345</code> for the gap, or <code>- Team Name</code> to set the team. Example: <code>2. Douzy fl</code> &nbsp; <code>Lory - Richard Mille LM Motorsport F1</code> &nbsp; <code>Nick DNF</code></p>
     <textarea id="paste" placeholder="1. Nick pole&#10;2. Douzy fl&#10;3. Lory&#10;4. Noel DNF"></textarea>
     <p><button class="btn alt sm" id="pasteBtn">Fill the table from this</button></p>
   </details>
   <div class="scroll" style="margin-top:12px"><table>
-    <thead><tr><th title="Finishing position. Auto-numbered, but you can type any number (e.g. two drivers on 1) and the points follow it">P</th><th>Driver</th><th>Team</th><th>Status</th><th>Pole</th><th>FL</th><th title="Points count for the constructors only (driver retired from the championship)">WCC only</th><th>Pts</th><th>Note</th><th></th></tr></thead>
+    <thead><tr><th title="Finishing position. Auto-numbered, but you can type any number (e.g. two drivers on 1) and the points follow it">P</th><th>Driver</th><th>Team</th><th>Status</th><th>Pole</th><th>FL</th><th title="Points count for the constructors only (driver retired from the championship)">WCC only</th><th title="Gap to the winner, e.g. +12.345 or +1 Lap (optional)">Gap</th><th>Pts</th><th>Note</th><th></th></tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
   <p class="row" style="margin-top:12px">
@@ -215,7 +216,8 @@ function loadRound(){
 }
 // turn a built-in result row into the shape the table expects
 function hardRow(r){ const m=String(r.note||'').match(/^(DNF|DNS|DSq)\b/i); const st=m?(m[1].toUpperCase()==='DSQ'?'DSq':m[1].toUpperCase()):'';
-  return {pos:r.pos,name:r.name,team:r.team,pts:r.pts,fl:!!r.fl,pole:!!r.pole,status:st,note:r.note||'',wccOnly:/WCC only/i.test(r.note||''),gap:r.gap||''}; }
+  let gap=r.gap||'', note=r.note||''; if(!gap&&/^\+[\d:.]+(\s*laps?)?$/i.test(note.trim())){ gap=note.trim(); note=''; }
+  return {pos:r.pos,name:r.name,team:r.team,pts:r.pts,fl:!!r.fl,pole:!!r.pole,status:st,note,wccOnly:/WCC only/i.test(r.note||''),gap}; }
 function showRoundInfo(){
   const r=S.races.find(x=>x.rnd===$('round').value); if(!r) return;
   const ex=S.editing;
@@ -234,12 +236,12 @@ function addRow(d){
   <td class="chk"><input type="checkbox" class="po"${d.pole?' checked':''}></td>
   <td class="chk"><input type="checkbox" class="fl"${d.fl?' checked':''}></td>
   <td class="chk"><input type="checkbox" class="wc"${d.wccOnly?' checked':''}></td>
+  <td class="gp"><input class="g" placeholder="+0.000" value="${esc(d.gap||'')}" autocomplete="off"></td>
   <td class="pts"><input class="p" type="number" min="0" step="1" value="${d.pts!=null?d.pts:''}"></td>
   <td><input class="no" placeholder="Note (optional)" value="${esc(userNote(d))}"></td>
   <td class="x"><button type="button" class="btn alt sm up" title="Move up">↑</button> <button type="button" class="btn alt sm dn" title="Move down">↓</button> <button type="button" class="btn alt sm rm" title="Remove">✕</button></td>`;
   tr.querySelector('.st').value=d.status||'';
   if(d.pos!=null&&d.pos!=='') tr.dataset.loadPos=d.pos;
-  if(d.gap) tr.dataset.gap=d.gap;
   if(d.pts!=null&&d.pts!==''){ tr.dataset.manual='1'; tr.classList.add('manual'); }
   $('rows').appendChild(tr);
   return tr;
@@ -294,19 +296,20 @@ function fromPaste(){
   const lines=$('paste').value.split('\n').map(l=>l.trim()).filter(Boolean); if(!lines.length) return;
   $('rows').innerHTML='';
   lines.forEach(l=>{
-    let t='', st='', pole=false, fl=false;
+    let t='', st='', pole=false, fl=false, gap='';
     const pm0=l.match(/^\s*(?:p|pos)?\s*(\d{1,2})\s*[.):\-–]?\s+/i); const given=pm0?+pm0[1]:0;
     l=l.replace(/^\s*(?:p|pos)?\s*\d{1,2}\s*[.):\-–]?\s+/i,'');           // leading position
     l=l.replace(/[*_`]/g,'');                                             // discord markdown
     if(/\b(pole)\b/i.test(l)){pole=true;l=l.replace(/\(?\bpole\b\)?/ig,'');}
     if(/\b(fl|fastest lap)\b/i.test(l)){fl=true;l=l.replace(/\(?\b(fastest lap|fl)\b\)?/ig,'');}
+    const gm=l.match(/\+\s?\d[\d:.]*(?:\s*laps?)?/i); if(gm){ gap=gm[0].replace(/\s+/g,' ').replace(/^\+\s/,'+'); l=l.replace(gm[0],' '); }
     const sm=l.match(/\b(DNF|DNS|DSQ)\b/i); if(sm){st=sm[1].toUpperCase()==='DSQ'?'DSq':sm[1].toUpperCase(); l=l.replace(sm[0],'');}
     const parts=l.split(/\s+[-–—|]\s+/); l=parts[0]; if(parts[1]) t=parts[1].trim();
     const name=l.replace(/[()]/g,' ').replace(/\s+/g,' ').trim(); if(!name) return;
     // match to a known driver name (case-insensitive)
     const known=Object.keys(S.drivers[S.series]).find(k=>norm(k)===norm(name));
     const nm=known||name; if(!t) t=S.drivers[S.series][nm]||'';
-    addRow({name:nm,team:t,status:st,pole,fl,pos:given||undefined});
+    addRow({name:nm,team:t,status:st,pole,fl,gap,pos:given||undefined});
   });
   renumber(); showRoundInfo();
 }
@@ -321,7 +324,7 @@ function readRows(){
     if(tr.querySelector('.fl').checked) row.fl=true;
     if(tr.querySelector('.po').checked) row.pole=true;
     if(tr.querySelector('.wc').checked) row.wccOnly=true;
-    if(tr.dataset.gap) row.gap=tr.dataset.gap;
+    const gap=tr.querySelector('.g').value.trim(); if(gap) row.gap=gap;
     if(status) row.status=status;
     const note=[status,un].filter(Boolean).join(' · '); if(note) row.note=note;
     out.push(row);
