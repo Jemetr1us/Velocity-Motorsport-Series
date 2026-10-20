@@ -105,13 +105,17 @@
         "pos": 12,
         "name": "RuTa",
         "team": "GlitchGP F2 Team",
-        "pts": 0
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
       },
       {
         "pos": 13,
         "name": "dante",
         "team": "Tarigy's Motorsport Team F2",
-        "pts": 0
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
       }
     ]
   }
