@@ -23,7 +23,7 @@
         },
         {
           "num": "03",
-          "code": "RD2",
+          "code": "RD1",
           "name": "Skirmis",
           "pts": 0,
           "wins": 0,
@@ -33,7 +33,7 @@
     },
     {
       "name": "Scuderia Ferrari",
-      "engine": "CEO: pringle- jem #1 fan",
+      "engine": "CEO: pringle- jem #1 fan · Director: Perez",
       "color": "#dc143c",
       "drivers": [
         {
@@ -72,7 +72,7 @@
     },
     {
       "name": "Vodafone McLaren",
-      "engine": "CEO: Neon | Hacked · Director: Zachary | McLaren Director",
+      "engine": "CEO: Neon | Renault & McLaren CEO · Director: Zachary | McLaren Director",
       "color": "#ff8000",
       "drivers": [
         {
@@ -84,25 +84,9 @@
           "pods": 0
         },
         {
-          "num": "17",
+          "num": "93",
           "code": "MD2",
-          "name": "Theo",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "RD1",
-          "name": "Veyro",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "RD2",
-          "name": "D̶Y̶N̶I̶X̶",
+          "name": "Amin",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -111,13 +95,13 @@
     },
     {
       "name": "Renault Sport Formula 1 Team",
-      "engine": "CEO: Neon | Hacked",
+      "engine": "CEO: Neon | Renault & McLaren CEO",
       "color": "#60a5fa",
       "drivers": [
         {
-          "num": "93",
+          "num": "—",
           "code": "MD1",
-          "name": "Amin",
+          "name": "GreenShinobi (@sologamer537)",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -154,9 +138,17 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "7",
+          "code": "MD2",
+          "name": "Tommy",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "44",
           "code": "RD1",
-          "name": "Flare (@Dr_DapperBowtie)",
+          "name": "Joshua",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -235,7 +227,7 @@
     },
     {
       "name": "Vanguard Sabre Motorsport",
-      "engine": "CEO: POnight_LAlloy",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
       "color": "#7f1010",
       "drivers": [
         {
@@ -265,6 +257,14 @@
           "num": "77",
           "code": "MD1",
           "name": "Bence",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "3",
+          "code": "MD2",
+          "name": "Anti",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -419,7 +419,7 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "22",
           "code": "MD2",
           "name": "dante",
           "pts": 0,
@@ -430,7 +430,7 @@
     },
     {
       "name": "AF Corsa",
-      "engine": "CEO: pringle- jem #1 fan",
+      "engine": "CEO: pringle- jem #1 fan · Director: Perez",
       "color": "#ef0000",
       "drivers": [
         {
@@ -500,7 +500,7 @@
     },
     {
       "name": "Vanguard Sabre Racing",
-      "engine": "CEO: POnight_LAlloy",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
       "color": "#7f1010",
       "drivers": [
         {
@@ -569,22 +569,22 @@
       ]
     },
     {
-      "name": "Racing Point F2",
-      "engine": "CEO: G spot | of BMW",
-      "color": "#d100ff",
+      "name": "BWL Sim Racing Team",
+      "engine": "CEO: Roven | BWL CEO",
+      "color": "#888888",
       "drivers": [
         {
-          "num": "—",
+          "num": "27",
           "code": "MD1",
-          "name": "unknown-user",
+          "name": "Patrykowski",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "55",
-          "code": "RD1",
-          "name": "JULES",
+          "num": "47",
+          "code": "MD2",
+          "name": "Kashin",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -659,17 +659,17 @@
       "color": "#7dd3fc",
       "drivers": [
         {
-          "num": "46",
+          "num": "17",
           "code": "MD1",
-          "name": "HB~",
+          "name": "AO",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "17",
+          "num": "93",
           "code": "MD2",
-          "name": "AO",
+          "name": "Dex",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -746,9 +746,9 @@
       "color": "#22c55e",
       "drivers": [
         {
-          "num": "5",
+          "num": "39",
           "code": "MD1",
-          "name": "Sam",
+          "name": "CHES",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -785,9 +785,9 @@
       "color": "#60a5fa",
       "drivers": [
         {
-          "num": "—",
+          "num": "27",
           "code": "MD1",
-          "name": "HONOR3D (@Aarnavs_shadow)",
+          "name": "Aarnav",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -832,9 +832,9 @@
           "pods": 0
         },
         {
-          "num": "13",
-          "code": "RD1",
-          "name": "Chipi menor",
+          "num": "79",
+          "code": "MD3",
+          "name": "d1MA",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -874,7 +874,7 @@
     },
     {
       "name": "Pola Sabre Motorsports",
-      "engine": "CEO: POnight_LAlloy · Director: Malik (@Malil1401)",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
       "color": "#1e40af",
       "drivers": [
         {
@@ -913,7 +913,7 @@
     },
     {
       "name": "Anonymous Juniors",
-      "engine": "CEO: pringle- jem #1 fan",
+      "engine": "CEO: pringle- jem #1 fan · Director: Perez",
       "color": "#dc143c",
       "drivers": [
         {
@@ -956,9 +956,9 @@
       "color": "#eab308",
       "drivers": [
         {
-          "num": "45",
+          "num": "81",
           "code": "MD1",
-          "name": "ellie",
+          "name": "Bleh",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -994,14 +994,6 @@
       "engine": "CEO: Jamie | BMW Sauber CEO",
       "color": "#7dd3fc",
       "drivers": [
-        {
-          "num": "5",
-          "code": "MD1",
-          "name": "Kashin",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
         {
           "num": "37",
           "code": "MD2",
