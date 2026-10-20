@@ -31,3 +31,16 @@ videos up to 25 MB are saved; anything bigger shows as an "Open on Discord" link
 from Discord disappear from the site, and their files are deleted on the next run.
 
 If a driver's Discord nickname isn't how the site spells them, add it to data/name-map.json.
+
+## Adding race results (easy way)
+Open **`add-result.html`** on your site (e.g. `yoursite.github.io/Velocity-Motorsport-Series/add-result.html`).
+1. Pick the series and round (the next round without results is pre-selected).
+2. Type the finishing order, or paste it from Discord with **Quick paste** (supports `DNF`, `DNS`, `DSq`, `pole`, `fl`, `- Team Name`).
+   Driver/team suggestions come from the existing standings and lineups; points are filled in automatically (editable).
+3. Click **Save this race to the list**, then **Publish to GitHub** (needs a fine-grained token with *Contents: read & write*
+   on this repo – saved only in your browser), or use **Copy JSON / Download** and replace `data/new-results.json` by hand.
+
+Results are stored in `data/new-results.json`. On load, `app.js` layers them on top of the built-in tables: the race
+appears on the Results page, driver + constructor points are added, form dots are appended and standings are re-sorted.
+A round that already has results hard-coded in `app.js` is skipped (and greyed out in the tool). To fix a mistake, open the
+tool, hit **Edit** on the saved race, change it and publish again.

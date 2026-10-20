@@ -883,6 +883,38 @@ function conFor(s,teamName){
   const list=D.standings[s].constructors, n=normTeam(teamName);
   return list.find(c=>normTeam(c.name)===n)||list.find(c=>normTeam(c.name).startsWith(n)||n.startsWith(normTeam(c.name)))||null;
 }
+/* ───────── results added through add-result.html (data/new-results.json) ─────────
+   Each entry = one series + one round. They're layered on top of the hard-coded tables above:
+   the race result is added, driver + constructor points are bumped, form dots are appended. */
+(function applyNewResults(){
+  const list=window.VMS_NEW_RESULTS; if(!Array.isArray(list)) return;
+  list.forEach(e=>{
+    const s=e&&e.series, race=real.find(r=>r.rnd===String(e&&e.rnd));
+    if(!SERIES.includes(s)||!race||!Array.isArray(e.rows)||!e.rows.length) return;
+    const key=rkey(race,s);
+    if(D.results[key]){ console.warn('new-results.json: '+key+' already has results in app.js — skipped'); return; }
+    const rows=e.rows.map((x,i)=>({pos:+x.pos||i+1,name:x.name,team:x.team||'',pts:+x.pts||0,fl:!!x.fl,pole:!!x.pole,note:x.note||'',status:x.status||'',wccOnly:!!x.wccOnly,gap:x.gap||''}));
+    D.results[key]=rows; race.status='completed';
+    const st=D.standings[s];
+    rows.forEach(x=>{
+      const c=canon(s,x.name), form=/^(DNF|DNS|DSq)$/i.test(x.status)?x.status:(x.pos===1?'W':String(x.pos));
+      if(!x.wccOnly){
+        let d=st.drivers.find(v=>canon(s,v.name)===c);
+        if(!d){ const li=lineupFor(s,x.name); d={name:x.name,code:(li&&li.code)||'—',team:x.team,pts:0,wins:0,pods:0,dnf:0,pos:0,gap:'0',form:[]}; st.drivers.push(d); }
+        d.pts=(+d.pts||0)+x.pts; if(x.team) d.team=x.team; (d.form=d.form||[]).push(form);
+      }
+      if(x.team&&x.pts){
+        let t=conFor(s,x.team);
+        if(!t){ const li=(D.info[s]||[]).find(v=>normTeam(v.name)===normTeam(x.team)); t={name:x.team,color:(li&&li.color)||'#888888',pts:0,pos:0}; st.constructors.push(t); }
+        t.pts=(+t.pts||0)+x.pts;
+      }
+    });
+    const top=Math.max(0,...st.drivers.map(d=>+d.pts||0));
+    st.drivers.sort((a,b)=>b.pts-a.pts).forEach((d,i)=>{d.pos=i+1; d.gap=String((+d.pts||0)-top);});
+    st.constructors.sort((a,b)=>b.pts-a.pts).forEach((c,i)=>{c.pos=i+1;});
+  });
+})();
+
 function tabs(el,items,active,fn){
   el.innerHTML=items.map(([k,l])=>`<button class="tab${k===active?' on':''}" data-k="${k}">${esc(l)}</button>`).join('');
   el.onclick=e=>{const b=e.target.closest('.tab'); if(b) fn(b.dataset.k);};

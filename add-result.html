@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>VMS | Add Results</title>
+<style>
+:root{--pink:#e8186d;--bg:#050505;--card:#0f0f0f;--line:#262626;--mut:#8a8a8a;--ok:#2ecc71;--warn:#f5a623}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#fff;font-size:14px}
+header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header img{height:34px}header h1{font-size:15px;letter-spacing:2px;margin:0;text-transform:uppercase}
+header a{margin-left:auto;color:var(--mut);font-size:12px}
+main{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);padding:16px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--pink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+label{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+input,select,textarea{background:#000;color:#fff;border:1px solid #333;padding:9px 10px;font-size:14px;font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pink)}
+textarea{min-height:90px;resize:vertical;font-family:Consolas,monospace;font-size:13px}
+.tabs{display:flex;gap:6px}
+.tab{background:#000;color:#aaa;border:1px solid #333;padding:10px 18px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.tab.on{background:var(--pink);border-color:var(--pink);color:#fff}
+button.btn{background:var(--pink);color:#fff;border:0;padding:11px 18px;font-weight:700;letter-spacing:1px;cursor:pointer;font-size:12px;text-transform:uppercase}
+button.btn.alt{background:#000;border:1px solid #444}
+button.btn.sm{padding:7px 10px;font-size:11px}
+button.btn:hover{filter:brightness(1.15)}
+button.btn:disabled{opacity:.4;cursor:default}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);text-align:left;padding:4px 4px}
+td{padding:3px 3px;vertical-align:middle}
+td input,td select{padding:7px 8px;font-size:13px}
+td.pos{width:34px;font-weight:700;color:var(--pink);text-align:center}
+td.chk{width:46px;text-align:center}td.chk input{width:auto;transform:scale(1.25)}
+td.pts input{width:62px;text-align:center}
+td.x{width:96px;white-space:nowrap}
+.scroll{overflow-x:auto}
+.hint{color:var(--mut);font-size:12px;line-height:1.5}
+.pill{display:inline-block;font-size:10px;letter-spacing:1px;padding:3px 7px;border:1px solid #444;color:#bbb;text-transform:uppercase}
+.pill.ok{border-color:var(--ok);color:var(--ok)}.pill.warn{border-color:var(--warn);color:var(--warn)}
+.msg{padding:10px 12px;margin:10px 0;border-left:3px solid var(--pink);background:#160a10;font-size:13px}
+.msg.ok{border-color:var(--ok);background:#0a160e}.msg.err{border-color:#e5484d;background:#2a0e10}
+.entries .e{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1c1c1c}
+.entries .e b{flex:1}
+.manual input{border-color:var(--warn)}
+details summary{cursor:pointer;color:var(--mut);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.grow{flex:1;min-width:150px}
+code{background:#000;padding:1px 5px;border:1px solid #222}
+</style></head><body>
+<header><img src="assets/logo.png" alt="VMS"><h1>Add Race Results</h1><a href="index.html">← Back to site</a></header>
+<main>
+<div id="boot" class="msg">Loading…</div>
+<datalist id="dl"></datalist><datalist id="tl"></datalist>
+
+<div class="card">
+  <h2>1 · Which race?</h2>
+  <div class="row">
+    <div><label>Series</label><div class="tabs" id="serTabs"></div></div>
+    <div class="grow"><label>Round</label><select id="round"></select></div>
+    <div><label>Points rule</label>
+      <select id="half"><option value="0">Full points</option><option value="1">Half points (50% rule)</option></select></div>
+  </div>
+  <div id="roundInfo" class="hint" style="margin-top:10px"></div>
+</div>
+
+<div class="card">
+  <h2>2 · Enter the result</h2>
+  <details>
+    <summary>⚡ Quick paste (one driver per line, in finishing order)</summary>
+    <p class="hint">Copy the result from Discord and paste it here. Position numbers are ignored (order = finishing order).
+      Add <code>DNF</code>, <code>DNS</code> or <code>DSq</code> at the end of a line, <code>pole</code> / <code>fl</code> anywhere for bonuses,
+      or <code>- Team Name</code> to set the team. Example: <code>2. Douzy fl</code> &nbsp; <code>Lory - Richard Mille LM Motorsport F1</code> &nbsp; <code>Nick DNF</code></p>
+    <textarea id="paste" placeholder="1. Nick pole&#10;2. Douzy fl&#10;3. Lory&#10;4. Noel DNF"></textarea>
+    <p><button class="btn alt sm" id="pasteBtn">Fill the table from this</button></p>
+  </details>
+  <div class="scroll" style="margin-top:12px"><table>
+    <thead><tr><th>P</th><th>Driver</th><th>Team</th><th>Status</th><th>Pole</th><th>FL</th><th title="Points count for the constructors only (driver retired from the championship)">WCC only</th><th>Pts</th><th>Note</th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <p class="row" style="margin-top:12px">
+    <button class="btn alt sm" id="addRow">+ Add driver</button>
+    <button class="btn alt sm" id="clearRows">Clear table</button>
+    <span class="hint" id="ptsHint"></span>
+  </p>
+  <div id="warn"></div>
+  <p><button class="btn" id="saveEntry">Save this race to the list ↓</button></p>
+</div>
+
+<div class="card">
+  <h2>3 · Saved results (not live until published)</h2>
+  <div class="entries" id="entries"></div>
+  <p class="hint" id="entriesHint"></p>
+</div>
+
+<div class="card">
+  <h2>4 · Publish</h2>
+  <div class="row">
+    <div class="grow"><label>GitHub repo (owner/name)</label><input id="gRepo" placeholder="yourname/Velocity-Motorsport-Series" autocomplete="off"></div>
+    <div style="width:110px"><label>Branch</label><input id="gBranch" value="main"></div>
+    <div class="grow"><label>Access token</label><input id="gToken" type="password" placeholder="github_pat_…" autocomplete="off"></div>
+  </div>
+  <p class="hint">Use a fine-grained token limited to this one repo with <b>Contents: Read and write</b>. It's stored only in this browser. Publishing commits <code>data/new-results.json</code> and the site updates in a minute or two.</p>
+  <p class="row">
+    <button class="btn" id="publish">Publish to GitHub</button>
+    <button class="btn alt" id="copy">Copy JSON</button>
+    <button class="btn alt" id="download">Download new-results.json</button>
+  </p>
+  <div id="pubMsg"></div>
+  <details><summary>Show JSON</summary><textarea id="json" readonly style="min-height:200px"></textarea></details>
+</div>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const SERIES=['f1','f2','f3'], LBL={f1:'F1',f2:'F2',f3:'F3'};
+const S={series:'f1',entries:[],loaded:[],races:[],hardKeys:new Set(),points:{},bonusFl:{},bonusPole:{},
+         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},editing:null};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const unq=s=>s.replace(/\\'/g,"'");
+const norm=s=>String(s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,'').trim();
+const msg=(el,t,k)=>{el.innerHTML=t?`<div class="msg ${k||''}">${t}</div>`:'';};
+
+/* ───── load site data: races, points, drivers, teams ───── */
+async function boot(){
+  try{
+    const [appTxt,lineups,newRes]=await Promise.all([
+      fetch('app.js',{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.text();}),
+      fetch('data/lineups.json',{cache:'no-store'}).then(r=>r.json()),
+      fetch('data/new-results.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[])
+    ]);
+    // races
+    const re=/\{rnd:'([^']+)',\s*name:'((?:[^'\\]|\\.)*)'[^}]*?satDate:'([^']*)',\s*sunDate:'([^']*)',\s*status:'(\w+)'[^}]*?flag:'([^']*)'/g;
+    let m; while((m=re.exec(appTxt))){ if(m[5]==='break'||m[1]==='BREAK') continue;
+      S.races.push({rnd:m[1],name:unq(m[2]),sat:m[3],sun:m[4],status:m[5],flag:m[6]}); }
+    if(!S.races.length) throw new Error('no races found');
+    // hard-coded results
+    const rk=/^\s*'(\d+)-(f[123])':\s*\[/gm; while((m=rk.exec(appTxt))) S.hardKeys.add(m[1]+'-'+m[2]);
+    // points
+    const pm=appTxt.match(/points:\s*\{f1:\[([^\]]*)\],\s*f2:\[([^\]]*)\],\s*f3:\[([^\]]*)\]\}/);
+    SERIES.forEach((s,i)=>{S.points[s]=pm?pm[i+1].split(',').map(x=>+x.trim()):[25,18,15,12,10,8,6,4,2,1];});
+    const bf=appTxt.match(/bonusFl:\s*\{f1:(\d+),\s*f2:(\d+),\s*f3:(\d+)\}/), bp=appTxt.match(/bonusPole:\s*\{f1:(\d+),\s*f2:(\d+),\s*f3:(\d+)\}/);
+    SERIES.forEach((s,i)=>{S.bonusFl[s]=bf?+bf[i+1]:0;S.bonusPole[s]=bp?+bp[i+1]:0;});
+    // drivers → team from the hard-coded standings (sections split by the // ===== markers)
+    const i1=appTxt.indexOf('// ================= F1'), i2=appTxt.indexOf('// ================= F2'), i3=appTxt.indexOf('// ================= F3'), i4=appTxt.indexOf('// ================= GENERAL');
+    const secs={f1:appTxt.slice(i1,i2),f2:appTxt.slice(i2,i3),f3:appTxt.slice(i3,i4)};
+    SERIES.forEach(s=>{
+      const dr=/\{name:'((?:[^'\\]|\\.)*)',\s*code:'[^']*',\s*team:'((?:[^'\\]|\\.)*)',\s*pts:/g; let d;
+      while((d=dr.exec(secs[s]))){ S.drivers[s][unq(d[1])]=unq(d[2]); }
+      (lineups[s]||[]).forEach(t=>{ S.teams[s].add(t.name); (t.drivers||[]).forEach(x=>{ if(x.name&&x.name!=='—'&&!S.drivers[s][x.name]) S.drivers[s][x.name]=t.name; }); });
+    });
+    S.loaded=Array.isArray(newRes)?newRes:[]; S.entries=JSON.parse(JSON.stringify(S.loaded));
+    S.entries.forEach(e=>e.rows.forEach(r=>{ if(r.name&&r.team) S.drivers[e.series][r.name]=r.team; if(r.team) S.teams[e.series].add(r.team); }));
+    $('boot').remove();
+    init();
+  }catch(err){
+    msg($('boot'),"Couldn't load the site data. Open this page through a web server (GitHub Pages, or <code>npx serve</code> locally) — double-clicking the file won't work. ("+esc(err&&err.message||err)+")",'err');
+    $('boot').outerHTML=$('boot').innerHTML;
+  }
+}
+
+/* ───── UI ───── */
+function init(){
+  // saved GitHub settings
+  try{ $('gRepo').value=localStorage.getItem('vms_repo')||''; $('gBranch').value=localStorage.getItem('vms_branch')||'main'; $('gToken').value=localStorage.getItem('vms_token')||''; }catch(e){}
+  $('serTabs').innerHTML=SERIES.map(s=>`<button type="button" class="tab" data-s="${s}">${LBL[s]}</button>`).join('');
+  $('serTabs').onclick=e=>{const b=e.target.closest('.tab'); if(b){S.series=b.dataset.s; setSeries();}};
+  $('round').onchange=roundChanged;
+  $('half').onchange=recalcAll;
+  $('addRow').onclick=()=>{addRow(); focusLast();};
+  $('clearRows').onclick=()=>{$('rows').innerHTML=''; S.editing=null; for(let i=0;i<3;i++) addRow(); renumber(); showRoundInfo();};
+  $('pasteBtn').onclick=fromPaste;
+  $('saveEntry').onclick=saveEntry;
+  $('copy').onclick=()=>{ $('json').select(); navigator.clipboard?navigator.clipboard.writeText($('json').value).then(()=>msg($('pubMsg'),'Copied. Paste it into <code>data/new-results.json</code> in the repo.','ok')):document.execCommand('copy'); };
+  $('download').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('json').value],{type:'application/json'})); a.download='new-results.json'; a.click(); };
+  $('publish').onclick=publish;
+  ['gRepo','gBranch','gToken'].forEach(id=>$(id).addEventListener('change',()=>{try{localStorage.setItem({gRepo:'vms_repo',gBranch:'vms_branch',gToken:'vms_token'}[id],$(id).value.trim());}catch(e){}}));
+  // pick the most recent round without results as the default
+  setSeries(); renderEntries();
+}
+
+function entryFor(s,rnd){ return S.entries.find(e=>e.series===s&&String(e.rnd)===String(rnd)); }
+
+function setSeries(){
+  document.querySelectorAll('#serTabs .tab').forEach(b=>b.classList.toggle('on',b.dataset.s===S.series));
+  const opts=S.races.map(r=>{
+    const key=r.rnd+'-'+S.series, hard=S.hardKeys.has(key), mine=!!entryFor(S.series,r.rnd);
+    const tag=hard?' — already has results':mine?' — saved ✓':'';
+    return `<option value="${esc(r.rnd)}"${hard?' disabled':''}>R${esc(r.rnd)} · ${esc(r.name)}${tag}</option>`;}).join('');
+  $('round').innerHTML=opts;
+  // default: first round with no results for this series
+  const next=S.races.find(r=>!S.hardKeys.has(r.rnd+'-'+S.series)&&!entryFor(S.series,r.rnd));
+  const first=S.races.find(r=>!S.hardKeys.has(r.rnd+'-'+S.series));
+  $('round').value=(next||first||S.races[0]).rnd;
+  S.editing=null; loadRound();
+  $('dl').innerHTML=Object.keys(S.drivers[S.series]).sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${esc(n)}">`).join('');
+  $('tl').innerHTML=[...S.teams[S.series]].sort().map(n=>`<option value="${esc(n)}">`).join('');
+}
+function roundChanged(){ S.editing=null; loadRound(); }
+
+function loadRound(){
+  const ex=entryFor(S.series,$('round').value);
+  $('rows').innerHTML='';
+  if(ex){ $('half').value=ex.half?'1':'0'; ex.rows.forEach(r=>addRow(r)); S.editing=ex; }
+  else { $('half').value='0'; for(let i=0;i<10;i++) addRow(); }
+  renumber(); showRoundInfo(); msg($('warn'),'');
+}
+function showRoundInfo(){
+  const r=S.races.find(x=>x.rnd===$('round').value); if(!r) return;
+  const ex=S.editing;
+  $('roundInfo').innerHTML=`${esc(r.flag)} <b>${esc(r.name)}</b> · ${esc(r.sat)}${r.sun&&r.sun!==r.sat?' – '+esc(r.sun):''} `+
+    (ex?'<span class="pill warn">editing saved result</span>':'<span class="pill">new result</span>')+
+    ` <span class="hint">Points: ${S.points[S.series].join(', ')} · FL +${S.bonusFl[S.series]} · Pole +${S.bonusPole[S.series]}</span>`;
+}
+
+function addRow(d){
+  d=d||{};
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="pos"></td>
+  <td><input class="n" list="dl" placeholder="Driver" value="${esc(d.name||'')}" autocomplete="off"></td>
+  <td><input class="t" list="tl" placeholder="Team" value="${esc(d.team||'')}" autocomplete="off"></td>
+  <td><select class="st"><option value="">Finished</option><option>DNF</option><option>DNS</option><option>DSq</option></select></td>
+  <td class="chk"><input type="checkbox" class="po"${d.pole?' checked':''}></td>
+  <td class="chk"><input type="checkbox" class="fl"${d.fl?' checked':''}></td>
+  <td class="chk"><input type="checkbox" class="wc"${d.wccOnly?' checked':''}></td>
+  <td class="pts"><input class="p" type="number" min="0" step="1" value="${d.pts!=null?d.pts:''}"></td>
+  <td><input class="no" placeholder="Note (optional)" value="${esc(userNote(d))}"></td>
+  <td class="x"><button type="button" class="btn alt sm up" title="Move up">↑</button> <button type="button" class="btn alt sm dn" title="Move down">↓</button> <button type="button" class="btn alt sm rm" title="Remove">✕</button></td>`;
+  tr.querySelector('.st').value=d.status||'';
+  if(d.pts!=null&&d.pts!==''){ tr.dataset.manual='1'; tr.classList.add('manual'); }
+  $('rows').appendChild(tr);
+  return tr;
+}
+// the note stored in JSON may start with the status ("DNF · reason"); show only the user part
+function userNote(d){ let n=d.note||''; if(d.status&&n.toUpperCase().startsWith(d.status.toUpperCase())) n=n.slice(d.status.length).replace(/^\s*[·\-–:]\s*/,''); return n; }
+
+document.addEventListener('click',e=>{
+  const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.closest('.rm')){ tr.remove(); renumber(); }
+  else if(e.target.closest('.up')&&tr.previousElementSibling){ tr.parentNode.insertBefore(tr,tr.previousElementSibling); renumber(); }
+  else if(e.target.closest('.dn')&&tr.nextElementSibling){ tr.parentNode.insertBefore(tr.nextElementSibling,tr); renumber(); }
+});
+document.addEventListener('input',e=>{
+  const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.classList.contains('p')){ tr.dataset.manual=e.target.value===''?'':'1'; tr.classList.toggle('manual',e.target.value!==''); if(e.target.value==='') recalcRow(tr); }
+  if(e.target.classList.contains('n')){ // auto-fill team when a known driver is picked
+    const t=S.drivers[S.series][e.target.value]; const ti=tr.querySelector('.t'); if(t&&!ti.value) ti.value=t; }
+});
+document.addEventListener('change',e=>{
+  const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.classList.contains('n')){ const t=S.drivers[S.series][e.target.value]; const ti=tr.querySelector('.t'); if(t&&!ti.value) ti.value=t; }
+  if(e.target.matches('.st,.po,.fl')) recalcRow(tr);
+});
+document.addEventListener('keydown',e=>{ // Enter on the last note box adds a new row
+  if(e.key==='Enter'&&e.target.classList.contains('no')){ e.preventDefault(); const tr=e.target.closest('tr'); if(!tr.nextElementSibling){ addRow(); renumber(); } tr.nextElementSibling.querySelector('.n').focus(); }
+});
+
+function focusLast(){ renumber(); const r=$('rows').lastElementChild; if(r) r.querySelector('.n').focus(); }
+function renumber(){ [...$('rows').children].forEach((tr,i)=>{ tr.querySelector('.pos').textContent=i+1; recalcRow(tr); }); }
+function calcPts(tr,i){
+  const s=S.series, st=tr.querySelector('.st').value;
+  if(st==='DNS'||st==='DSq') return 0;
+  let base=S.points[s][i]||0; if($('half').value==='1') base=Math.round(base/2);
+  return base+(tr.querySelector('.fl').checked?S.bonusFl[s]:0)+(tr.querySelector('.po').checked?S.bonusPole[s]:0);
+}
+function recalcRow(tr){ if(tr.dataset.manual) return; const i=[...tr.parentNode.children].indexOf(tr); tr.querySelector('.p').value=calcPts(tr,i); }
+function recalcAll(){ [...$('rows').children].forEach(tr=>{ delete tr.dataset.manual; tr.classList.remove('manual'); recalcRow(tr); }); }
+
+/* ───── quick paste ───── */
+function fromPaste(){
+  const lines=$('paste').value.split('\n').map(l=>l.trim()).filter(Boolean); if(!lines.length) return;
+  $('rows').innerHTML='';
+  lines.forEach(l=>{
+    let t='', st='', pole=false, fl=false;
+    l=l.replace(/^\s*(?:p|pos)?\s*\d{1,2}\s*[.):\-–]?\s+/i,'');           // leading position
+    l=l.replace(/[*_`]/g,'');                                             // discord markdown
+    if(/\b(pole)\b/i.test(l)){pole=true;l=l.replace(/\(?\bpole\b\)?/ig,'');}
+    if(/\b(fl|fastest lap)\b/i.test(l)){fl=true;l=l.replace(/\(?\b(fastest lap|fl)\b\)?/ig,'');}
+    const sm=l.match(/\b(DNF|DNS|DSQ)\b/i); if(sm){st=sm[1].toUpperCase()==='DSQ'?'DSq':sm[1].toUpperCase(); l=l.replace(sm[0],'');}
+    const parts=l.split(/\s+[-–—|]\s+/); l=parts[0]; if(parts[1]) t=parts[1].trim();
+    const name=l.replace(/[()]/g,' ').replace(/\s+/g,' ').trim(); if(!name) return;
+    // match to a known driver name (case-insensitive)
+    const known=Object.keys(S.drivers[S.series]).find(k=>norm(k)===norm(name));
+    const nm=known||name; if(!t) t=S.drivers[S.series][nm]||'';
+    addRow({name:nm,team:t,status:st,pole,fl});
+  });
+  renumber(); showRoundInfo();
+}
+
+/* ───── read the table / save ───── */
+function readRows(){
+  const out=[];
+  [...$('rows').children].forEach((tr,i)=>{
+    const name=tr.querySelector('.n').value.trim(); if(!name) return;
+    const status=tr.querySelector('.st').value, un=tr.querySelector('.no').value.trim();
+    const row={pos:out.length+1,name,team:tr.querySelector('.t').value.trim(),pts:+tr.querySelector('.p').value||0};
+    if(tr.querySelector('.fl').checked) row.fl=true;
+    if(tr.querySelector('.po').checked) row.pole=true;
+    if(tr.querySelector('.wc').checked) row.wccOnly=true;
+    if(status) row.status=status;
+    const note=[status,un].filter(Boolean).join(' · '); if(note) row.note=note;
+    out.push(row);
+  });
+  return out;
+}
+function saveEntry(){
+  const rows=readRows(), s=S.series, rnd=$('round').value;
+  const problems=[];
+  if(rows.length<1){ msg($('warn'),'Add at least one driver first.','err'); return; }
+  const names=rows.map(r=>norm(r.name)), dup=names.find((n,i)=>names.indexOf(n)!==i);
+  if(dup) problems.push('“'+esc(dup)+'” appears twice.');
+  if(rows.filter(r=>r.fl).length>1) problems.push('More than one fastest lap ticked.');
+  if(rows.filter(r=>r.pole).length>1) problems.push('More than one pole ticked.');
+  rows.forEach(r=>{ if(!r.team) problems.push('No team for '+esc(r.name)+' (their points won’t count for a constructor).'); });
+  const unknown=rows.filter(r=>!S.drivers[s][r.name]&&!Object.keys(S.drivers[s]).some(k=>norm(k)===norm(r.name))).map(r=>esc(r.name));
+  if(unknown.length) problems.push('New driver(s) not in the standings yet: '+unknown.join(', ')+' — they will be added automatically. Check the spelling!');
+  if(problems.length&&!saveEntry._ok){ saveEntry._ok=true; msg($('warn'),'<b>Check these:</b><br>'+problems.join('<br>')+'<br><br>Click “Save” again to save anyway.','err'); return; }
+  saveEntry._ok=false; msg($('warn'),'');
+  rows.forEach(r=>{ S.drivers[s][r.name]=r.team||S.drivers[s][r.name]||''; if(r.team) S.teams[s].add(r.team); });
+  const entry={series:s,rnd,rows}; if($('half').value==='1') entry.half=true;
+  const i=S.entries.findIndex(e=>e.series===s&&String(e.rnd)===String(rnd));
+  if(i>=0) S.entries[i]=entry; else S.entries.push(entry);
+  S.entries.sort((a,b)=>(+a.rnd-+b.rnd)||a.series.localeCompare(b.series));
+  renderEntries(); setSeriesKeep(); 
+  msg($('warn'),`Saved ${LBL[s]} round ${esc(rnd)}. Scroll down to publish — or enter another race.`,'ok');
+}
+function setSeriesKeep(){ setSeries(); }
+
+function renderEntries(){
+  $('entries').innerHTML=S.entries.length?S.entries.map((e,i)=>{
+    const r=S.races.find(x=>x.rnd===String(e.rnd)), win=e.rows[0];
+    const changed=JSON.stringify(e)!==JSON.stringify(S.loaded.find(x=>x.series===e.series&&String(x.rnd)===String(e.rnd)));
+    return `<div class="e"><span class="pill">${LBL[e.series]}</span><b>R${esc(e.rnd)} · ${esc(r?r.name:'?')} <span class="hint">— ${e.rows.length} drivers, winner ${esc(win&&win.name)}</span></b>`+
+      (changed?'<span class="pill warn">unpublished</span>':'<span class="pill ok">live</span>')+
+      `<button class="btn alt sm" data-edit="${i}">Edit</button><button class="btn alt sm" data-del="${i}">Delete</button></div>`;}).join(''):'<p class="hint">Nothing saved yet.</p>';
+  $('entries').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{ const e=S.entries[+b.dataset.edit]; S.series=e.series; setSeries(); $('round').value=e.rnd; loadRound(); window.scrollTo({top:0,behavior:'smooth'}); });
+  $('entries').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const e=S.entries[+b.dataset.del]; if(confirm('Delete '+LBL[e.series]+' round '+e.rnd+' from the list?')){ S.entries.splice(+b.dataset.del,1); renderEntries(); setSeriesKeep(); }});
+  $('json').value=JSON.stringify(S.entries,null,2)+'\n';
+  $('entriesHint').textContent=S.entries.some(e=>JSON.stringify(e)!==JSON.stringify(S.loaded.find(x=>x.series===e.series&&String(x.rnd)===String(e.rnd))))||S.entries.length!==S.loaded.length
+    ?'You have unpublished changes.':'';
+}
+
+/* ───── publish to GitHub (Contents API) ───── */
+async function publish(){
+  const repo=$('gRepo').value.trim(), br=$('gBranch').value.trim()||'main', tok=$('gToken').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!tok){ msg($('pubMsg'),'Fill in the repo (owner/name) and token — or use Copy / Download instead.','err'); return; }
+  try{ localStorage.setItem('vms_repo',repo); localStorage.setItem('vms_branch',br); localStorage.setItem('vms_token',tok); }catch(e){}
+  const url=`https://api.github.com/repos/${repo}/contents/data/new-results.json`;
+  const H={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'};
+  $('publish').disabled=true; msg($('pubMsg'),'Publishing…');
+  try{
+    let sha; const g=await fetch(url+'?ref='+encodeURIComponent(br),{headers:H,cache:'no-store'});
+    if(g.ok) sha=(await g.json()).sha; else if(g.status!==404) throw new Error('GitHub said '+g.status+(g.status===401?' (bad token)':g.status===403?' (token lacks access)':''));
+    const body={message:'Add race results',content:btoa(unescape(encodeURIComponent($('json').value))),branch:br}; if(sha) body.sha=sha;
+    const p=await fetch(url,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!p.ok) throw new Error('GitHub said '+p.status+' — '+((await p.json().catch(()=>({}))).message||''));
+    S.loaded=JSON.parse(JSON.stringify(S.entries)); renderEntries();
+    msg($('pubMsg'),'✅ Published! The site will show the new results in a minute or two (GitHub Pages needs to rebuild).','ok');
+  }catch(err){ msg($('pubMsg'),'Couldn’t publish: '+esc(err.message||err),'err'); }
+  $('publish').disabled=false;
+}
+
+boot();
+})();
+</script>
+</body></html>
