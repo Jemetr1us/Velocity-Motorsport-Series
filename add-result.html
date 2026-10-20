@@ -29,7 +29,7 @@ table{width:100%;border-collapse:collapse}
 th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);text-align:left;padding:4px 4px}
 td{padding:3px 3px;vertical-align:middle}
 td input,td select{padding:7px 8px;font-size:13px}
-td.pos{width:34px;font-weight:700;color:var(--pink);text-align:center}
+td.pos{width:64px}td.pos input{width:54px;text-align:center;font-weight:700;color:var(--pink);padding:7px 4px}td.pos.manual input,tr.posman td.pos input{border-color:var(--warn)}
 td.chk{width:46px;text-align:center}td.chk input{width:auto;transform:scale(1.25)}
 td.pts input{width:62px;text-align:center}
 td.x{width:96px;white-space:nowrap}
@@ -66,14 +66,14 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
   <h2>2 · Enter the result</h2>
   <details>
     <summary>⚡ Quick paste (one driver per line, in finishing order)</summary>
-    <p class="hint">Copy the result from Discord and paste it here. Position numbers are ignored (order = finishing order).
+    <p class="hint">Copy the result from Discord and paste it here. Position numbers you paste are kept if they differ from the normal order (e.g. two drivers on <code>1</code>).
       Add <code>DNF</code>, <code>DNS</code> or <code>DSq</code> at the end of a line, <code>pole</code> / <code>fl</code> anywhere for bonuses,
       or <code>- Team Name</code> to set the team. Example: <code>2. Douzy fl</code> &nbsp; <code>Lory - Richard Mille LM Motorsport F1</code> &nbsp; <code>Nick DNF</code></p>
     <textarea id="paste" placeholder="1. Nick pole&#10;2. Douzy fl&#10;3. Lory&#10;4. Noel DNF"></textarea>
     <p><button class="btn alt sm" id="pasteBtn">Fill the table from this</button></p>
   </details>
   <div class="scroll" style="margin-top:12px"><table>
-    <thead><tr><th>P</th><th>Driver</th><th>Team</th><th>Status</th><th>Pole</th><th>FL</th><th title="Points count for the constructors only (driver retired from the championship)">WCC only</th><th>Pts</th><th>Note</th><th></th></tr></thead>
+    <thead><tr><th title="Finishing position. Auto-numbered, but you can type any number (e.g. two drivers on 1) and the points follow it">P</th><th>Driver</th><th>Team</th><th>Status</th><th>Pole</th><th>FL</th><th title="Points count for the constructors only (driver retired from the championship)">WCC only</th><th>Pts</th><th>Note</th><th></th></tr></thead>
     <tbody id="rows"></tbody>
   </table></div>
   <p class="row" style="margin-top:12px">
@@ -114,20 +114,21 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
 const $=id=>document.getElementById(id);
 const SERIES=['f1','f2','f3'], LBL={f1:'F1',f2:'F2',f3:'F3'};
 const S={series:'f1',entries:[],loaded:[],races:[],hardKeys:new Set(),points:{},bonusFl:{},bonusPole:{},
-         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},editing:null};
+         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},editing:null,hardEdit:false,hard:{}};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unq=s=>s.replace(/\\'/g,"'");
 const norm=s=>String(s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,'').trim();
 const msg=(el,t,k)=>{el.innerHTML=t?`<div class="msg ${k||''}">${t}</div>`:'';};
 
 /* ───── load site data: races, points, drivers, teams ───── */
+let STEP='';
 async function boot(){
   try{
-    const [appTxt,lineups,newRes]=await Promise.all([
-      fetch('app.js',{cache:'no-store'}).then(r=>{if(!r.ok)throw 0;return r.text();}),
-      fetch('data/lineups.json',{cache:'no-store'}).then(r=>r.json()),
-      fetch('data/new-results.json',{cache:'no-store'}).then(r=>r.ok?r.json():[]).catch(()=>[])
-    ]);
+    STEP='loading files';
+    const getTxt=async f=>{ const r=await fetch(f,{cache:'no-store'}); if(!r.ok) throw new Error(f+' returned '+r.status); return r.text(); };
+    const getJson=async(f,soft)=>{ try{ const t=await getTxt(f); return JSON.parse(t); }catch(e){ if(soft) return []; throw new Error(f+' is not valid JSON or could not be loaded ('+(e&&e.message||e)+')'); } };
+    const [appTxt,lineups,newRes]=await Promise.all([ getTxt('app.js'), getJson('data/lineups.json'), getJson('data/new-results.json',true) ]);
+    STEP='reading the race list';
     // races
     const re=/\{rnd:'([^']+)',\s*name:'((?:[^'\\]|\\.)*)'[^}]*?satDate:'([^']*)',\s*sunDate:'([^']*)',\s*status:'(\w+)'[^}]*?flag:'([^']*)'/g;
     let m; while((m=re.exec(appTxt))){ if(m[5]==='break'||m[1]==='BREAK') continue;
@@ -135,6 +136,11 @@ async function boot(){
     if(!S.races.length) throw new Error('no races found');
     // hard-coded results
     const rk=/^\s*'(\d+)-(f[123])':\s*\[/gm; while((m=rk.exec(appTxt))) S.hardKeys.add(m[1]+'-'+m[2]);
+    STEP='reading built-in results';
+    // built-in (hard-coded) race results, so they can be edited too
+    ['F1','F2','F3'].forEach(k=>{ const a=appTxt.indexOf('const '+k+'_RESULTS = {'); if(a<0) return; const b=appTxt.indexOf('\n};',a); if(b<0) return;
+      try{ Object.assign(S.hard,(new Function('return '+appTxt.slice(appTxt.indexOf('{',a),b+2)))()); }catch(x){ console.warn('could not read '+k+' results',x); } });
+    STEP='reading points';
     // points
     const pm=appTxt.match(/points:\s*\{f1:\[([^\]]*)\],\s*f2:\[([^\]]*)\],\s*f3:\[([^\]]*)\]\}/);
     SERIES.forEach((s,i)=>{S.points[s]=pm?pm[i+1].split(',').map(x=>+x.trim()):[25,18,15,12,10,8,6,4,2,1];});
@@ -150,10 +156,11 @@ async function boot(){
     });
     S.loaded=Array.isArray(newRes)?newRes:[]; S.entries=JSON.parse(JSON.stringify(S.loaded));
     S.entries.forEach(e=>e.rows.forEach(r=>{ if(r.name&&r.team) S.drivers[e.series][r.name]=r.team; if(r.team) S.teams[e.series].add(r.team); }));
+    STEP='building the page';
     $('boot').remove();
     init();
   }catch(err){
-    msg($('boot'),"Couldn't load the site data. Open this page through a web server (GitHub Pages, or <code>npx serve</code> locally) — double-clicking the file won't work. ("+esc(err&&err.message||err)+")",'err');
+    msg($('boot'),"Couldn't load the site data. Open this page through a web server (GitHub Pages, or <code>npx serve</code> locally) — double-clicking the file won't work. ("+esc(STEP)+': '+esc(err&&err.message||err)+")",'err');
     $('boot').outerHTML=$('boot').innerHTML;
   }
 }
@@ -184,8 +191,8 @@ function setSeries(){
   document.querySelectorAll('#serTabs .tab').forEach(b=>b.classList.toggle('on',b.dataset.s===S.series));
   const opts=S.races.map(r=>{
     const key=r.rnd+'-'+S.series, hard=S.hardKeys.has(key), mine=!!entryFor(S.series,r.rnd);
-    const tag=hard?' — already has results':mine?' — saved ✓':'';
-    return `<option value="${esc(r.rnd)}"${hard?' disabled':''}>R${esc(r.rnd)} · ${esc(r.name)}${tag}</option>`;}).join('');
+    const tag=mine?' — saved ✓':hard?' — live (built-in, editable)':'';
+    return `<option value="${esc(r.rnd)}">R${esc(r.rnd)} · ${esc(r.name)}${tag}</option>`;}).join('');
   $('round').innerHTML=opts;
   // default: first round with no results for this series
   const next=S.races.find(r=>!S.hardKeys.has(r.rnd+'-'+S.series)&&!entryFor(S.series,r.rnd));
@@ -200,22 +207,27 @@ function roundChanged(){ S.editing=null; loadRound(); }
 function loadRound(){
   const ex=entryFor(S.series,$('round').value);
   $('rows').innerHTML='';
-  if(ex){ $('half').value=ex.half?'1':'0'; ex.rows.forEach(r=>addRow(r)); S.editing=ex; }
+  const hk=$('round').value+'-'+S.series; S.hardEdit=false;
+  if(ex){ $('half').value=ex.half?'1':'0'; ex.rows.forEach(r=>addRow(r)); S.editing=ex; S.hardEdit=!!ex.replace; }
+  else if(S.hard[hk]){ $('half').value='0'; S.hard[hk].forEach(r=>addRow(hardRow(r))); S.hardEdit=true; }
   else { $('half').value='0'; for(let i=0;i<10;i++) addRow(); }
   renumber(); showRoundInfo(); msg($('warn'),'');
 }
+// turn a built-in result row into the shape the table expects
+function hardRow(r){ const m=String(r.note||'').match(/^(DNF|DNS|DSq)\b/i); const st=m?(m[1].toUpperCase()==='DSQ'?'DSq':m[1].toUpperCase()):'';
+  return {pos:r.pos,name:r.name,team:r.team,pts:r.pts,fl:!!r.fl,pole:!!r.pole,status:st,note:r.note||'',wccOnly:/WCC only/i.test(r.note||''),gap:r.gap||''}; }
 function showRoundInfo(){
   const r=S.races.find(x=>x.rnd===$('round').value); if(!r) return;
   const ex=S.editing;
   $('roundInfo').innerHTML=`${esc(r.flag)} <b>${esc(r.name)}</b> · ${esc(r.sat)}${r.sun&&r.sun!==r.sat?' – '+esc(r.sun):''} `+
-    (ex?'<span class="pill warn">editing saved result</span>':'<span class="pill">new result</span>')+
+    (ex?'<span class="pill warn">editing saved result</span>':S.hardEdit?'<span class="pill warn">editing live built-in result</span>':'<span class="pill">new result</span>')+
     ` <span class="hint">Points: ${S.points[S.series].join(', ')} · FL +${S.bonusFl[S.series]} · Pole +${S.bonusPole[S.series]}</span>`;
 }
 
 function addRow(d){
   d=d||{};
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="pos"></td>
+  tr.innerHTML=`<td class="pos"><input class="ps" type="number" min="1" step="1" title="Finishing position — change it to set a tie"></td>
   <td><input class="n" list="dl" placeholder="Driver" value="${esc(d.name||'')}" autocomplete="off"></td>
   <td><input class="t" list="tl" placeholder="Team" value="${esc(d.team||'')}" autocomplete="off"></td>
   <td><select class="st"><option value="">Finished</option><option>DNF</option><option>DNS</option><option>DSq</option></select></td>
@@ -226,6 +238,8 @@ function addRow(d){
   <td><input class="no" placeholder="Note (optional)" value="${esc(userNote(d))}"></td>
   <td class="x"><button type="button" class="btn alt sm up" title="Move up">↑</button> <button type="button" class="btn alt sm dn" title="Move down">↓</button> <button type="button" class="btn alt sm rm" title="Remove">✕</button></td>`;
   tr.querySelector('.st').value=d.status||'';
+  if(d.pos!=null&&d.pos!=='') tr.dataset.loadPos=d.pos;
+  if(d.gap) tr.dataset.gap=d.gap;
   if(d.pts!=null&&d.pts!==''){ tr.dataset.manual='1'; tr.classList.add('manual'); }
   $('rows').appendChild(tr);
   return tr;
@@ -241,6 +255,7 @@ document.addEventListener('click',e=>{
 });
 document.addEventListener('input',e=>{
   const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.classList.contains('ps')){ tr.dataset.posManual=e.target.value===''?'':'1'; tr.classList.toggle('posman',e.target.value!==''); renumber(); return; }
   if(e.target.classList.contains('p')){ tr.dataset.manual=e.target.value===''?'':'1'; tr.classList.toggle('manual',e.target.value!==''); if(e.target.value==='') recalcRow(tr); }
   if(e.target.classList.contains('n')){ // auto-fill team when a known driver is picked
     const t=S.drivers[S.series][e.target.value]; const ti=tr.querySelector('.t'); if(t&&!ti.value) ti.value=t; }
@@ -255,8 +270,17 @@ document.addEventListener('keydown',e=>{ // Enter on the last note box adds a ne
 });
 
 function focusLast(){ renumber(); const r=$('rows').lastElementChild; if(r) r.querySelector('.n').focus(); }
-function renumber(){ [...$('rows').children].forEach((tr,i)=>{ tr.querySelector('.pos').textContent=i+1; recalcRow(tr); }); }
-function calcPts(tr,i){
+function renumber(){ // auto position = previous row's position + 1, unless you typed one yourself
+  let prev=0;
+  [...$('rows').children].forEach(tr=>{
+    const ps=tr.querySelector('.ps'), auto=prev+1;
+    if(tr.dataset.loadPos){ if(+tr.dataset.loadPos!==auto){ tr.dataset.posManual='1'; ps.value=tr.dataset.loadPos; } delete tr.dataset.loadPos; }
+    if(tr.dataset.posManual&&+ps.value>0){ /* keep what was typed */ } else { delete tr.dataset.posManual; ps.value=auto; }
+    tr.classList.toggle('posman',!!tr.dataset.posManual);
+    prev=+ps.value||auto; recalcRow(tr);
+  });
+}
+function calcPts(tr,i){ i=(+tr.querySelector('.ps').value||i+1)-1;
   const s=S.series, st=tr.querySelector('.st').value;
   if(st==='DNS'||st==='DSq') return 0;
   let base=S.points[s][i]||0; if($('half').value==='1') base=Math.round(base/2);
@@ -271,6 +295,7 @@ function fromPaste(){
   $('rows').innerHTML='';
   lines.forEach(l=>{
     let t='', st='', pole=false, fl=false;
+    const pm0=l.match(/^\s*(?:p|pos)?\s*(\d{1,2})\s*[.):\-–]?\s+/i); const given=pm0?+pm0[1]:0;
     l=l.replace(/^\s*(?:p|pos)?\s*\d{1,2}\s*[.):\-–]?\s+/i,'');           // leading position
     l=l.replace(/[*_`]/g,'');                                             // discord markdown
     if(/\b(pole)\b/i.test(l)){pole=true;l=l.replace(/\(?\bpole\b\)?/ig,'');}
@@ -281,7 +306,7 @@ function fromPaste(){
     // match to a known driver name (case-insensitive)
     const known=Object.keys(S.drivers[S.series]).find(k=>norm(k)===norm(name));
     const nm=known||name; if(!t) t=S.drivers[S.series][nm]||'';
-    addRow({name:nm,team:t,status:st,pole,fl});
+    addRow({name:nm,team:t,status:st,pole,fl,pos:given||undefined});
   });
   renumber(); showRoundInfo();
 }
@@ -292,10 +317,11 @@ function readRows(){
   [...$('rows').children].forEach((tr,i)=>{
     const name=tr.querySelector('.n').value.trim(); if(!name) return;
     const status=tr.querySelector('.st').value, un=tr.querySelector('.no').value.trim();
-    const row={pos:out.length+1,name,team:tr.querySelector('.t').value.trim(),pts:+tr.querySelector('.p').value||0};
+    const row={pos:+tr.querySelector('.ps').value||out.length+1,name,team:tr.querySelector('.t').value.trim(),pts:+tr.querySelector('.p').value||0};
     if(tr.querySelector('.fl').checked) row.fl=true;
     if(tr.querySelector('.po').checked) row.pole=true;
     if(tr.querySelector('.wc').checked) row.wccOnly=true;
+    if(tr.dataset.gap) row.gap=tr.dataset.gap;
     if(status) row.status=status;
     const note=[status,un].filter(Boolean).join(' · '); if(note) row.note=note;
     out.push(row);
@@ -317,10 +343,11 @@ function saveEntry(){
   saveEntry._ok=false; msg($('warn'),'');
   rows.forEach(r=>{ S.drivers[s][r.name]=r.team||S.drivers[s][r.name]||''; if(r.team) S.teams[s].add(r.team); });
   const entry={series:s,rnd,rows}; if($('half').value==='1') entry.half=true;
+  if(S.hard[rnd+'-'+s]) entry.replace=true; // this round is built into app.js: swap its old result for this one
   const i=S.entries.findIndex(e=>e.series===s&&String(e.rnd)===String(rnd));
   if(i>=0) S.entries[i]=entry; else S.entries.push(entry);
   S.entries.sort((a,b)=>(+a.rnd-+b.rnd)||a.series.localeCompare(b.series));
-  renderEntries(); setSeriesKeep(); 
+  renderEntries(); setSeriesKeep();
   msg($('warn'),`Saved ${LBL[s]} round ${esc(rnd)}. Scroll down to publish — or enter another race.`,'ok');
 }
 function setSeriesKeep(){ setSeries(); }

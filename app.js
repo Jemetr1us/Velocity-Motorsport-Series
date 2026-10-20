@@ -892,7 +892,15 @@ function conFor(s,teamName){
     const s=e&&e.series, race=real.find(r=>r.rnd===String(e&&e.rnd));
     if(!SERIES.includes(s)||!race||!Array.isArray(e.rows)||!e.rows.length) return;
     const key=rkey(race,s);
-    if(D.results[key]){ console.warn('new-results.json: '+key+' already has results in app.js — skipped'); return; }
+    let replaced=false;
+    if(D.results[key]){
+      if(!e.replace){ console.warn('new-results.json: '+key+' already has results in app.js — skipped'); return; }
+      // editing a built-in result: take the old points back out of the standings first
+      replaced=true; const st0=D.standings[s];
+      D.results[key].forEach(o=>{ const op=+o.pts||0; if(!op) return;
+        const dv=st0.drivers.find(v=>canon(s,v.name)===canon(s,o.name)); if(dv) dv.pts=(+dv.pts||0)-op;
+        const ct=o.team&&conFor(s,o.team); if(ct) ct.pts=(+ct.pts||0)-op; });
+    }
     const rows=e.rows.map((x,i)=>({pos:+x.pos||i+1,name:x.name,team:x.team||'',pts:+x.pts||0,fl:!!x.fl,pole:!!x.pole,note:x.note||'',status:x.status||'',wccOnly:!!x.wccOnly,gap:x.gap||''}));
     D.results[key]=rows; race.status='completed';
     const st=D.standings[s];
@@ -901,7 +909,7 @@ function conFor(s,teamName){
       if(!x.wccOnly){
         let d=st.drivers.find(v=>canon(s,v.name)===c);
         if(!d){ const li=lineupFor(s,x.name); d={name:x.name,code:(li&&li.code)||'—',team:x.team,pts:0,wins:0,pods:0,dnf:0,pos:0,gap:'0',form:[]}; st.drivers.push(d); }
-        d.pts=(+d.pts||0)+x.pts; if(x.team) d.team=x.team; (d.form=d.form||[]).push(form);
+        d.pts=(+d.pts||0)+x.pts; if(x.team) d.team=x.team; if(!replaced) (d.form=d.form||[]).push(form);
       }
       if(x.team&&x.pts){
         let t=conFor(s,x.team);
