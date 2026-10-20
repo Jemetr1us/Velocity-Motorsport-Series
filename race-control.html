@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VMS Race Control</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#050505;color:#fff;padding:18px;max-width:1100px;margin:auto}
+h1{font-size:22px;letter-spacing:1px;text-transform:uppercase}h1 span{color:#e8186d}
+h2{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#e8186d;margin-bottom:10px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
+.card{background:#0b0b0b;border:1px solid #242424;padding:16px;margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+label{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#888;display:flex;flex-direction:column;gap:4px;flex:1 1 140px}
+input,select,textarea{background:#111;border:1px solid #333;color:#fff;padding:9px 10px;font-size:14px;width:100%;font-family:inherit}
+textarea{min-height:90px}
+button{background:#1a1a1a;border:1px solid #333;color:#fff;font-weight:900;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:9px 13px;cursor:pointer}
+button:hover{border-color:#e8186d}button.pri{background:linear-gradient(90deg,#1a56c4,#e8186d);border:0}
+button.on{outline:2px solid #fff}
+.flags button{flex:1;min-width:90px;padding:14px 8px}
+.f-green{background:#0f3d1f}.f-yellow{background:#4a3d00}.f-sc{background:#4a2c00}.f-vsc{background:#3a2c00}.f-red{background:#4a0d10}.f-chequered{background:#222}
+.lap{font-size:30px;font-weight:900;min-width:90px;text-align:center;font-variant-numeric:tabular-nums}
+.drv{display:grid;grid-template-columns:34px minmax(120px,1.4fr) 100px 100px 80px auto;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid #161616}
+.drv b{font-size:14px}.drv small{display:block;color:#777;font-size:11px}
+.drv .p{font-weight:900;text-align:center}
+.drv.dnf{opacity:.45}
+@media(max-width:700px){.drv{grid-template-columns:28px 1fr 80px 80px}.drv select,.drv .mv{grid-column:span 2}}
+.msg{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #161616;font-size:13px}
+#st{font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
+.ok{color:#1db954}.bad{color:#e5484d}.mute{color:#888}
+a{color:#6ea0ff}
+.vidwrap{position:relative;max-width:520px;background:#000;margin-top:12px;display:none}
+.vidwrap video{width:100%;display:block}.vidwrap canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair}
+pre{background:#111;border:1px solid #222;padding:8px;font-size:11px;color:#aaa;white-space:pre-wrap;max-height:160px;overflow:auto;margin-top:8px}
+</style><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script><script src="leaderboard-parser.js"></script></head><body>
+<div class="top"><h1>VMS <span>Race Control</span></h1><div><span id="st" class="mute">Not connected</span> · <a href="index.html#live" target="_blank">Open Live page</a></div></div>
+
+<div class="card"><h2>1 · Connection (saved in this browser only)</h2>
+<div class="row"><label>Firebase database URL<input id="fbUrl" placeholder="https://your-project-default-rtdb.firebaseio.com"></label>
+<label>Database secret<input id="fbSecret" type="password" placeholder="kept in this browser, never sent anywhere but Firebase"></label></div></div>
+
+<div class="card"><h2>2 · Session</h2>
+<div class="row"><label>Series<select id="series"><option value="f1">F1</option><option value="f2">F2</option><option value="f3">F3</option></select></label>
+<label>Session<select id="type"><option>Race</option><option>Sprint</option><option>Qualifying</option><option>Practice</option></select></label>
+<label>Race name<input id="name" placeholder="Italian Grand Prix"></label>
+<label>Circuit<input id="circuit" placeholder="Monza"></label>
+<label>Total laps<input id="total" type="number" min="1" value="30"></label></div>
+<div class="row" style="margin-top:12px"><button id="goLive" class="pri">Go live</button><button id="finish">Mark finished</button><button id="goOff">Go offline</button>
+<span class="mute" style="font-size:12px">Auto-republishes every 10 s while live so the page doesn't show “stale”.</span></div></div>
+
+<div class="card"><h2>3 · Track status &amp; lap</h2>
+<div class="row flags" id="flags"></div>
+<div class="row" style="margin-top:14px;justify-content:center"><button id="lapM">−</button><div class="lap" id="lapN">0</div><button id="lapP">+</button></div></div>
+
+<div class="card"><h2>3b · Auto-read the in-game leaderboard (Chrome or Safari on a computer)</h2>
+<p class="mute" style="font-size:13px;line-height:1.5;margin-bottom:10px">Share the window with the game, drag a box around the leaderboard (drag the white handles to resize it, drag inside to move it), then press Start. Positions, gaps and lap are read every ~2.5 s and published. The video never leaves your computer. While auto-read runs it overwrites the order below — press Pause to correct by hand.</p>
+<div class="row"><button id="arShare">1 · Share game window</button><button id="arStart" class="pri">2 · Start auto-read</button><button id="arStop">Pause</button><button id="arClear">Clear box</button><span id="arState" class="mute" style="font-size:12px">Not started</span></div>
+<div class="vidwrap" id="vw"><video id="vid" autoplay muted playsinline></video><canvas id="ov"></canvas></div>
+<details style="margin-top:8px"><summary class="mute" style="font-size:12px;cursor:pointer">What the reader sees</summary><canvas id="seen" style="max-width:100%;margin-top:8px"></canvas><pre id="dbg"></pre></details></div>
+<div class="card"><h2>4 · Grid &amp; order</h2>
+<div class="row"><label style="flex:2 1 300px">Paste grid — one per line, optional “ - Team”<textarea id="paste" placeholder="Skirmis - LM Performance&#10;Crocs - Carti Racing&#10;Alien - Nissan Nissmo"></textarea></label><button id="load">Load grid</button><button id="clear">Clear</button></div>
+<div id="drivers" style="margin-top:12px"></div></div>
+
+<div class="card"><h2>5 · Race control messages</h2>
+<div class="row"><input id="msgIn" placeholder="e.g. Yellow flag, sector 2 — car stopped on track" style="flex:1"><button id="msgSend">Send</button></div>
+<div id="msgs" style="margin-top:10px"></div></div>
+
+<script>
+const K='vmsRC', $=id=>document.getElementById(id);
+const FLAGS=[['green','Green'],['yellow','Yellow'],['sc','Safety car'],['vsc','Virtual SC'],['red','Red'],['chequered','Chequered']];
+let S={status:'offline',flag:'green',lap:0,drivers:[],messages:[]};
+try{ Object.assign(S,JSON.parse(localStorage.getItem(K)||'{}')); }catch(e){}
+['series','type','name','circuit','total'].forEach(k=>{ if(S[k]!=null) $(k).value=S[k]; });
+$('fbUrl').value=localStorage.getItem('vmsRCurl')||''; $('fbSecret').value=localStorage.getItem('vmsRCsec')||'';
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let timer=null, deb=null;
+
+function save(){ ['series','type','name','circuit','total'].forEach(k=>S[k]=$(k).value);
+  localStorage.setItem(K,JSON.stringify(S)); localStorage.setItem('vmsRCurl',$('fbUrl').value.trim()); localStorage.setItem('vmsRCsec',$('fbSecret').value.trim()); }
+function status(t,c){ $('st').textContent=t; $('st').className=c; }
+
+function snapshot(){
+  const live=S.status==='live', ds=S.drivers.map((d,i)=>({pos:i+1,name:d.name,team:d.team||'',status:d.status||'RUN',
+    gap:i===0?((d.gap&&d.gap!=='Leader')?d.gap:'Leader'):(d.gap||''),last:d.last||''}));
+  return {session:{series:S.series,type:S.type,name:S.name,circuit:S.circuit,status:S.status,flag:S.flag,lap:S.lap,totalLaps:+S.total||0,updated:Date.now()},
+    drivers:ds, messages:S.messages};
+}
+function endpoint(){ let u=$('fbUrl').value.trim().replace(/\/+$/,'').replace(/\/live\.json$/,''); return u?u+'/live.json?auth='+encodeURIComponent($('fbSecret').value.trim()):''; }
+async function publish(){
+  save(); const url=endpoint(); if(!url){ status('Enter Firebase URL + secret','bad'); return; }
+  const body=S.status==='offline'?{session:{status:'offline'}}:snapshot();
+  try{ const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!r.ok) throw new Error(r.status); status((S.status==='live'?'LIVE':S.status.toUpperCase())+' · sent '+new Date().toLocaleTimeString(),'ok'); }
+  catch(e){ status('Publish failed ('+e.message+')','bad'); }
+}
+function push(){ clearTimeout(deb); deb=setTimeout(()=>{ if(S.status!=='offline') publish(); else save(); },300); }
+function setStatus(s){ S.status=s; clearInterval(timer); timer=null; if(s==='live') timer=setInterval(publish,10000); publish(); }
+
+function render(){
+  $('flags').innerHTML=FLAGS.map(([k,l])=>`<button class="f-${k}${S.flag===k?' on':''}" data-f="${k}">${l}</button>`).join('');
+  $('lapN').textContent=S.lap+($('total').value?' / '+$('total').value:'');
+  $('drivers').innerHTML=S.drivers.length?S.drivers.map((d,i)=>`<div class="drv${/DNF/.test(d.status)?' dnf':''}" data-i="${i}">
+    <span class="p">${i+1}</span><span><b>${esc(d.name)}</b><small>${esc(d.team||'')}</small></span>
+    <input data-k="gap" placeholder="${i?'Gap +1.234':'Leader'}" value="${esc(i?d.gap:'')}" ${i?'':'disabled'}>
+    <input data-k="last" placeholder="Last lap" value="${esc(d.last||'')}">
+    <select data-k="status">${['RUN','PIT','DNF'].map(s=>`<option${d.status===s?' selected':''}>${s}</option>`).join('')}</select>
+    <span class="mv"><button data-a="up">▲</button> <button data-a="dn">▼</button> <button data-a="rm">✕</button></span></div>`).join(''):'<div class="mute" style="font-size:13px">No drivers yet — paste the grid above.</div>';
+  $('msgs').innerHTML=S.messages.map((m,i)=>`<div class="msg"><span><span class="mute">${esc(m.t)}</span> &nbsp;${esc(m.text)}</span><button data-m="${i}">✕</button></div>`).join('');
+}
+$('flags').onclick=e=>{const b=e.target.closest('[data-f]'); if(!b) return; S.flag=b.dataset.f; render(); push();};
+$('lapP').onclick=()=>{S.lap++; render(); push();}; $('lapM').onclick=()=>{S.lap=Math.max(0,S.lap-1); render(); push();};
+$('total').oninput=()=>{render(); push();};
+['series','type','name','circuit'].forEach(k=>$(k).onchange=push);
+$('goLive').onclick=()=>setStatus('live'); $('finish').onclick=()=>{S.flag='chequered'; render(); setStatus('finished');}; $('goOff').onclick=()=>setStatus('offline');
+$('load').onclick=()=>{ const ls=$('paste').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!ls.length) return; S.drivers=ls.map(l=>{const [n,...t]=l.split(/\s+-\s+/); return {name:n.trim(),team:t.join(' - ').trim(),status:'RUN',gap:'',last:''};}); S.lap=0; render(); push(); };
+$('clear').onclick=()=>{ if(confirm('Clear the grid and messages?')){ S.drivers=[]; S.messages=[]; S.lap=0; render(); push(); } };
+$('drivers').onclick=e=>{const b=e.target.closest('[data-a]'); if(!b) return; const i=+b.closest('.drv').dataset.i, a=b.dataset.a, D=S.drivers;
+  if(a==='up'&&i>0) [D[i-1],D[i]]=[D[i],D[i-1]]; if(a==='dn'&&i<D.length-1) [D[i+1],D[i]]=[D[i],D[i+1]];
+  if(a==='rm') D.splice(i,1); render(); push(); };
+$('drivers').oninput=e=>{const el=e.target, row=el.closest('.drv'); if(!row||!el.dataset.k) return; S.drivers[+row.dataset.i][el.dataset.k]=el.value;
+  if(el.dataset.k==='status') render(); push(); };
+$('drivers').onchange=e=>{ if(e.target.dataset.k==='status') render(); };
+function sendMsg(){ const v=$('msgIn').value.trim(); if(!v) return; const n=new Date(); S.messages.unshift({t:n.toTimeString().slice(0,8),text:v}); S.messages=S.messages.slice(0,15); $('msgIn').value=''; render(); push(); }
+$('msgSend').onclick=sendMsg; $('msgIn').onkeydown=e=>{ if(e.key==='Enter') sendMsg(); };
+$('msgs').onclick=e=>{const b=e.target.closest('[data-m]'); if(!b) return; S.messages.splice(+b.dataset.m,1); render(); push();};
+['fbUrl','fbSecret'].forEach(id=>$(id).onchange=save);
+
+/* ───── auto-read ───── */
+let CODES={}, stream=null, auto=false, worker=null, busy=false, pending='', applied='';
+let region=null; try{ region=JSON.parse(localStorage.getItem('vmsRCregion')||'null'); }catch(e){}
+fetch('data/driver-codes.json').then(r=>r.ok?r.json():{}).then(j=>{CODES=j||{};}).catch(()=>{});
+const vid=$('vid'), ov=$('ov'), arState=t=>$('arState').textContent=t;
+function drawRegion(){ const c=ov.getContext('2d'); c.clearRect(0,0,ov.width,ov.height); if(!region) return; c.strokeStyle='#e8186d'; c.lineWidth=3;
+  const x=region.x*ov.width,y=region.y*ov.height,w=region.w*ov.width,hh=region.h*ov.height; c.strokeRect(x,y,w,hh); c.fillStyle='#fff';
+  [[x,y],[x+w/2,y],[x+w,y],[x,y+hh/2],[x+w,y+hh/2],[x,y+hh],[x+w/2,y+hh],[x+w,y+hh]].forEach(q=>c.fillRect(q[0]-4,q[1]-4,8,8)); }
+function sizeOv(){ ov.width=vid.clientWidth; ov.height=vid.clientHeight; drawRegion(); }
+window.addEventListener('resize',sizeOv); vid.addEventListener('loadedmetadata',sizeOv); vid.addEventListener('resize',sizeOv);
+const clamp=v=>Math.min(1,Math.max(0,v)), HIT=12;
+const rel=e=>{const r=ov.getBoundingClientRect(); return {x:clamp((e.clientX-r.left)/r.width),y:clamp((e.clientY-r.top)/r.height)};};
+function hit(p){ if(!region) return 'new'; const px=p.x*ov.width, py=p.y*ov.height, x0=region.x*ov.width, y0=region.y*ov.height, x1=x0+region.w*ov.width, y1=y0+region.h*ov.height;
+  const inX=px>x0-HIT&&px<x1+HIT, inY=py>y0-HIT&&py<y1+HIT; let m='';
+  if(inX&&Math.abs(py-y0)<HIT) m+='n'; if(inX&&Math.abs(py-y1)<HIT) m+='s'; if(inY&&Math.abs(px-x0)<HIT) m+='w'; if(inY&&Math.abs(px-x1)<HIT) m+='e';
+  if(m) return m; return (px>x0&&px<x1&&py>y0&&py<y1)?'move':'new'; }
+const CUR={n:'ns-resize',s:'ns-resize',e:'ew-resize',w:'ew-resize',ne:'nesw-resize',sw:'nesw-resize',nw:'nwse-resize',se:'nwse-resize',move:'move',new:'crosshair'};
+let drag=null;
+ov.onmousedown=e=>{ const p=rel(e); drag={mode:hit(p),start:p,orig:region?{...region}:null}; e.preventDefault(); };
+ov.onmousemove=e=>{ if(!drag) ov.style.cursor=CUR[hit(rel(e))]; };
+window.addEventListener('mousemove',e=>{ if(!drag) return; const p=rel(e), s=drag.start, o=drag.orig, m=drag.mode;
+  if(m==='new'||!o){ region={x:Math.min(s.x,p.x),y:Math.min(s.y,p.y),w:Math.abs(p.x-s.x),h:Math.abs(p.y-s.y)}; }
+  else if(m==='move'){ region={x:Math.min(1-o.w,Math.max(0,o.x+p.x-s.x)),y:Math.min(1-o.h,Math.max(0,o.y+p.y-s.y)),w:o.w,h:o.h}; }
+  else { let x0=o.x,y0=o.y,x1=o.x+o.w,y1=o.y+o.h; if(m.includes('w')) x0=p.x; if(m.includes('e')) x1=p.x; if(m.includes('n')) y0=p.y; if(m.includes('s')) y1=p.y;
+    region={x:Math.min(x0,x1),y:Math.min(y0,y1),w:Math.abs(x1-x0),h:Math.abs(y1-y0)}; }
+  drawRegion(); });
+window.addEventListener('mouseup',()=>{ if(drag){ drag=null; if(region&&(region.w<.01||region.h<.01)) region=null; localStorage.setItem('vmsRCregion',JSON.stringify(region)); drawRegion(); arState(region?'Box set — press Start (you can still resize it while running)':'Draw a box around the leaderboard'); } });
+$('arClear').onclick=()=>{ region=null; localStorage.removeItem('vmsRCregion'); drawRegion(); arState('Draw a box around the leaderboard'); };
+$('arShare').onclick=async()=>{ try{ stream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false}); vid.srcObject=stream; $('vw').style.display='block'; await vid.play();
+    stream.getVideoTracks()[0].onended=()=>{ stream=null; auto=false; arState('Sharing stopped'); }; arState('Drag a box around the leaderboard'); sizeOv(); }
+  catch(e){ arState('Sharing cancelled or blocked (Mac: allow screen recording for your browser in System Settings → Privacy & Security)'); } };
+function grab(){ const sx=region.x*vid.videoWidth, sy=region.y*vid.videoHeight, sw=region.w*vid.videoWidth, sh=region.h*vid.videoHeight;
+  const k=Math.min(3,Math.max(1,1000/sw)), cv=$('seen'); cv.width=Math.round(sw*k); cv.height=Math.round(sh*k);
+  const c=cv.getContext('2d',{willReadFrequently:true}); c.drawImage(vid,sx,sy,sw,sh,0,0,cv.width,cv.height);
+  const im=c.getImageData(0,0,cv.width,cv.height), d=im.data; for(let i=0;i<d.length;i+=4){ const v=255-(0.299*d[i]+0.587*d[i+1]+0.114*d[i+2]); d[i]=d[i+1]=d[i+2]=v; d[i+3]=255; }
+  c.putImageData(im,0,0); return cv; }
+function apply(text){
+  $('dbg').textContent=text; const P=VMSParse.parseBoard(text,Object.keys(CODES));
+  if(P.rows.length<3){ arState('Can’t see the leaderboard ('+P.rows.length+' rows) — check the box'); return; }
+  const sig=P.rows.map(r=>r.code).join(','); if(sig!==pending){ pending=sig; if(sig!==applied){ arState('Order changed — confirming…'); return; } } applied=sig;
+  const prev={}; S.drivers.forEach(d=>prev[d.code||d.name]=d);
+  S.drivers=P.rows.map(r=>{ const c=CODES[r.code]||{}, o=prev[r.code]||{}; return {code:r.code,name:c.name||r.code,team:c.team||'',status:o.status||'RUN',gap:r.gap,last:o.last||''}; });
+  if(P.lap>S.lap) S.lap=P.lap;
+  render(); push(); arState('Auto-reading · '+P.rows.length+' cars · '+new Date().toLocaleTimeString());
+  if(P.finished&&S.status==='live'){ S.flag='chequered'; setStatus('finished'); auto=false; arState('Race finished — auto-read stopped'); }
+}
+async function tick(){ if(!auto) return;
+  try{ if(!vid.videoWidth||!region||region.w<.02) throw new Error('Share the window and draw a box first');
+    const {data}=await worker.recognize(grab()); apply(data.text); }
+  catch(e){ arState(e.message||'Read failed'); }
+  setTimeout(tick,2500); }
+$('arStart').onclick=async()=>{ if(auto) return; if(!stream){ arState('Share the game window first'); return; } if(!region){ arState('Draw a box around the leaderboard first'); return; }
+  try{ if(!worker){ arState('Loading text reader (first time ~10 s)…'); worker=await Tesseract.createWorker('eng');
+      await worker.setParameters({tessedit_pageseg_mode:'6',tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+:.- '}); }
+    auto=true; pending=''; applied=''; tick(); }
+  catch(e){ arState('Couldn’t load the text reader — check your internet connection'); } };
+$('arStop').onclick=()=>{ auto=false; arState('Paused — you can edit by hand'); };
+
+render(); if(S.status==='live'){ S.status='offline'; } /* never silently resume a stale session after reload */
+</script></body></html>

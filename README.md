@@ -44,3 +44,30 @@ Results are stored in `data/new-results.json`. On load, `app.js` layers them on 
 appears on the Results page, driver + constructor points are added, form dots are appended and standings are re-sorted.
 A round that already has results hard-coded in `app.js` is skipped (and greyed out in the tool). To fix a mistake, open the
 tool, hit **Edit** on the saved race, change it and publish again.
+
+## Live race page
+The **Live** tab polls `data/live.json` every 2 s while it's open and shows a timing tower, track map, flag status and race-control
+messages. When `session.status` isn't `"live"` it shows the next race instead. **Run demo** plays a simulated race so you can see it work.
+To feed it, replace the file (or change `LIVE_URL` at the top of `live.js` to your game's endpoint) with:
+
+    { "session": { "series":"f1", "type":"Race", "name":"Italian Grand Prix", "circuit":"Monza", "status":"live",
+                   "flag":"green|yellow|sc|vsc|red|chequered", "lap":12, "totalLaps":30, "updated":1760000000000 },
+      "drivers": [ { "pos":1, "name":"Skirmis", "team":"LM Performance", "color":"#e8186d", "gap":"Leader",
+                     "last":"1:32.456", "bestMs":92456, "lastPB":true, "tyre":"M", "status":"RUN|PIT|DNF", "progress":0.42 } ],
+      "messages": [ { "t":"12:03", "text":"Yellow flag sector 2" } ],
+      "track": [[x,y],[x,y]]   // optional racing line from the game; any coordinate scale, closed loop
+    }
+
+`progress` is the fraction of the current lap (0–1) and `updated` is epoch ms (feed shows "stale" after 30 s).
+GitHub Pages can't take pushes from a game in real time, so for a true live feed the game should POST to a small endpoint
+(Cloudflare Worker, Firebase, etc.) that serves this JSON, and `LIVE_URL` points there.
+
+### No game access? Use Race Control
+If you can't run code inside the game, open **`race-control.html`**: a steward updates flag, lap, order, gaps and messages by hand and it
+publishes to the same live feed (Firebase). Put your Firebase URL + secret on that page (saved in the browser only) and set
+`LIVE_URL` in `live.js` to `https://<project>-default-rtdb.firebaseio.com/live.json`. Without lap-progress data the Live page hides the track map.
+
+### Auto-read the leaderboard (race-control.html, section 3b)
+Fill in `data/driver-codes.json` (3-letter in-game code → site name + team). On race day: open `race-control.html` in Chrome/Safari on the
+computer running the game, press **Share game window**, drag a box around the leaderboard, press **Start auto-read**, then **Go live**.
+Uses Tesseract.js (text recognition in the browser); nothing is uploaded. `node`-testable parser: `leaderboard-parser.js`.
