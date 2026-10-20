@@ -890,7 +890,7 @@ function conFor(s,teamName){
   const list=window.VMS_NEW_RESULTS; if(!Array.isArray(list)) return;
   list.forEach(e=>{
     const s=e&&e.series, race=real.find(r=>r.rnd===String(e&&e.rnd));
-    if(!SERIES.includes(s)||!race||!Array.isArray(e.rows)||!e.rows.length) return;
+    if(!SERIES.includes(s)||!race||!Array.isArray(e.rows)||(!e.delete&&!e.rows.length)) return;
     const key=rkey(race,s);
     let replaced=false;
     if(D.results[key]){
@@ -900,6 +900,14 @@ function conFor(s,teamName){
       D.results[key].forEach(o=>{ const op=+o.pts||0; if(!op) return;
         const dv=st0.drivers.find(v=>canon(s,v.name)===canon(s,o.name)); if(dv) dv.pts=(+dv.pts||0)-op;
         const ct=o.team&&conFor(s,o.team); if(ct) ct.pts=(+ct.pts||0)-op; });
+    }
+    if(e.delete){ // remove a built-in result (its points were already taken back out above)
+      if(!replaced) return;
+      delete D.results[key];
+      const stD=D.standings[s], topD=Math.max(0,...stD.drivers.map(d=>+d.pts||0));
+      stD.drivers.sort((a,b)=>b.pts-a.pts).forEach((d,i)=>{d.pos=i+1; d.gap=String((+d.pts||0)-topD);});
+      stD.constructors.sort((a,b)=>b.pts-a.pts).forEach((c,i)=>{c.pos=i+1;});
+      return;
     }
     const rows=e.rows.map((x,i)=>({pos:+x.pos||i+1,name:x.name,team:x.team||'',pts:+x.pts||0,fl:!!x.fl,pole:!!x.pole,note:x.note||'',status:x.status||'',wccOnly:!!x.wccOnly,gap:x.gap||''}));
     D.results[key]=rows; race.status='completed';

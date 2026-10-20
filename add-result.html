@@ -83,7 +83,7 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
     <span class="hint" id="ptsHint"></span>
   </p>
   <div id="warn"></div>
-  <p><button class="btn" id="saveEntry">Save this race to the list ↓</button></p>
+  <p class="row"><button class="btn" id="saveEntry">Save this race to the list ↓</button><button class="btn alt" id="delLive" style="display:none">Delete this live result</button></p>
 </div>
 
 <div class="card">
@@ -115,7 +115,7 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
 const $=id=>document.getElementById(id);
 const SERIES=['f1','f2','f3'], LBL={f1:'F1',f2:'F2',f3:'F3'};
 const S={series:'f1',entries:[],loaded:[],races:[],hardKeys:new Set(),points:{},bonusFl:{},bonusPole:{},
-         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},editing:null,hardEdit:false,hard:{}};
+         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},editing:null,hardEdit:false,pendingDelete:false,hard:{}};
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const unq=s=>s.replace(/\\'/g,"'");
 const norm=s=>String(s||'').toLowerCase().replace(/\s*\(.*?\)\s*/g,'').trim();
@@ -178,6 +178,7 @@ function init(){
   $('clearRows').onclick=()=>{$('rows').innerHTML=''; S.editing=null; for(let i=0;i<3;i++) addRow(); renumber(); showRoundInfo();};
   $('pasteBtn').onclick=fromPaste;
   $('saveEntry').onclick=saveEntry;
+  $('delLive').onclick=deleteLive;
   $('copy').onclick=()=>{ $('json').select(); navigator.clipboard?navigator.clipboard.writeText($('json').value).then(()=>msg($('pubMsg'),'Copied. Paste it into <code>data/new-results.json</code> in the repo.','ok')):document.execCommand('copy'); };
   $('download').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('json').value],{type:'application/json'})); a.download='new-results.json'; a.click(); };
   $('publish').onclick=publish;
@@ -192,7 +193,7 @@ function setSeries(){
   document.querySelectorAll('#serTabs .tab').forEach(b=>b.classList.toggle('on',b.dataset.s===S.series));
   const opts=S.races.map(r=>{
     const key=r.rnd+'-'+S.series, hard=S.hardKeys.has(key), mine=!!entryFor(S.series,r.rnd);
-    const tag=mine?' — saved ✓':hard?' — live (built-in, editable)':'';
+    const tag=(entryFor(S.series,r.rnd)||{}).delete?' — will be deleted':mine?' — saved ✓':hard?' — live (built-in, editable)':'';
     return `<option value="${esc(r.rnd)}">R${esc(r.rnd)} · ${esc(r.name)}${tag}</option>`;}).join('');
   $('round').innerHTML=opts;
   // default: first round with no results for this series
@@ -208,8 +209,8 @@ function roundChanged(){ S.editing=null; loadRound(); }
 function loadRound(){
   const ex=entryFor(S.series,$('round').value);
   $('rows').innerHTML='';
-  const hk=$('round').value+'-'+S.series; S.hardEdit=false;
-  if(ex){ $('half').value=ex.half?'1':'0'; ex.rows.forEach(r=>addRow(r)); S.editing=ex; S.hardEdit=!!ex.replace; }
+  const hk=$('round').value+'-'+S.series; S.hardEdit=false; S.pendingDelete=!!(ex&&ex.delete);
+  if(ex&&!ex.delete){ $('half').value=ex.half?'1':'0'; ex.rows.forEach(r=>addRow(r)); S.editing=ex; S.hardEdit=!!ex.replace; }
   else if(S.hard[hk]){ $('half').value='0'; S.hard[hk].forEach(r=>addRow(hardRow(r))); S.hardEdit=true; }
   else { $('half').value='0'; for(let i=0;i<10;i++) addRow(); }
   renumber(); showRoundInfo(); msg($('warn'),'');
@@ -218,11 +219,22 @@ function loadRound(){
 function hardRow(r){ const m=String(r.note||'').match(/^(DNF|DNS|DSq)\b/i); const st=m?(m[1].toUpperCase()==='DSQ'?'DSq':m[1].toUpperCase()):'';
   let gap=r.gap||'', note=r.note||''; if(!gap&&/^\+[\d:.]+(\s*laps?)?$/i.test(note.trim())){ gap=note.trim(); note=''; }
   return {pos:r.pos,name:r.name,team:r.team,pts:r.pts,fl:!!r.fl,pole:!!r.pole,status:st,note,wccOnly:/WCC only/i.test(r.note||''),gap}; }
+function deleteLive(){
+  const s=S.series, rnd=$('round').value, r=S.races.find(x=>x.rnd===rnd);
+  if(!S.hard[rnd+'-'+s]) return;
+  if(!confirm('Remove the live '+LBL[s]+' result for round '+rnd+' ('+(r?r.name:'')+') from the site? Its points are taken back out of the standings once you publish.')) return;
+  const i=S.entries.findIndex(e=>e.series===s&&String(e.rnd)===String(rnd)); const t={series:s,rnd,rows:[],replace:true,delete:true};
+  if(i>=0) S.entries[i]=t; else S.entries.push(t);
+  S.entries.sort((a,b)=>(+a.rnd-+b.rnd)||a.series.localeCompare(b.series));
+  renderEntries(); setSeries(); $('round').value=rnd; loadRound();
+  msg($('warn'),'Marked for deletion. Scroll down and publish to remove it from the site.','ok');
+}
 function showRoundInfo(){
+  $('delLive').style.display=(S.hardEdit&&!S.pendingDelete)?'':'none';
   const r=S.races.find(x=>x.rnd===$('round').value); if(!r) return;
   const ex=S.editing;
   $('roundInfo').innerHTML=`${esc(r.flag)} <b>${esc(r.name)}</b> · ${esc(r.sat)}${r.sun&&r.sun!==r.sat?' – '+esc(r.sun):''} `+
-    (ex?'<span class="pill warn">editing saved result</span>':S.hardEdit?'<span class="pill warn">editing live built-in result</span>':'<span class="pill">new result</span>')+
+    (S.pendingDelete?'<span class="pill warn">will be deleted when published</span>':ex?'<span class="pill warn">editing saved result</span>':S.hardEdit?'<span class="pill warn">editing live built-in result</span>':'<span class="pill">new result</span>')+
     ` <span class="hint">Points: ${S.points[S.series].join(', ')} · FL +${S.bonusFl[S.series]} · Pole +${S.bonusPole[S.series]}</span>`;
 }
 
@@ -265,6 +277,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{
   const tr=e.target.closest('#rows tr'); if(!tr) return;
   if(e.target.classList.contains('n')){ const t=S.drivers[S.series][e.target.value]; const ti=tr.querySelector('.t'); if(t&&!ti.value) ti.value=t; }
+  if(e.target.classList.contains('st')){ delete tr.dataset.manual; tr.classList.remove('manual'); }
   if(e.target.matches('.st,.po,.fl')) recalcRow(tr);
 });
 document.addEventListener('keydown',e=>{ // Enter on the last note box adds a new row
@@ -284,7 +297,7 @@ function renumber(){ // auto position = previous row's position + 1, unless you 
 }
 function calcPts(tr,i){ i=(+tr.querySelector('.ps').value||i+1)-1;
   const s=S.series, st=tr.querySelector('.st').value;
-  if(st==='DNS'||st==='DSq') return 0;
+  if(st==='DNS'||st==='DSq'||st==='DNF') return 0;
   let base=S.points[s][i]||0; if($('half').value==='1') base=Math.round(base/2);
   return base+(tr.querySelector('.fl').checked?S.bonusFl[s]:0)+(tr.querySelector('.po').checked?S.bonusPole[s]:0);
 }
@@ -359,11 +372,11 @@ function renderEntries(){
   $('entries').innerHTML=S.entries.length?S.entries.map((e,i)=>{
     const r=S.races.find(x=>x.rnd===String(e.rnd)), win=e.rows[0];
     const changed=JSON.stringify(e)!==JSON.stringify(S.loaded.find(x=>x.series===e.series&&String(x.rnd)===String(e.rnd)));
-    return `<div class="e"><span class="pill">${LBL[e.series]}</span><b>R${esc(e.rnd)} · ${esc(r?r.name:'?')} <span class="hint">— ${e.rows.length} drivers, winner ${esc(win&&win.name)}</span></b>`+
+    return `<div class="e"><span class="pill">${LBL[e.series]}</span><b>R${esc(e.rnd)} · ${esc(r?r.name:'?')} <span class="hint">— ${e.delete?'built-in result will be removed from the site':e.rows.length+' drivers, winner '+esc(win&&win.name)}</span></b>`+
       (changed?'<span class="pill warn">unpublished</span>':'<span class="pill ok">live</span>')+
-      `<button class="btn alt sm" data-edit="${i}">Edit</button><button class="btn alt sm" data-del="${i}">Delete</button></div>`;}).join(''):'<p class="hint">Nothing saved yet.</p>';
+      `<button class="btn alt sm" data-edit="${i}">Edit</button><button class="btn alt sm" data-del="${i}">${e.delete?'Undo':'Delete'}</button></div>`;}).join(''):'<p class="hint">Nothing saved yet.</p>';
   $('entries').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{ const e=S.entries[+b.dataset.edit]; S.series=e.series; setSeries(); $('round').value=e.rnd; loadRound(); window.scrollTo({top:0,behavior:'smooth'}); });
-  $('entries').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const e=S.entries[+b.dataset.del]; if(confirm('Delete '+LBL[e.series]+' round '+e.rnd+' from the list?')){ S.entries.splice(+b.dataset.del,1); renderEntries(); setSeriesKeep(); }});
+  $('entries').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const e=S.entries[+b.dataset.del]; if(e.delete||confirm('Delete '+LBL[e.series]+' round '+e.rnd+' from the list?')){ S.entries.splice(+b.dataset.del,1); renderEntries(); setSeriesKeep(); }});
   $('json').value=JSON.stringify(S.entries,null,2)+'\n';
   $('entriesHint').textContent=S.entries.some(e=>JSON.stringify(e)!==JSON.stringify(S.loaded.find(x=>x.series===e.series&&String(x.rnd)===String(e.rnd))))||S.entries.length!==S.loaded.length
     ?'You have unpublished changes.':'';
