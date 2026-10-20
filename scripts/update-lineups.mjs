@@ -142,12 +142,6 @@ async function syncFeed(label, channelId, file, limit, allowedIds) {
   const items = await buildFeed(channelId, limit, allowedIds, label);
   await writeIfChanged(file, items, old);
 }
-  if (!channelId) { console.log(`${label}: channel id not set, skipped`); return; }
-  const old = await readJson(file, []);
-  const items = await buildFeed(channelId, limit);
-  console.log(`${label}: ${items.length} posts`);
-  await writeIfChanged(file, items, old);
-}
 async function cleanMedia() {
   const used = new Set();
   for (const f of ['data/fia.json', 'data/media.json']) for (const it of await readJson(f, [])) for (const x of it.files || []) if (x.path) used.add(x.path.slice(6));
