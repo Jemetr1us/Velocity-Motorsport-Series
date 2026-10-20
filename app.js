@@ -909,7 +909,8 @@ function conFor(s,teamName){
       stD.constructors.sort((a,b)=>b.pts-a.pts).forEach((c,i)=>{c.pos=i+1;});
       return;
     }
-    const rows=e.rows.map((x,i)=>({pos:+x.pos||i+1,name:x.name,team:x.team||'',pts:+x.pts||0,fl:!!x.fl,pole:!!x.pole,note:x.note||'',status:x.status||'',wccOnly:!!x.wccOnly,gap:x.gap||''}));
+    const rows=e.rows.map((x,i)=>({pos:+x.pos||i+1,name:x.name,team:x.team||'',pts:+x.pts||0,fl:!!x.fl,pole:!!x.pole,note:x.note||'',status:x.status||'',wccOnly:!!x.wccOnly,half:!!x.half,gap:x.gap||''}));
+    (D.halfRaces=D.halfRaces||{})[key]=!!e.half;
     D.results[key]=rows; race.status='completed';
     const st=D.standings[s];
     rows.forEach(x=>{
@@ -1071,10 +1072,10 @@ function renderResults(){
   const race=real.find(r=>r.rnd===rs.rnd), rows=D.results[rkey(race,rs.series)];
   if($('resSub')) $('resSub').textContent=`Round ${race.rnd} · ${race.name}`;
   const sd=D.sessions[rs.series];
-  $('resMeta').innerHTML=`<span>${esc(race.flag)} <b>${esc(race.circuit)}</b></span><span>${esc(dates(race))}</span><span>${esc(FULL[rs.series])} · ${esc(sd.day)} ${esc(sd.time)}</span>`;
+  $('resMeta').innerHTML=`<span>${esc(race.flag)} <b>${esc(race.circuit)}</b></span><span>${esc(dates(race))}</span><span>${esc(FULL[rs.series])} · ${esc(sd.day)} ${esc(sd.time)}</span>${D.halfRaces&&D.halfRaces[rkey(race,rs.series)]?'<span><b>50% rule</b> · half points awarded</span>':''}`;
   const hasGap=rows.some(r=>r.gap);
   $('resBoard').innerHTML=`<table><thead><tr><th>Pos</th><th>Driver</th><th>Team</th>${hasGap?'<th>Gap</th>':''}<th>Notes</th><th>Pts</th></tr></thead><tbody>${
-    rows.map(r=>`<tr class="click" data-name="${esc(r.name)}"><td class="${r.pos<=3?'pos':''}">P${r.pos}</td><td><b>${esc(r.name)}</b>${r.pole?'<span class="tag pole">Pole</span>':''}${r.fl?'<span class="tag fl">FL</span>':''}</td><td class="muted">${esc(r.team)}</td>${hasGap?`<td class="muted">${esc(r.gap||'')}</td>`:''}<td class="note">${esc(r.note||'')}</td><td class="points">${r.pts}</td></tr>`).join('')
+    rows.map(r=>`<tr class="click" data-name="${esc(r.name)}"><td class="${r.pos<=3?'pos':''}">P${r.pos}</td><td><b>${esc(r.name)}</b>${r.pole?'<span class="tag pole">Pole</span>':''}${r.fl?'<span class="tag fl">FL</span>':''}${r.half?'<span class="tag half">50% rule</span>':''}</td><td class="muted">${esc(r.team)}</td>${hasGap?`<td class="muted">${esc(r.gap||'')}</td>`:''}<td class="note">${esc(r.note||'')}</td><td class="points">${r.pts}</td></tr>`).join('')
   }</tbody></table>`;
   $('resBoard').querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>openDriver(rs.series,tr.dataset.name));
 }
@@ -1474,7 +1475,7 @@ function renderRecords(){
     const idxs=[].concat(...groups);
     if(!idxs.length){box.innerHTML='';return;}
     const face=(x,cls,tie)=>`<div class="lp-c p${x.pos}${cls}" data-name="${esc(x.name)}" style="--c:${esc(colorOf(s,x.team,x.name))}"><div class="lp-pos">${x.pos}</div><div class="lp-n">${esc(x.name)}</div><div class="lp-t">${esc(x.team||'')}</div>
-      <div class="lp-tags">${x.pole?'<span class="tag pole">Pole</span>':''}${x.fl?'<span class="tag fl">Fastest Lap</span>':''}</div><div class="lp-p">${x.pts}<small>PTS</small></div>${x.gap?`<div class="lp-gap">${esc(x.gap)}</div>`:''}${x.note?`<div class="lp-note">${esc(x.note)}</div>`:''}${tie?`<div class="lp-tie">⇄ ${tie}</div>`:''}</div>`;
+      <div class="lp-tags">${x.pole?'<span class="tag pole">Pole</span>':''}${x.fl?'<span class="tag fl">Fastest Lap</span>':''}${x.half?'<span class="tag half">50% rule</span>':''}</div><div class="lp-p">${x.pts}<small>PTS</small></div>${x.gap?`<div class="lp-gap">${esc(x.gap)}</div>`:''}${x.note?`<div class="lp-note">${esc(x.note)}</div>`:''}${tie?`<div class="lp-tie">⇄ ${tie}</div>`:''}</div>`;
     box.innerHTML=`<div class="lp-pod">${groups.map(g=>{
       const x=rows[g[0]];
       if(g.length<2) return face(x,'','');
@@ -1493,6 +1494,7 @@ function renderRecords(){
     }
   }
   if(!document.getElementById('lp-flip-css')){ const st=document.createElement('style'); st.id='lp-flip-css'; st.textContent=
+   '.tag.half{border-color:#f5a623;color:#f5a623}'+
    '.lp-flip{perspective:1400px;outline:none}.lp-flip.p2{order:-1}.lp-flip .lp-in{display:grid;transform-style:preserve-3d;transition:transform .6s cubic-bezier(.4,.2,.2,1)}'+
    '.lp-flip .lp-c{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden}.lp-flip .lp-c:hover{transform:none}'+
    '.lp-flip .lp-back,.lp-flip .lp-back:hover{transform:rotateY(180deg)}'+
