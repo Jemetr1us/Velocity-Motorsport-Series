@@ -4,6 +4,7 @@
     style.css    – styles
     app.js       – all site logic (standings, results, replay, heatmap, search…)
     data/lineups.json – team lineups (the only file the Discord sync rewrites)
+    data/standings.json – standings read from an image (written by add-standings.html)
     data/fia.json, data/media.json + media/ – FIA announcements and media feed (written by the sync)
     data/name-map.json – Discord nickname → site name (e.g. "il predestinato" → "Nath")
     assets/logo.png
@@ -44,6 +45,19 @@ Results are stored in `data/new-results.json`. On load, `app.js` layers them on 
 appears on the Results page, driver + constructor points are added, form dots are appended and standings are re-sorted.
 A round that already has results hard-coded in `app.js` is skipped (and greyed out in the tool). To fix a mistake, open the
 tool, hit **Edit** on the saved race, change it and publish again.
+
+## Adding standings from an image
+Open **`add-standings.html`** (same hosting as `add-result.html`).
+1. Pick the series and **Drivers** or **Constructors**.
+2. Drop, choose or paste (Ctrl/⌘+V) a screenshot of the standings. Several screenshots of one long table are read top to bottom.
+   Press **Read the image** – the text is read in your browser (Tesseract.js), nothing is uploaded.
+3. Check the table: names are snapped to the drivers/teams already on the site, *On site* / *Change* show how the points move,
+   and a warning appears if the points ever go up as you go down the list (usually a misread digit). Fix anything, then **Save**.
+   Tick *whole table* to hide anyone who isn't in the image. No image handy? Paste the table as text instead.
+4. **Publish to GitHub** (same token as add-result) or Copy / Download `data/standings.json`.
+
+`app.js` applies `data/standings.json` last, after the built-in tables and `new-results.json`, so the image has the final word on points.
+Order is the order in the image (ties stay as shown). Use **Remove** in the tool and publish to go back to the calculated standings.
 
 ## Live race page
 The **Live** tab polls `data/live.json` every 2 s while it's open and shows a timing tower, track map, flag status and race-control

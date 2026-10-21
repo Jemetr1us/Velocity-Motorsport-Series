@@ -932,6 +932,43 @@ function conFor(s,teamName){
   });
 })();
 
+/* ───────── standings read from an image via add-standings.html (data/standings.json) ─────────
+   Applied last, so it is the final word on points: whatever the image says replaces the points on the site.
+   Drivers/teams that aren't in the image keep their points, unless the tool's "whole table" box was ticked
+   (then they are hidden). Order = order in the image, so ties stay exactly as shown there. */
+(function applyStandingsImage(){
+  const all=window.VMS_STANDINGS; if(!all||typeof all!=='object') return;
+  SERIES.forEach(s=>{
+    const o=all[s]; if(!o) return; const st=D.standings[s];
+    if(Array.isArray(o.drivers)&&o.drivers.length){
+      const ord=new Map(), seen=new Set();
+      o.drivers.forEach((x,i)=>{
+        if(!x||!x.name) return; const c=canon(s,x.name); seen.add(c); ord.set(c,i);
+        let d=st.drivers.find(v=>canon(s,v.name)===c);
+        if(!d){ const li=lineupFor(s,x.name); d={name:x.name,code:(li&&li.code)||'—',team:x.team||(li&&li.teamName)||'',pts:0,wins:0,pods:0,dnf:0,pos:0,gap:'0',form:[]}; st.drivers.push(d); }
+        d.pts=+x.pts||0; d.hidden=false; if(x.team) d.team=x.team;
+      });
+      if(o.driversFull) st.drivers.forEach(d=>{ if(!seen.has(canon(s,d.name))) d.hidden=true; });
+      const rank=d=>{ const c=canon(s,d.name); return ord.has(c)?ord.get(c):1e9; };
+      st.drivers.sort((a,b)=>(b.pts-a.pts)||(rank(a)-rank(b)));
+      const vis=st.drivers.filter(d=>!d.hidden), top=Math.max(0,...vis.map(d=>+d.pts||0));
+      vis.forEach((d,i)=>{d.pos=i+1; d.gap=String((+d.pts||0)-top);});
+    }
+    if(Array.isArray(o.constructors)&&o.constructors.length){
+      const ord=new Map(), seen=new Set();
+      o.constructors.forEach((x,i)=>{
+        if(!x||!x.name) return; const n=normTeam(x.name); seen.add(n); ord.set(n,i);
+        let c=conFor(s,x.name);
+        if(!c){ const li=(D.info[s]||[]).find(v=>normTeam(v.name)===n); c={name:x.name,color:(li&&li.color)||'#888888',pts:0,pos:0}; st.constructors.push(c); }
+        c.pts=+x.pts||0;
+      });
+      if(o.constructorsFull) st.constructors=st.constructors.filter(c=>seen.has(normTeam(c.name)));
+      const rank=c=>{ const n=normTeam(c.name); return ord.has(n)?ord.get(n):1e9; };
+      st.constructors.sort((a,b)=>(b.pts-a.pts)||(rank(a)-rank(b))).forEach((c,i)=>{c.pos=i+1;});
+    }
+  });
+})();
+
 function tabs(el,items,active,fn){
   el.innerHTML=items.map(([k,l])=>`<button class="tab${k===active?' on':''}" data-k="${k}">${esc(l)}</button>`).join('');
   el.onclick=e=>{const b=e.target.closest('.tab'); if(b) fn(b.dataset.k);};

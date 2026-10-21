@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>VMS | Add Standings</title>
+<style>
+:root{--pink:#e8186d;--bg:#050505;--card:#0f0f0f;--line:#262626;--mut:#8a8a8a;--ok:#2ecc71;--warn:#f5a623}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:#fff;font-size:14px}
+header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+header img{height:34px}header h1{font-size:15px;letter-spacing:2px;margin:0;text-transform:uppercase}
+header a{color:var(--mut);font-size:12px}header a.first{margin-left:auto}
+main{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:var(--card);border:1px solid var(--line);padding:16px;margin-bottom:16px}
+.card h2{margin:0 0 12px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--pink)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+label{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
+label.inl{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:0;text-transform:none;color:#ccc;margin:0;cursor:pointer}
+label.inl input{width:auto;transform:scale(1.2)}
+input,select,textarea{background:#000;color:#fff;border:1px solid #333;padding:9px 10px;font-size:14px;font-family:inherit;width:100%}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--pink)}
+textarea{min-height:110px;resize:vertical;font-family:Consolas,monospace;font-size:13px}
+.tabs{display:flex;gap:6px}
+.tab{background:#000;color:#aaa;border:1px solid #333;padding:10px 18px;font-weight:700;cursor:pointer;letter-spacing:1px}
+.tab.on{background:var(--pink);border-color:var(--pink);color:#fff}
+button.btn{background:var(--pink);color:#fff;border:0;padding:11px 18px;font-weight:700;letter-spacing:1px;cursor:pointer;font-size:12px;text-transform:uppercase}
+button.btn.alt{background:#000;border:1px solid #444}
+button.btn.sm{padding:7px 10px;font-size:11px}
+button.btn:hover{filter:brightness(1.15)}
+button.btn:disabled{opacity:.4;cursor:default}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);text-align:left;padding:4px 4px}
+td{padding:3px 3px;vertical-align:middle}
+td input{padding:7px 8px;font-size:13px}
+td.pos{width:40px;text-align:center;font-weight:700;color:var(--pink)}
+td.pts input{width:80px;text-align:center}
+td.now,td.chg{width:78px;text-align:center;color:var(--mut);font-size:13px}
+td.chg.up{color:var(--ok)}td.chg.dn{color:#e5484d}
+td.st{width:92px}
+td.x{width:96px;white-space:nowrap}
+table.cons .tcol{display:none}
+.scroll{overflow-x:auto}
+.hint{color:var(--mut);font-size:12px;line-height:1.5}
+.pill{display:inline-block;font-size:10px;letter-spacing:1px;padding:3px 7px;border:1px solid #444;color:#bbb;text-transform:uppercase}
+.pill.ok{border-color:var(--ok);color:var(--ok)}.pill.warn{border-color:var(--warn);color:var(--warn)}
+.msg{padding:10px 12px;margin:10px 0;border-left:3px solid var(--pink);background:#160a10;font-size:13px}
+.msg.ok{border-color:var(--ok);background:#0a160e}.msg.err{border-color:#e5484d;background:#2a0e10}
+.entries .e{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1c1c1c}
+.entries .e b{flex:1}
+details summary{cursor:pointer;color:var(--mut);font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.grow{flex:1;min-width:150px}
+code{background:#000;padding:1px 5px;border:1px solid #222}
+.drop{border:2px dashed #3a3a3a;padding:26px 16px;text-align:center;color:var(--mut);cursor:pointer;line-height:1.6}
+.drop.over,.drop:focus{border-color:var(--pink);color:#fff;outline:none}
+.drop b{color:#fff}
+.thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.thumb{position:relative;border:1px solid #333;background:#000}
+.thumb img{display:block;height:110px;max-width:240px;object-fit:contain}
+.thumb button{position:absolute;top:4px;right:4px;background:#000c;color:#fff;border:1px solid #555;cursor:pointer;width:24px;height:24px;line-height:1;padding:0}
+.bar{height:4px;background:#1c1c1c;margin-top:10px;display:none}.bar i{display:block;height:100%;width:0;background:var(--pink);transition:width .2s}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+</head><body>
+<header><img src="assets/logo.png" alt="VMS"><h1>Add Standings</h1><a class="first" href="add-result.html">Add race results</a><a href="index.html">← Back to site</a></header>
+<main>
+<div id="boot" class="msg">Loading…</div>
+<datalist id="dl"></datalist><datalist id="tl"></datalist>
+
+<div class="card">
+  <h2>1 · Which table?</h2>
+  <div class="row">
+    <div><label>Series</label><div class="tabs" id="serTabs"></div></div>
+    <div><label>Table</label><div class="tabs" id="viewTabs"></div></div>
+    <div class="grow"><label class="inl"><input type="checkbox" id="full"> The image shows the whole table — hide anyone who isn’t in it</label></div>
+  </div>
+  <p class="hint">Whatever you publish here replaces the points on the site for the drivers or teams in the image. Without the tick box, anyone missing from the image keeps their current points.</p>
+</div>
+
+<div class="card">
+  <h2>2 · Add the image</h2>
+  <div class="drop" id="drop" tabindex="0">
+    <b>Drop the standings screenshot here</b>, click to choose a file, or paste it with Ctrl/⌘ + V.<br>
+    Long table in several screenshots? Add them all, top to bottom.
+  </div>
+  <input type="file" id="file" accept="image/*" multiple style="display:none">
+  <div class="thumbs" id="thumbs"></div>
+  <p class="row" style="margin-top:12px">
+    <button class="btn" id="read" disabled>Read the image</button>
+    <button class="btn alt sm" id="clearImgs" style="display:none">Remove all images</button>
+  </p>
+  <div class="bar" id="bar"><i id="barI"></i></div>
+  <div id="ocrMsg"></div>
+  <details>
+    <summary>Text the reader saw — or paste the table as text instead</summary>
+    <p class="hint">One driver (or team) per line, with the points last, e.g. <code>1. Nick Scuderia Ferrari 301</code>. Fix any line here, then press the button.</p>
+    <textarea id="ocrText" placeholder="1. Nick Scuderia Ferrari 301&#10;2. Lory Richard Mille LM Motorsport F1 190"></textarea>
+    <p><button class="btn alt sm" id="useText">Fill the table from this text</button></p>
+  </details>
+</div>
+
+<div class="card">
+  <h2>3 · Check the table</h2>
+  <p class="hint" id="tblHint"></p>
+  <div class="scroll"><table id="tbl">
+    <thead><tr><th>#</th><th id="nameTh">Driver</th><th class="tcol">Team</th><th>Points</th><th title="Points on the site right now (including race results added with add-result)">On site</th><th title="New points minus points on the site now">Change</th><th></th><th></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table></div>
+  <p class="row" style="margin-top:12px">
+    <button class="btn alt sm" id="addRow">+ Add row</button>
+    <button class="btn alt sm" id="clearRows">Clear table</button>
+  </p>
+  <div id="warn"></div>
+  <p class="row"><button class="btn" id="save">Save this table to the list ↓</button></p>
+</div>
+
+<div class="card">
+  <h2>4 · Saved standings (not live until published)</h2>
+  <div class="entries" id="entries"></div>
+  <p class="hint" id="entriesHint"></p>
+</div>
+
+<div class="card">
+  <h2>5 · Publish</h2>
+  <div class="row">
+    <div class="grow"><label>GitHub repo (owner/name)</label><input id="gRepo" placeholder="yourname/Velocity-Motorsport-Series" autocomplete="off"></div>
+    <div style="width:110px"><label>Branch</label><input id="gBranch" value="main"></div>
+    <div class="grow"><label>Access token</label><input id="gToken" type="password" placeholder="github_pat_…" autocomplete="off"></div>
+  </div>
+  <p class="hint">Same repo and token as add-result.html (stored only in this browser). Publishing commits <code>data/standings.json</code> and the site updates in a minute or two.</p>
+  <p class="row">
+    <button class="btn" id="publish">Publish to GitHub</button>
+    <button class="btn alt" id="copy">Copy JSON</button>
+    <button class="btn alt" id="download">Download standings.json</button>
+  </p>
+  <div id="pubMsg"></div>
+  <details><summary>Show JSON</summary><textarea id="json" readonly style="min-height:200px"></textarea></details>
+</div>
+</main>
+
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const SERIES=['f1','f2','f3'], LBL={f1:'F1',f2:'F2',f3:'F3'}, VIEWS=['drivers','constructors'], VLBL={drivers:'Drivers',constructors:'Constructors'};
+const S={series:'f1',view:'drivers',saved:{},loaded:{},hard:{},files:[],busy:false,
+         drivers:{f1:{},f2:{},f3:{}},teams:{f1:new Set(),f2:new Set(),f3:new Set()},
+         now:{f1:{d:{},c:{}},f2:{d:{},c:{}},f3:{d:{},c:{}}}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const unq=s=>s.replace(/\\'/g,"'");
+const norm=s=>String(s||'').toLowerCase().replace(/[’']/g,"'").replace(/\s*\(.*?\)\s*/g,' ').replace(/\s+/g,' ').trim();
+const msg=(el,t,k)=>{el.innerHTML=t?`<div class="msg ${k||''}">${t}</div>`:'';};
+const clone=o=>JSON.parse(JSON.stringify(o));
+function lev(a,b){ const m=[]; for(let i=0;i<=a.length;i++) m[i]=[i]; for(let j=1;j<=b.length;j++) m[0][j]=j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++) m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); return m[a.length][b.length]; }
+
+/* ───── load site data: current standings, drivers, teams, saved standings ───── */
+let STEP='';
+async function boot(){
+  try{
+    STEP='loading files';
+    const getTxt=async f=>{ const r=await fetch(f,{cache:'no-store'}); if(!r.ok) throw new Error(f+' returned '+r.status); return r.text(); };
+    const getJson=async(f,fallback)=>{ try{ return JSON.parse(await getTxt(f)); }catch(e){ if(fallback!==undefined) return fallback; throw new Error(f+' could not be loaded ('+(e&&e.message||e)+')'); } };
+    const [appTxt,lineups,newRes,saved]=await Promise.all([ getTxt('app.js'), getJson('data/lineups.json'), getJson('data/new-results.json',[]), getJson('data/standings.json',{}) ]);
+    STEP='reading the standings';
+    const i1=appTxt.indexOf('// ================= F1'), i2=appTxt.indexOf('// ================= F2'), i3=appTxt.indexOf('// ================= F3'), i4=appTxt.indexOf('// ================= GENERAL');
+    const secs={f1:appTxt.slice(i1,i2),f2:appTxt.slice(i2,i3),f3:appTxt.slice(i3,i4)};
+    SERIES.forEach(s=>{
+      let d; const dr=/\{name:'((?:[^'\\]|\\.)*)',\s*code:'[^']*',\s*team:'((?:[^'\\]|\\.)*)',\s*pts:(-?\d+)/g;
+      while((d=dr.exec(secs[s]))){ const n=unq(d[1]), t=unq(d[2]); S.drivers[s][n]=t; if(t) S.teams[s].add(t); S.now[s].d[norm(n)]=+d[3]; }
+      let c; const cr=/\{name:'((?:[^'\\]|\\.)*)',\s*color:'[^']*',\s*pts:(-?\d+)/g;
+      while((c=cr.exec(secs[s]))){ const n=unq(c[1]); S.teams[s].add(n); S.now[s].c[norm(n)]=+c[2]; }
+      (lineups[s]||[]).forEach(t=>{ if(t.name) S.teams[s].add(t.name); (t.drivers||[]).forEach(x=>{ if(x.name&&x.name!=='—'&&!S.drivers[s][x.name]) S.drivers[s][x.name]=t.name; }); });
+    });
+    // race results already built into app.js (needed to undo them when a result entry replaces one)
+    STEP='reading results';
+    ['F1','F2','F3'].forEach(k=>{ const a=appTxt.indexOf('const '+k+'_RESULTS = {'); if(a<0) return; const b=appTxt.indexOf('\n};',a); if(b<0) return;
+      try{ Object.assign(S.hard,(new Function('return '+appTxt.slice(appTxt.indexOf('{',a),b+2)))()); }catch(x){ console.warn('could not read '+k+' results',x); } });
+    // results added with add-result.html are already part of what the site shows
+    const bump=(s,o,sign)=>{ const p=(+o.pts||0)*sign; if(!p) return;
+      if(!o.wccOnly){ const k=norm(o.name); S.now[s].d[k]=(S.now[s].d[k]||0)+p; }
+      if(o.team){ const k=norm(o.team); S.now[s].c[k]=(S.now[s].c[k]||0)+p; } };
+    (Array.isArray(newRes)?newRes:[]).forEach(e=>{
+      const s=e&&e.series; if(!S.now[s]||!Array.isArray(e.rows)) return;
+      const hard=S.hard[String(e.rnd)+'-'+s];
+      if(hard&&e.replace) hard.forEach(o=>bump(s,o,-1));
+      if(e.delete||(hard&&!e.replace)) return;
+      e.rows.forEach(o=>{ bump(s,o,1); if(o.name&&o.team){ S.drivers[s][o.name]=o.team; S.teams[s].add(o.team); } });
+    });
+    S.loaded=(saved&&typeof saved==='object'&&!Array.isArray(saved))?saved:{}; S.saved=clone(S.loaded);
+    STEP='building the page';
+    $('boot').remove();
+    init();
+  }catch(err){
+    msg($('boot'),"Couldn't load the site data. Open this page through a web server (GitHub Pages, or <code>npx serve</code> locally) — double-clicking the file won't work. ("+esc(STEP)+': '+esc(err&&err.message||err)+")",'err');
+    $('boot').outerHTML=$('boot').innerHTML;
+  }
+}
+
+/* ───── UI ───── */
+function init(){
+  try{ $('gRepo').value=localStorage.getItem('vms_repo')||''; $('gBranch').value=localStorage.getItem('vms_branch')||'main'; $('gToken').value=localStorage.getItem('vms_token')||''; }catch(e){}
+  $('serTabs').innerHTML=SERIES.map(s=>`<button type="button" class="tab" data-s="${s}">${LBL[s]}</button>`).join('');
+  $('viewTabs').innerHTML=VIEWS.map(v=>`<button type="button" class="tab" data-v="${v}">${VLBL[v]}</button>`).join('');
+  $('serTabs').onclick=e=>{const b=e.target.closest('.tab'); if(b){S.series=b.dataset.s; loadTable();}};
+  $('viewTabs').onclick=e=>{const b=e.target.closest('.tab'); if(b){S.view=b.dataset.v; loadTable();}};
+  const drop=$('drop'), file=$('file');
+  drop.onclick=()=>file.click();
+  drop.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); file.click(); } };
+  file.onchange=()=>{ addFiles(file.files); file.value=''; };
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.remove('over');}));
+  drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
+  document.addEventListener('paste',e=>{ const fs=[...((e.clipboardData&&e.clipboardData.items)||[])].filter(i=>i.kind==='file'&&/^image\//.test(i.type)).map(i=>i.getAsFile()).filter(Boolean); if(fs.length) addFiles(fs); });
+  $('thumbs').onclick=e=>{ const b=e.target.closest('[data-rm]'); if(b){ const f=S.files.splice(+b.dataset.rm,1)[0]; if(f) URL.revokeObjectURL(f.url); renderThumbs(); } };
+  $('clearImgs').onclick=()=>{ S.files.forEach(f=>URL.revokeObjectURL(f.url)); S.files=[]; renderThumbs(); };
+  $('read').onclick=readImages;
+  $('useText').onclick=()=>{ const rows=dedupe(parseText($('ocrText').value)); if(!rows.length){ msg($('ocrMsg'),'No lines with points in them were found in that text.','err'); return; } fillRows(rows); msg($('ocrMsg'),`Filled the table with ${rows.length} rows. Check them below.`,'ok'); };
+  $('addRow').onclick=()=>{ addRow(); renumber(); const r=$('rows').lastElementChild; if(r) r.querySelector('.n').focus(); };
+  $('clearRows').onclick=()=>{ $('rows').innerHTML=''; for(let i=0;i<3;i++) addRow(); renumber(); msg($('warn'),''); };
+  $('save').onclick=saveEntry;
+  $('copy').onclick=()=>{ $('json').select(); navigator.clipboard?navigator.clipboard.writeText($('json').value).then(()=>msg($('pubMsg'),'Copied. Paste it into <code>data/standings.json</code> in the repo.','ok')):document.execCommand('copy'); };
+  $('download').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('json').value],{type:'application/json'})); a.download='standings.json'; a.click(); };
+  $('publish').onclick=publish;
+  ['gRepo','gBranch','gToken'].forEach(id=>$(id).addEventListener('change',()=>{try{localStorage.setItem({gRepo:'vms_repo',gBranch:'vms_branch',gToken:'vms_token'}[id],$(id).value.trim());}catch(e){}}));
+  loadTable(); renderEntries(); renderThumbs();
+}
+
+function savedRows(){ const o=S.saved[S.series]; return o&&Array.isArray(o[S.view])?o[S.view]:null; }
+
+function loadTable(){
+  document.querySelectorAll('#serTabs .tab').forEach(b=>b.classList.toggle('on',b.dataset.s===S.series));
+  document.querySelectorAll('#viewTabs .tab').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+  const cons=S.view==='constructors';
+  $('tbl').classList.toggle('cons',cons); $('nameTh').textContent=cons?'Team':'Driver';
+  $('dl').innerHTML=Object.keys(S.drivers[S.series]).sort((a,b)=>a.localeCompare(b)).map(n=>`<option value="${esc(n)}">`).join('');
+  $('tl').innerHTML=[...S.teams[S.series]].sort().map(n=>`<option value="${esc(n)}">`).join('');
+  $('rows').innerHTML='';
+  const sv=savedRows(), o=S.saved[S.series]||{};
+  if(sv&&sv.length) sv.forEach(r=>addRow(r)); else for(let i=0;i<10;i++) addRow();
+  $('full').checked=!!o[S.view+'Full'];
+  $('tblHint').innerHTML=(sv&&sv.length?'<span class="pill warn">editing saved table</span> ':'')+`${LBL[S.series]} ${VLBL[S.view].toLowerCase()} — rows are in the order shown in the image; tied points keep that order.`;
+  renumber(); msg($('warn'),''); msg($('ocrMsg'),'');
+}
+
+function addRow(d){
+  d=d||{}; const cons=S.view==='constructors';
+  const tr=document.createElement('tr');
+  tr.innerHTML=`<td class="pos"></td>
+  <td><input class="n" list="${cons?'tl':'dl'}" placeholder="${cons?'Team':'Driver'}" value="${esc(d.name||'')}" autocomplete="off"></td>
+  <td class="tcol"><input class="t" list="tl" placeholder="Team" value="${esc(d.team||'')}" autocomplete="off"></td>
+  <td class="pts"><input class="p" type="number" step="1" value="${d.pts!=null?d.pts:''}"></td>
+  <td class="now"></td><td class="chg"></td><td class="st"></td>
+  <td class="x"><button type="button" class="btn alt sm up" title="Move up">↑</button> <button type="button" class="btn alt sm dn" title="Move down">↓</button> <button type="button" class="btn alt sm rm" title="Remove">✕</button></td>`;
+  $('rows').appendChild(tr); return tr;
+}
+function known(name){ const n=norm(name); if(!n) return false;
+  return S.view==='constructors'?[...S.teams[S.series]].some(t=>norm(t)===n):Object.keys(S.drivers[S.series]).some(k=>norm(k)===n); }
+function refresh(tr,i){
+  tr.querySelector('.pos').textContent=i+1;
+  const name=tr.querySelector('.n').value.trim(), pv=tr.querySelector('.p').value, cons=S.view==='constructors';
+  const now=S.now[S.series][cons?'c':'d'][norm(name)];
+  tr.querySelector('.now').textContent=now==null?'—':now;
+  const chg=tr.querySelector('.chg'); chg.className='chg';
+  if(now==null||pv===''){ chg.textContent=''; } else { const dlt=+pv-now; chg.textContent=dlt>0?'+'+dlt:dlt<0?'−'+Math.abs(dlt):'0'; if(dlt>0) chg.classList.add('up'); if(dlt<0) chg.classList.add('dn'); }
+  tr.querySelector('.st').innerHTML=!name?'':known(name)?'<span class="pill ok">on site</span>':'<span class="pill warn">new</span>';
+}
+function renumber(){ [...$('rows').children].forEach((tr,i)=>refresh(tr,i)); }
+document.addEventListener('click',e=>{
+  const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.closest('.rm')){ tr.remove(); renumber(); }
+  else if(e.target.closest('.up')&&tr.previousElementSibling){ tr.parentNode.insertBefore(tr,tr.previousElementSibling); renumber(); }
+  else if(e.target.closest('.dn')&&tr.nextElementSibling){ tr.parentNode.insertBefore(tr.nextElementSibling,tr); renumber(); }
+});
+document.addEventListener('input',e=>{ const tr=e.target.closest('#rows tr'); if(!tr) return; refresh(tr,[...tr.parentNode.children].indexOf(tr)); });
+document.addEventListener('change',e=>{
+  const tr=e.target.closest('#rows tr'); if(!tr) return;
+  if(e.target.classList.contains('n')&&S.view==='drivers'){ const t=S.drivers[S.series][e.target.value]; const ti=tr.querySelector('.t'); if(t&&!ti.value) ti.value=t; }
+  refresh(tr,[...tr.parentNode.children].indexOf(tr));
+});
+
+/* ───── images → text (Tesseract.js runs in the browser; nothing is uploaded) ───── */
+function addFiles(list){
+  const fs=[...list].filter(f=>/^image\//.test(f.type)); if(!fs.length){ msg($('ocrMsg'),'That isn’t an image file.','err'); return; }
+  fs.forEach(f=>S.files.push({file:f,url:URL.createObjectURL(f)})); renderThumbs(); msg($('ocrMsg'),'');
+}
+function renderThumbs(){
+  $('thumbs').innerHTML=S.files.map((f,i)=>`<div class="thumb"><img src="${f.url}" alt="Screenshot ${i+1}"><button type="button" data-rm="${i}" title="Remove">✕</button></div>`).join('');
+  $('read').disabled=!S.files.length||S.busy; $('read').textContent=S.files.length>1?`Read ${S.files.length} images`:'Read the image'; $('clearImgs').style.display=S.files.length>1?'':'none';
+}
+function loadImg(url){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('Couldn’t open one of the images.')); i.src=url; }); }
+// scale up, turn into dark-text-on-white and stretch the contrast: this is what makes screenshots of dark tables readable
+async function prep(url){
+  const img=await loadImg(url);
+  let sc=Math.min(3,Math.max(1,2400/img.naturalWidth)); const px=img.naturalWidth*img.naturalHeight*sc*sc; if(px>20e6) sc*=Math.sqrt(20e6/px);
+  const w=Math.round(img.naturalWidth*sc), h=Math.round(img.naturalHeight*sc), c=document.createElement('canvas'); c.width=w; c.height=h;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.fillStyle='#fff'; x.fillRect(0,0,w,h); x.drawImage(img,0,0,w,h);
+  const id=x.getImageData(0,0,w,h), d=id.data, n=w*h, lum=new Uint8Array(n), mx=new Uint8Array(n); let sum=0;
+  for(let i=0,j=0;i<n;i++,j+=4){ const r=d[j],g=d[j+1],b=d[j+2]; lum[i]=.299*r+.587*g+.114*b; mx[i]=Math.max(r,g,b); sum+=lum[i]; }
+  const dark=sum/n<128, v=new Uint8Array(n), hist=new Uint32Array(256);
+  for(let i=0;i<n;i++){ v[i]=dark?255-mx[i]:lum[i]; hist[v[i]]++; }   // on dark backgrounds coloured text stays visible via the brightest channel
+  let lo=0,hi=255,acc=0; for(let k=0;k<256;k++){ acc+=hist[k]; if(acc>=n*.02){lo=k;break;} } acc=0; for(let k=255;k>=0;k--){ acc+=hist[k]; if(acc>=n*.02){hi=k;break;} }
+  const span=Math.max(40,hi-lo);
+  for(let i=0,j=0;i<n;i++,j+=4){ const o=Math.max(0,Math.min(255,(v[i]-lo)*255/span)); d[j]=d[j+1]=d[j+2]=o; d[j+3]=255; }
+  x.putImageData(id,0,0); return c;
+}
+let worker=null; const CUR={n:1,base:0};
+function bar(p){ $('bar').style.display=p==null?'none':'block'; $('barI').style.width=Math.round((p||0)*100)+'%'; }
+async function readImages(){
+  if(S.busy||!S.files.length) return; S.busy=true; renderThumbs();
+  try{
+    if(!window.Tesseract) throw new Error('The text reader couldn’t load (it needs an internet connection). Paste the table as text below instead.');
+    msg($('ocrMsg'),'Loading the text reader (first time takes ~10 s)…'); bar(0.02);
+    if(!worker) worker=await Tesseract.createWorker('eng',1,{logger:m=>{ if(m.status==='recognizing text') bar(CUR.base+m.progress/CUR.n); }});
+    await worker.setParameters({tessedit_pageseg_mode:'6',preserve_interword_spaces:'1'});
+    const cur=CUR; cur.n=S.files.length; cur.base=0; let raw=[], rows=[];
+    for(let i=0;i<S.files.length;i++){
+      cur.base=i/cur.n; msg($('ocrMsg'),`Reading image ${i+1} of ${cur.n}…`);
+      const cv=await prep(S.files[i].url); const r=await worker.recognize(cv); raw.push(r.data.text); rows=rows.concat(parseText(r.data.text));
+    }
+    $('ocrText').value=raw.join('\n');
+    rows=dedupe(rows);
+    if(!rows.length){ msg($('ocrMsg'),'Couldn’t find any rows with points in them. Try a sharper or larger screenshot, or look at what the reader saw (below) and fix it there.','err'); }
+    else { fillRows(rows); msg($('ocrMsg'),`Found ${rows.length} rows. <b>Check every name and number below</b> — text reading can mix up digits like 1/7 or 0/8.`,'ok'); }
+  }catch(err){ msg($('ocrMsg'),esc(err&&err.message||err),'err'); }
+  bar(null); S.busy=false; renderThumbs();
+}
+
+/* ───── text → rows ───── */
+function snap(name,list){ // match a (possibly misread) name to a known one
+  const n=norm(name); if(!n) return {name:'',known:false};
+  let best=null,bd=1e9; for(const k of list){ const kn=norm(k); if(kn===n) return {name:k,known:true}; const d=lev(kn,n); if(d<bd){bd=d;best=k;} }
+  if(best!=null&&bd<=Math.max(1,Math.floor(n.length/5))) return {name:best,known:true};
+  return {name:name.trim(),known:false};
+}
+function findTeam(rest,teams){ // the team is the tail of "Driver Team Name"
+  const toks=rest.split(' '), list=[...teams].sort((a,b)=>b.length-a.length);
+  for(const t of list){ const k=norm(t).split(' ').length;
+    for(const kk of [k,k-1,k+1]){ if(kk<1||kk>=toks.length) continue;
+      const cand=toks.slice(toks.length-kk).join(' '), a=norm(cand), b=norm(t);
+      if(a===b||(a.length>3&&lev(a,b)<=Math.floor(b.length/6))) return {team:t,rest:toks.slice(0,toks.length-kk).join(' ')};
+    } }
+  return null;
+}
+function parseText(text){
+  const s=S.series, cons=S.view==='constructors', dn=Object.keys(S.drivers[s]), tn=[...S.teams[s]], out=[];
+  String(text||'').split(/\r?\n/).forEach(raw=>{
+    let l=raw.replace(/[|¦_©®“”"]/g,' ').replace(/[•·]/g,' ').replace(/\s+/g,' ').trim(); if(l.length<3) return;
+    const toks=l.split(' '), nums=[];
+    while(toks.length){ const t=toks[toks.length-1], m=t.match(/^([+\-–−]?)(\d{1,4})$/);
+      if(m){ nums.unshift({sign:m[1],v:+m[2]}); toks.pop(); } else if(/^(pts?|points?)$/i.test(t)||/^[^A-Za-z0-9]+$/.test(t)) toks.pop(); else break; }
+    const pts=nums.filter(n=>!n.sign).map(n=>n.v); if(!pts.length) return;   // signed numbers are gaps; skip them
+    let rest=toks.join(' ').replace(/^[#\s\-–—]+/,'').trim(); if(!rest) return;
+    const pm=rest.match(/^(?:P\s?)?(\d{1,2})\s*[.):\-–]?\s+(.+)$/i); if(pm) rest=pm[2].trim();
+    rest=rest.replace(/^[^A-Za-z]+/,'').trim(); if(!rest) return;   // leftover junk like "=6" glued to the name
+    const p=pts.length>1?Math.max(...pts):pts[0];
+    if(cons){ const t=snap(rest,tn); if(t.name) out.push({name:t.name,team:'',pts:p}); return; }
+    let name=rest, team='';
+    const ft=findTeam(rest,tn);
+    if(ft){ name=ft.rest; team=ft.team; }
+    else { const nr=norm(rest), k=dn.filter(k=>nr.startsWith(norm(k)+' ')).sort((a,b)=>b.length-a.length)[0];
+      if(k){ const tail=rest.slice(rest.toLowerCase().indexOf(k.toLowerCase())+k.length).trim(); name=k; if(tail){ const t=snap(tail,tn); if(t.known) team=t.name; } } }
+    name=name.replace(/^[\s.\-–—:)]+|[\s.\-–—:(]+$/g,''); if(!name) return;
+    const sn=snap(name,dn); if(sn.known){ name=sn.name; if(!team) team=S.drivers[s][name]||''; }
+    out.push({name,team,pts:p});
+  });
+  return out;
+}
+function dedupe(rows){ const seen=new Set(); return rows.filter(r=>{ const k=norm(r.name); if(seen.has(k)) return false; seen.add(k); return true; }); }
+function fillRows(rows){ $('rows').innerHTML=''; rows.forEach(r=>addRow(r)); renumber(); msg($('warn'),''); }
+
+/* ───── read the table / save ───── */
+function readRows(){
+  const cons=S.view==='constructors', out=[];
+  [...$('rows').children].forEach(tr=>{
+    const name=tr.querySelector('.n').value.trim(); if(!name||tr.querySelector('.p').value==='') return;
+    const row={pos:out.length+1,name}; if(!cons){ const t=tr.querySelector('.t').value.trim(); if(t) row.team=t; }
+    row.pts=+tr.querySelector('.p').value||0; out.push(row);
+  });
+  return out;
+}
+function saveEntry(){
+  const rows=readRows(), s=S.series, v=S.view, problems=[];
+  if(!rows.length){ msg($('warn'),'Add at least one row with a name and points first.','err'); return; }
+  const names=rows.map(r=>norm(r.name)), dup=names.find((n,i)=>names.indexOf(n)!==i);
+  if(dup) problems.push('“'+esc(dup)+'” appears twice.');
+  for(let i=1;i<rows.length;i++) if(rows[i].pts>rows[i-1].pts){ problems.push('Points go <b>up</b> at row '+(i+1)+' ('+esc(rows[i].name)+', '+rows[i].pts+' after '+rows[i-1].pts+') — a digit may have been misread, or the rows are out of order.'); break; }
+  const unk=rows.filter(r=>!known(r.name)).map(r=>esc(r.name));
+  if(unk.length) problems.push('Not on the site yet: '+unk.join(', ')+' — they will be added. Check the spelling!');
+  if(v==='drivers'){ const nt=rows.filter(r=>!r.team&&!S.drivers[s][r.name]).map(r=>esc(r.name)); if(nt.length) problems.push('No team for '+nt.join(', ')+'.'); }
+  if(problems.length&&!saveEntry._ok){ saveEntry._ok=true; msg($('warn'),'<b>Check these:</b><br>'+problems.join('<br>')+'<br><br>Click “Save” again to save anyway.','err'); return; }
+  saveEntry._ok=false; msg($('warn'),'');
+  rows.forEach(r=>{ if(v==='drivers'){ S.drivers[s][r.name]=r.team||S.drivers[s][r.name]||''; if(r.team) S.teams[s].add(r.team); } else S.teams[s].add(r.name); });
+  S.saved[s]=S.saved[s]||{}; S.saved[s][v]=rows; S.saved[s][v+'Full']=$('full').checked;
+  renderEntries(); loadTable();
+  msg($('warn'),`Saved ${LBL[s]} ${VLBL[v].toLowerCase()} (${rows.length} rows). Scroll down to publish — or do the next table.`,'ok');
+}
+function serial(){ const o={}; SERIES.forEach(s=>{ const x=S.saved[s]; if(!x) return; const e={};
+  VIEWS.forEach(v=>{ if(Array.isArray(x[v])&&x[v].length){ e[v]=x[v]; if(x[v+'Full']) e[v+'Full']=true; } }); if(Object.keys(e).length) o[s]=e; }); return o; }
+function renderEntries(){
+  const cur=serial(), items=[];
+  SERIES.forEach(s=>VIEWS.forEach(v=>{ const x=cur[s]&&cur[s][v]; if(!x) return;
+    const was=S.loaded[s]&&S.loaded[s][v], changed=JSON.stringify([x,cur[s][v+'Full']||false])!==JSON.stringify([was,(S.loaded[s]||{})[v+'Full']||false]);
+    items.push(`<div class="e"><span class="pill">${LBL[s]}</span><b>${VLBL[v]} <span class="hint">— ${x.length} rows, leader ${esc(x[0].name)} (${x[0].pts})${cur[s][v+'Full']?', everyone else hidden':''}</span></b>`+
+      (changed?'<span class="pill warn">unpublished</span>':'<span class="pill ok">live</span>')+
+      `<button class="btn alt sm" data-edit="${s}|${v}">Edit</button><button class="btn alt sm" data-del="${s}|${v}">Remove</button></div>`); }));
+  $('entries').innerHTML=items.length?items.join(''):'<p class="hint">Nothing saved yet.</p>';
+  $('entries').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{ const [s,v]=b.dataset.edit.split('|'); S.series=s; S.view=v; loadTable(); window.scrollTo({top:0,behavior:'smooth'}); });
+  $('entries').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{ const [s,v]=b.dataset.del.split('|');
+    if(!confirm('Remove the saved '+LBL[s]+' '+VLBL[v].toLowerCase()+' standings? After publishing, the site goes back to the points it calculates itself.')) return;
+    delete S.saved[s][v]; delete S.saved[s][v+'Full']; if(!S.saved[s].drivers&&!S.saved[s].constructors) delete S.saved[s]; renderEntries(); loadTable(); });
+  $('json').value=JSON.stringify(cur,null,2)+'\n';
+  $('entriesHint').textContent=JSON.stringify(cur)!==JSON.stringify(S.loaded)?'You have unpublished changes.':'';
+}
+
+/* ───── publish to GitHub (Contents API) ───── */
+async function publish(){
+  const repo=$('gRepo').value.trim(), br=$('gBranch').value.trim()||'main', tok=$('gToken').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)||!tok){ msg($('pubMsg'),'Fill in the repo (owner/name) and token — or use Copy / Download instead.','err'); return; }
+  try{ localStorage.setItem('vms_repo',repo); localStorage.setItem('vms_branch',br); localStorage.setItem('vms_token',tok); }catch(e){}
+  const url=`https://api.github.com/repos/${repo}/contents/data/standings.json`, H={Authorization:'Bearer '+tok,Accept:'application/vnd.github+json'};
+  $('publish').disabled=true; msg($('pubMsg'),'Publishing…');
+  try{
+    let sha; const g=await fetch(url+'?ref='+encodeURIComponent(br),{headers:H,cache:'no-store'});
+    if(g.ok) sha=(await g.json()).sha; else if(g.status!==404) throw new Error('GitHub said '+g.status+(g.status===401?' (bad token)':g.status===403?' (token lacks access)':''));
+    const body={message:'Update standings from image',content:btoa(unescape(encodeURIComponent($('json').value))),branch:br}; if(sha) body.sha=sha;
+    const p=await fetch(url,{method:'PUT',headers:{...H,'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!p.ok) throw new Error('GitHub said '+p.status+' — '+((await p.json().catch(()=>({}))).message||''));
+    S.loaded=clone(serial()); renderEntries();
+    msg($('pubMsg'),'✅ Published! The site will show the new standings in a minute or two (GitHub Pages needs to rebuild).','ok');
+  }catch(err){ msg($('pubMsg'),'Couldn’t publish: '+esc(err.message||err),'err'); }
+  $('publish').disabled=false;
+}
+
+boot();
+})();
+</script>
+</body></html>
