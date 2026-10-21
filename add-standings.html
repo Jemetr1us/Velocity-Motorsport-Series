@@ -106,6 +106,7 @@ code{background:#000;padding:1px 5px;border:1px solid #222}
   </table></div>
   <p class="row" style="margin-top:12px">
     <button class="btn alt sm" id="addRow">+ Add row</button>
+    <button class="btn alt sm" id="loadSite">Reload current site standings</button>
     <button class="btn alt sm" id="clearRows">Clear table</button>
   </p>
   <div id="warn"></div>
@@ -215,6 +216,7 @@ function init(){
   $('useText').onclick=()=>{ const rows=dedupe(parseText($('ocrText').value)); if(!rows.length){ msg($('ocrMsg'),'No lines with points in them were found in that text.','err'); return; } fillRows(rows); msg($('ocrMsg'),`Filled the table with ${rows.length} rows. Check them below.`,'ok'); };
   $('addRow').onclick=()=>{ addRow(); renumber(); const r=$('rows').lastElementChild; if(r) r.querySelector('.n').focus(); };
   $('clearRows').onclick=()=>{ $('rows').innerHTML=''; for(let i=0;i<3;i++) addRow(); renumber(); msg($('warn'),''); };
+  $('loadSite').onclick=()=>{ const r=siteRows(); if(!r.length){ msg($('warn'),'No standings found on the site for this table.','err'); return; } fillRows(r); $('full').checked=true; msg($('warn'),'Loaded the current site standings ('+r.length+' rows). Remove anyone who shouldn’t be there with ✕, then Save.','ok'); };
   $('save').onclick=saveEntry;
   $('copy').onclick=()=>{ $('json').select(); navigator.clipboard?navigator.clipboard.writeText($('json').value).then(()=>msg($('pubMsg'),'Copied. Paste it into <code>data/standings.json</code> in the repo.','ok')):document.execCommand('copy'); };
   $('download').onclick=()=>{ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([$('json').value],{type:'application/json'})); a.download='standings.json'; a.click(); };
@@ -223,6 +225,13 @@ function init(){
   loadTable(); renderEntries(); renderThumbs();
 }
 
+/* current standings as the site shows them right now (app.js + race results added with add-result), best first */
+function siteRows(){
+  const s=S.series, cons=S.view==='constructors', seen=new Set(), out=[];
+  if(cons){ [...S.teams[s]].forEach(t=>{ const k=norm(t), p=S.now[s].c[k]; if(p==null||seen.has(k)) return; seen.add(k); out.push({name:t,pts:p}); }); }
+  else { Object.keys(S.drivers[s]).forEach(n=>{ const k=norm(n), p=S.now[s].d[k]; if(p==null||seen.has(k)) return; seen.add(k); out.push({name:n,team:S.drivers[s][n]||'',pts:p}); }); }
+  return out.sort((a,b)=>b.pts-a.pts);   // stable: ties keep the order they have in app.js
+}
 function savedRows(){ const o=S.saved[S.series]; return o&&Array.isArray(o[S.view])?o[S.view]:null; }
 
 function loadTable(){
@@ -234,9 +243,10 @@ function loadTable(){
   $('tl').innerHTML=[...S.teams[S.series]].sort().map(n=>`<option value="${esc(n)}">`).join('');
   $('rows').innerHTML='';
   const sv=savedRows(), o=S.saved[S.series]||{};
-  if(sv&&sv.length) sv.forEach(r=>addRow(r)); else for(let i=0;i<10;i++) addRow();
-  $('full').checked=!!o[S.view+'Full'];
-  $('tblHint').innerHTML=(sv&&sv.length?'<span class="pill warn">editing saved table</span> ':'')+`${LBL[S.series]} ${VLBL[S.view].toLowerCase()} — rows are in the order shown in the image; tied points keep that order.`;
+  const site=(sv&&sv.length)?null:siteRows();
+  if(sv&&sv.length) sv.forEach(r=>addRow(r)); else if(site.length) site.forEach(r=>addRow(r)); else for(let i=0;i<10;i++) addRow();
+  $('full').checked=sv&&sv.length?!!o[S.view+'Full']:!!(site&&site.length);   // prefilled from the site: tick it so removed rows are really hidden
+  $('tblHint').innerHTML=(sv&&sv.length?'<span class="pill warn">editing saved table</span> ':site&&site.length?'<span class="pill ok">current site standings</span> ':'')+`${LBL[S.series]} ${VLBL[S.view].toLowerCase()} — rows are in the order shown in the image; tied points keep that order.`;
   renumber(); msg($('warn'),''); msg($('ocrMsg'),'');
 }
 
