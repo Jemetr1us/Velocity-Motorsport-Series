@@ -196,7 +196,7 @@
     },
     {
       "name": "Hertz Porsche",
-      "engine": "CEO: yake | JHP - ATP CEO",
+      "engine": "CEO: yake | Porsche CEO",
       "color": "#b9a96a",
       "drivers": [
         {
@@ -273,6 +273,14 @@
           "num": "60",
           "code": "RD1",
           "name": "EL_KRAZY",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "Mista1403",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -781,7 +789,7 @@
     },
     {
       "name": "Renault Sport Formula 3 Team",
-      "engine": "CEO: Neon | Hacked · Director: Doxxi (@BUBOJEPES2)",
+      "engine": "CEO: Neon | Renault & McLaren CEO · Director: Doxxi (@BUBOJEPES2)",
       "color": "#60a5fa",
       "drivers": [
         {
