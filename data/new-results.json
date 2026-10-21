@@ -120,5 +120,169 @@
         "note": "DNF"
       }
     ]
+  },
+  {
+    "series": "f3",
+    "rnd": "15",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "ukkiett",
+        "team": "Carti Racing Association F3",
+        "pts": 25,
+        "gap": "Leader"
+      },
+      {
+        "pos": 2,
+        "name": "Dark Shadow",
+        "team": "Pola Sabre Motorsports",
+        "pts": 18,
+        "gap": "+3.143"
+      },
+      {
+        "pos": 3,
+        "name": "Bartos",
+        "team": "Pola Sabre Motorsports",
+        "pts": 15,
+        "gap": "+3.245"
+      },
+      {
+        "pos": 4,
+        "name": "syxe",
+        "team": "BMW Sauber F3 Team",
+        "pts": 12,
+        "gap": "+3.270"
+      },
+      {
+        "pos": 5,
+        "name": "Lancelot",
+        "team": "Tarigy’s Motorsport Team F3",
+        "pts": 10,
+        "gap": "+4.876"
+      },
+      {
+        "pos": 6,
+        "name": "Fabián",
+        "team": "Tarigy’s Motorsport Team F3",
+        "pts": 8,
+        "gap": "+5.809"
+      },
+      {
+        "pos": 7,
+        "name": "Bleh",
+        "team": "Kogun Technologies F3 Team",
+        "pts": 6,
+        "gap": "+6.377"
+      },
+      {
+        "pos": 8,
+        "name": "Piko",
+        "team": "LMP",
+        "pts": 6,
+        "fl": true,
+        "gap": "+9.703",
+        "note": "(5s Pen)"
+      },
+      {
+        "pos": 9,
+        "name": "Chicken_Bake",
+        "team": "GlitchGP F3",
+        "pts": 2,
+        "gap": "+10.617"
+      },
+      {
+        "pos": 10,
+        "name": "YellowRice",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 1,
+        "gap": "+6.693",
+        "note": "(5s Pen)"
+      },
+      {
+        "pos": 11,
+        "name": "Piti",
+        "team": "Anonymous Juniors",
+        "pts": 0,
+        "gap": "+15.143"
+      },
+      {
+        "pos": 12,
+        "name": "Dante",
+        "team": "Tarigy's Motorsport Team F3",
+        "pts": 0,
+        "gap": "+24.492"
+      },
+      {
+        "pos": 13,
+        "name": "Maslo",
+        "team": "Aston Martin Racing F3",
+        "pts": 0,
+        "gap": "+24.084",
+        "note": "(10s Pen)"
+      },
+      {
+        "pos": 14,
+        "name": "Tta",
+        "team": "Aston Martin Racing F3",
+        "pts": 0,
+        "gap": "+25.525"
+      },
+      {
+        "pos": 15,
+        "name": "Aarnav",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 0,
+        "gap": "+27.658",
+        "note": "(10s Pen)"
+      },
+      {
+        "pos": 16,
+        "name": "Ducky",
+        "team": "Anonymous Juniors",
+        "pts": 0,
+        "gap": "+37.342",
+        "note": "(20s Pen)"
+      },
+      {
+        "pos": 17,
+        "name": "Mikey",
+        "team": "Aston Martin Racing F3",
+        "pts": 0,
+        "gap": "+43.733"
+      },
+      {
+        "pos": 18,
+        "name": "SCKIBLES",
+        "team": "GlitchGP F3",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 19,
+        "name": "Elias",
+        "team": "BMW Sauber F3 Team",
+        "pts": 1,
+        "pole": true,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 20,
+        "name": "Kriekel",
+        "team": "LMP",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 21,
+        "name": "Chipi",
+        "team": "Carti Racing Association F3",
+        "pts": 0,
+        "status": "DSq",
+        "note": "DSq"
+      }
+    ]
   }
 ]
