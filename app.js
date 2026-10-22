@@ -2316,7 +2316,13 @@ async function loadNews(force){
   /* price overrides + budget from data/fantasy-prices.json (written by edit-fantasy-prices.html) */
   fetch('data/fantasy-prices.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
     if(!j||typeof j!=='object') return;
-    PR={drivers:(j.drivers&&typeof j.drivers==='object')?j.drivers:{},teams:(j.teams&&typeof j.teams==='object')?j.teams:{}};
+    /* merge per series over the built-in prices, so a missing/partial file never wipes them out */
+    const merged={drivers:{},teams:{}};
+    ['drivers','teams'].forEach(k=>{
+      const base=DEFAULT_PR[k]||{}, inc=(j[k]&&typeof j[k]==='object')?j[k]:{};
+      new Set([...Object.keys(base),...Object.keys(inc)]).forEach(s=>{ merged[k][s]=Object.assign({},base[s],inc[s]); });
+    });
+    PR=merged;
     if(+j.budget>0) BUDGET=Math.round(+j.budget);
     render();
   }).catch(()=>{});
