@@ -1698,3 +1698,369 @@ async function loadNews(force){
   setInterval(check,5*60*1000);
   document.addEventListener('visibilitychange',()=>{ if(!document.hidden) check(); });
 })();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VMS ADD-ONS
+   1. Race sessions in the viewer's own timezone (home countdown box + calendar)
+   2. Add-to-calendar (.ics) per round + full-season download
+   3. Shareable image cards (results, standings, driver profile, power rankings)
+   7. Power Rankings (Standings → Power Rankings)
+   8. Career Ladder (Teams → Career Ladder)
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+  const $=id=>document.getElementById(id);
+
+  /* ───────── styles ───────── */
+  if(!$('vx-css')){ const st=document.createElement('style'); st.id='vx-css'; st.textContent=
+   '.vx-bar{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 16px;color:#999;font-size:13px}'+
+   '.vx-bar b{color:#fff}'+
+   '.vx-btn{background:linear-gradient(90deg,#e8186d,#ff6b00);color:#fff;border:0;padding:10px 16px;font:800 12px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}'+
+   '.vx-btn:hover{filter:brightness(1.12)}.vx-btn.ghost{background:transparent;border:1px solid #444;color:#ddd}'+
+   '.vx-mini{background:transparent;border:1px solid #444;color:#ddd;padding:5px 9px;font:700 10px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}'+
+   '.vx-mini:hover{border-color:#e8186d;color:#fff}'+
+   '.vx-tz{margin-top:10px;padding-top:10px;border-top:1px solid #2a2a2a;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:11px;color:#aaa}'+
+   '.vx-tz span b{color:#fff;margin-right:4px}'+
+   '#tzBox{margin-top:14px;padding:14px 16px;border:1px solid #2a2a2a;background:rgba(255,255,255,.03);font-size:12px;color:#aaa;display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center}'+
+   '#tzBox .tz-h{font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-size:10px;color:#e8186d;width:100%}'+
+   '#tzBox b{color:#fff}'+
+   '.vx-pv{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:18px;flex-direction:column;gap:14px}'+
+   '.vx-pv.open{display:flex}.vx-pv img{max-height:78vh;max-width:100%;box-shadow:0 10px 60px #000}'+
+   '.vx-pv .vx-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}'+
+   '.pw-row{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid #222;cursor:pointer;flex-wrap:wrap}'+
+   '.pw-row:hover{background:rgba(255,255,255,.04)}'+
+   '.pw-rk{font:900 22px Arial,sans-serif;width:34px;color:#fff}.pw-row:nth-child(-n+3) .pw-rk{color:#e8186d}'+
+   '.pw-mv{width:46px;font:800 11px Arial,sans-serif;letter-spacing:.5px}.pw-mv.up{color:#3ddc84}.pw-mv.dn{color:#ff5a5f}.pw-mv.eq{color:#666}.pw-mv.nw{color:#f5a623}'+
+   '.pw-nm{flex:1;min-width:150px}.pw-nm b{display:block;font-size:15px}.pw-nm small{color:#888;font-size:11px}'+
+   '.pw-tag{font:800 10px Arial,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#f5a623;min-width:90px}'+
+   '.pw-sp{display:flex;align-items:flex-end;gap:3px;height:30px;width:90px}.pw-sp i{flex:1;background:#555;min-height:3px;display:block}'+
+   '.pw-rt{width:120px;text-align:right}.pw-rt strong{font:900 24px Arial,sans-serif;display:block;line-height:1}.pw-rt .pw-bar{height:4px;background:#222;margin-top:6px}.pw-rt .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#e8186d,#ff6b00)}'+
+   '.vx-how{margin-top:18px;color:#999;font-size:13px;line-height:1.7}.vx-how summary{cursor:pointer;color:#fff;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:12px}'+
+   '.cl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}'+
+   '@media(max-width:900px){.cl-grid{grid-template-columns:1fr}.pw-sp,.pw-tag{display:none}}'+
+   '.cl-col{border:1px solid #2a2a2a;background:rgba(255,255,255,.02);padding:16px;position:relative}'+
+   '.cl-col h3{margin:0 0 4px;font-size:18px}.cl-col .cl-sub{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;font-weight:900;margin-bottom:12px;display:block}'+
+   '.cl-it{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #222;cursor:pointer;font-size:13px}'+
+   '.cl-it:hover b{color:#e8186d}.cl-it small{display:block;color:#888;font-size:11px}.cl-it em{font-style:normal;font-weight:900}'+
+   '.cl-it.zone{background:linear-gradient(90deg,rgba(232,24,109,.12),transparent);margin:0 -16px;padding:8px 16px}'+
+   '.cl-arrow{position:absolute;right:-14px;top:50%;font-size:22px;color:#e8186d;z-index:2}@media(max-width:900px){.cl-arrow{display:none}}'+
+   '.cl-x{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 26px}.cl-chip{border:1px solid #333;padding:8px 12px;font-size:12px;cursor:pointer}.cl-chip b{color:#fff}.cl-chip span{color:#aaa}'+
+   '.cl-chip:hover{border-color:#e8186d}';
+   document.head.appendChild(st); }
+
+  /* ═════════ 1 + 2. SESSION TIMES IN YOUR TIMEZONE + .ICS ═════════ */
+  const NY='America/New_York';
+  const TZ=(function(){ try{ return Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){ return ''; } })();
+  /* league times are given in US Eastern — convert properly, so the Nov rounds (after DST ends) are right too */
+  function nyToUtc(y,mo,d,h,mi){
+    for(const off of [4,5]){
+      const t=Date.UTC(y,mo,d,h+off,mi||0);
+      const p=new Intl.DateTimeFormat('en-US',{timeZone:NY,hour:'numeric',hour12:false,day:'numeric'}).formatToParts(new Date(t));
+      const hh=+p.find(x=>x.type==='hour').value%24, dd=+p.find(x=>x.type==='day').value;
+      if(hh===h&&dd===d) return t;
+    }
+    return Date.UTC(y,mo,d,h+5,mi||0);
+  }
+  function sessionsFor(r){
+    const out=[];
+    (r.series||[]).forEach(s=>{
+      const sd=D.sessions&&D.sessions[s]; if(!sd) return;
+      const m=String(sd.time).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i); if(!m) return;
+      let h=+m[1]%12; if(/pm/i.test(m[3])) h+=12;
+      const ds=/sun/i.test(sd.day)?(r.sunDate||r.satDate):r.satDate;
+      const p=String(ds||'').trim().split(' '); const mo=MON[p[0]], d=parseInt(p[1]);
+      if(mo===undefined||isNaN(d)) return;
+      out.push({s,t:nyToUtc(2026,mo,d,h,+m[2])});
+    });
+    return out.sort((a,b)=>a.t-b.t);
+  }
+  const fmtDay=t=>new Date(t).toLocaleString(undefined,{weekday:'short',month:'short',day:'numeric'});
+  const fmtTime=t=>new Date(t).toLocaleString(undefined,{hour:'numeric',minute:'2-digit'});
+  const tzShort=t=>{ try{ const p=new Intl.DateTimeFormat(undefined,{timeZoneName:'short'}).formatToParts(new Date(t)); return (p.find(x=>x.type==='timeZoneName')||{}).value||''; }catch(e){ return ''; } };
+  const tzNice=TZ.replace(/_/g,' ')||'your timezone';
+
+  /* home page: sessions under the next-race box */
+  (function(){
+    const nb=$('nextBox'); if(!nb) return;
+    const r=nextRace(); if(!r) return;
+    const ss=sessionsFor(r); if(!ss.length) return;
+    const box=document.createElement('div'); box.id='tzBox';
+    box.innerHTML='<div class="tz-h">Race sessions · your time ('+esc(tzNice)+')</div>'+
+      ss.map(x=>'<span><b>'+esc(FULL[x.s])+'</b> '+esc(fmtDay(x.t))+' · '+esc(fmtTime(x.t))+' '+esc(tzShort(x.t))+'</span>').join('')+
+      '<button type="button" class="vx-mini" id="icsNext">📅 Add to calendar</button>';
+    nb.parentNode.appendChild(box);
+    $('icsNext').onclick=()=>downloadIcs([r],'VMS-R'+r.rnd+'-'+r.name.replace(/[^A-Za-z0-9]+/g,'-')+'.ics');
+  })();
+
+  /* calendar page: toolbar + per-round times */
+  function decorateCalendar(){
+    const grid=$('calGrid'); if(!grid) return;
+    if(!$('calTools')){
+      grid.insertAdjacentHTML('beforebegin','<div id="calTools" class="vx-bar"><span>🕒 Session times shown in <b>'+esc(tzNice)+'</b></span><button type="button" class="vx-btn" id="icsAll">📅 Download full season (.ics)</button><button type="button" class="vx-btn ghost" id="icsLeft">Remaining rounds only</button></div>');
+      $('icsAll').onclick=()=>downloadIcs(real,'VMS-2026-season.ics');
+      $('icsLeft').onclick=()=>downloadIcs(real.filter(r=>{const e=raceEnd(r); return e&&e.getTime()>Date.now();}),'VMS-2026-remaining.ics');
+    }
+    grid.querySelectorAll('.round').forEach(el=>{
+      if(el.classList.contains('break')||el.querySelector('.vx-tz')) return;
+      const bEl=el.querySelector('b'); const m=bEl&&bEl.textContent.match(/ROUND\s+(\S+)/i); if(!m) return;
+      const r=real.find(x=>x.rnd===m[1]); if(!r) return;
+      const ss=sessionsFor(r); if(!ss.length) return;
+      const upcoming=(raceEnd(r)||0)>Date.now();
+      const div=document.createElement('div'); div.className='vx-tz';
+      div.innerHTML=ss.map(x=>'<span><b>'+x.s.toUpperCase()+'</b>'+esc(fmtDay(x.t))+' '+esc(fmtTime(x.t))+'</span>').join('')+(upcoming?'<button type="button" class="vx-mini">📅 Add</button>':'');
+      el.appendChild(div);
+      const btn=div.querySelector('button');
+      if(btn) btn.addEventListener('click',e=>{ e.stopPropagation(); downloadIcs([r],'VMS-R'+r.rnd+'.ics'); });
+    });
+  }
+  decorateCalendar();
+
+  const icsText=s=>String(s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+  const icsFold=l=>{ const o=[]; while(l.length>60){ o.push(l.slice(0,60)); l=' '+l.slice(60); } o.push(l); return o.join('\r\n'); };
+  const icsZ=t=>new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  function buildIcs(rounds){
+    const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Velocity Motorsport Series//Race Calendar 2026//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:VMS 2026 Race Calendar'];
+    rounds.forEach(r=>sessionsFor(r).forEach(x=>{
+      L.push('BEGIN:VEVENT','UID:vms-2026-r'+r.rnd+'-'+x.s+'@velocitymotorsportseries','DTSTAMP:'+icsZ(Date.now()),'DTSTART:'+icsZ(x.t),'DTEND:'+icsZ(x.t+90*60000),
+        'SUMMARY:'+icsText(FULL[x.s]+' · R'+r.rnd+' '+r.name),'LOCATION:'+icsText(r.circuit),
+        'DESCRIPTION:'+icsText(FULL[x.s]+' race session · Round '+r.rnd+' · '+r.circuit),
+        'BEGIN:VALARM','TRIGGER:-PT30M','ACTION:DISPLAY','DESCRIPTION:'+icsText(FULL[x.s]+' starts in 30 minutes'),'END:VALARM','END:VEVENT');
+    }));
+    L.push('END:VCALENDAR');
+    return L.map(icsFold).join('\r\n')+'\r\n';
+  }
+  function saveBlob(name,blob){
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+    document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },800);
+  }
+  function downloadIcs(rounds,name){
+    if(!rounds.length){ alert('No upcoming sessions to add.'); return; }
+    saveBlob(name,new Blob([buildIcs(rounds)],{type:'text/calendar;charset=utf-8'}));
+  }
+
+  /* ═════════ 7. POWER RANKINGS ═════════ */
+  const DNFRE=/DNF|DSq|DSQ|DNS/i, DSRE=/DSq|DSQ|DNS/i, MIN_RACES=3;
+  function powerBoard(s,upto){
+    const rounds=roundsWithResults(s).slice(0,upto), m={};
+    rounds.forEach((r,ri)=>{
+      const rows=(D.results[rkey(r,s)]||[]).filter(x=>!/Retired from championship/i.test(x.note||''));
+      const n=Math.max(rows.length,1);
+      rows.forEach(x=>{
+        const pos=+x.pos; if(!pos) return;
+        const base=100*(1-(pos-1)/n), dnf=DNFRE.test(x.note||'');
+        const score=DSRE.test(x.note||'')?0:dnf?base*0.4:base;
+        const k=canon(s,x.name), o=m[k]||(m[k]={k,name:x.name,team:x.team,rs:[]});
+        o.name=x.name; o.team=x.team||o.team;
+        o.rs.push({ri,rnd:r.rnd,score,pos,pts:+x.pts||0,dnf,pole:!!x.pole,fl:!!x.fl});
+      });
+    });
+    const list=Object.values(m).filter(o=>o.rs.length>=MIN_RACES);
+    list.forEach(o=>{ o.ppr=o.rs.reduce((n,x)=>n+x.pts,0)/o.rs.length; });
+    const maxPpr=Math.max(1,...list.map(o=>o.ppr));
+    list.forEach(o=>{
+      const sc=o.rs.map(x=>x.score), n=sc.length, mean=sc.reduce((a,b)=>a+b,0)/n;
+      const last=sc.slice(-4), w=last.map((_,i)=>i+1+(4-last.length)), form=last.reduce((a,v,i)=>a+v*w[i],0)/w.reduce((a,b)=>a+b,0);
+      const sd=Math.sqrt(sc.reduce((a,v)=>a+(v-mean)*(v-mean),0)/n);
+      const wins=o.rs.filter(x=>x.pos===1&&!x.dnf).length, pods=o.rs.filter(x=>x.pos<=3&&!x.dnf).length;
+      const poles=o.rs.filter(x=>x.pole).length, fls=o.rs.filter(x=>x.fl).length;
+      const parts={form, pace:o.ppr/maxPpr*100, cons:Math.max(0,100-sd*2), rel:o.rs.filter(x=>!x.dnf).length/n*100, peak:Math.min(100,(wins*40+pods*15+poles*15+fls*10)/n)};
+      o.parts=parts; o.mean=mean; o.form=form;
+      o.rating=parts.form*.40+parts.pace*.25+parts.cons*.15+parts.rel*.10+parts.peak*.10;
+      o.tag=(last.length>=3&&last.slice(-3).reduce((a,b)=>a+b,0)/3>=75)?'🔥 On fire':form-mean>=12?'📈 Rising':form-mean<=-12?'📉 Slumping':'';
+    });
+    list.sort((a,b)=>b.rating-a.rating); list.forEach((o,i)=>o.rank=i+1);
+    return list;
+  }
+  function power(s){
+    const rounds=roundsWithResults(s), n=rounds.length;
+    const now=powerBoard(s,n), prev=n>1?powerBoard(s,n-1):[];
+    /* movement is measured among drivers ranked both before and after the latest round, so new entrants don't push everyone "down" */
+    const inPrev=new Set(prev.map(o=>o.k)), inNow=new Set(now.map(o=>o.k)), pm={}, nm={};
+    prev.filter(o=>inNow.has(o.k)).forEach((o,i)=>pm[o.k]=i+1);
+    now.filter(o=>inPrev.has(o.k)).forEach((o,i)=>nm[o.k]=i+1);
+    now.forEach(o=>{ o.move=o.k in pm?pm[o.k]-nm[o.k]:null; });
+    return {list:now,last:rounds[n-1]||null};
+  }
+  const teamColor=(s,team,name)=>{ const c=conFor(s,team); return (c&&c.color)||(lineupFor(s,name)||{}).color||'#e8186d'; };
+  const pw={series:'f1'};
+
+  const stSub=$('stSub'), anchorPane=document.querySelector('.st-pane[data-p="heat"]')||document.querySelector('.st-pane[data-p="replay"]');
+  if(stSub&&anchorPane){
+    stSub.insertAdjacentHTML('beforeend','<button type="button" data-p="power">Power Rankings</button>');
+    anchorPane.insertAdjacentHTML('afterend','<div class="st-pane" data-p="power"><section id="power"><div class="section-head"><div><div class="title">Power <span class="yellow">Rankings</span></div><div class="line"></div></div><span class="sub" id="pwSub">Who is quickest right now</span></div><div class="tabs" id="pwSeries"></div><div class="vx-bar"><button type="button" class="vx-btn" id="pwShare">🖼️ Share as image</button><span>Ranked on form, pace, consistency, reliability &amp; results · min. '+MIN_RACES+' races</span></div><div id="pwBoard"></div><details class="vx-how"><summary>How the rating works</summary><p>Every finish is scored 0–100 relative to that race\'s field (a DNF counts 40%, a disqualification 0). The rating blends <b>Form</b> (last 4 races, newest weighted most) 40% · <b>Pace</b> (points per race vs. the best in the series) 25% · <b>Consistency</b> (how little the results swing) 15% · <b>Reliability</b> (finishes ÷ starts) 10% · <b>Peaks</b> (wins, podiums, poles, fastest laps) 10%. Arrows compare with the rankings before the latest round.</p></details></section></div>');
+    const _sp=stPane; stPane=function(p){ _sp.apply(this,arguments); if(p==='power') renderPower(); };
+  }
+  function renderPower(){
+    const box=$('pwBoard'); if(!box) return;
+    tabs($('pwSeries'),SERIES.map(s=>[s,FULL[s]]),pw.series,k=>{pw.series=k;renderPower();});
+    const s=pw.series, {list,last}=power(s);
+    if($('pwSub')) $('pwSub').textContent=last?'After Round '+last.rnd+' · '+last.name:'No results yet';
+    if(!list.length){ box.innerHTML='<div class="empty">Not enough race data yet (needs '+MIN_RACES+'+ races per driver).</div>'; return; }
+    box.innerHTML='<div class="panel">'+list.map(o=>{
+      const mv=o.move==null?'<span class="pw-mv nw">NEW</span>':o.move>0?'<span class="pw-mv up">▲ '+o.move+'</span>':o.move<0?'<span class="pw-mv dn">▼ '+(-o.move)+'</span>':'<span class="pw-mv eq">–</span>';
+      const sp=o.rs.slice(-6).map(x=>'<i title="R'+esc(String(x.rnd))+': P'+x.pos+'" style="height:'+Math.max(8,x.score)+'%;background:'+(x.dnf?'#5a1d20':x.pos===1?'#e8186d':x.pos<=3?'#ff6b00':'#555')+'"></i>').join('');
+      return '<div class="pw-row" data-name="'+esc(o.name)+'"><div class="pw-rk">'+o.rank+'</div>'+mv+
+        '<div class="pw-nm"><b>'+esc(o.name)+'</b><small style="color:'+esc(teamColor(s,o.team,o.name))+'">● </small><small>'+esc(o.team||'')+'</small></div>'+
+        '<div class="pw-tag">'+esc(o.tag)+'</div><div class="pw-sp">'+sp+'</div>'+
+        '<div class="pw-rt"><strong>'+Math.round(o.rating)+'</strong><div class="pw-bar"><i style="width:'+Math.round(o.rating)+'%"></i></div></div></div>';
+    }).join('')+'</div>';
+    box.onclick=e=>{ const r=e.target.closest('.pw-row'); if(r) openDriver(s,r.dataset.name); };
+  }
+  if($('pwShare')) $('pwShare').onclick=()=>{
+    const s=pw.series, {list,last}=power(s);
+    if(!list.length) return;
+    shareList({file:'VMS-'+s.toUpperCase()+'-power-rankings.png',kicker:FULL[s]+' · Power Rankings',title:last?('After Round '+last.rnd+' · '+last.name):'Season',sub:'Form · pace · consistency · reliability',
+      rows:list.slice(0,10).map(o=>({left:String(o.rank),name:o.name,sub:(o.team||'')+(o.tag?'  '+o.tag.replace(/[^\x20-\x7E]/g,'').trim():''),right:String(Math.round(o.rating)),rlab:'RATING',color:teamColor(s,o.team,o.name)}))});
+  };
+
+  /* ═════════ 3. SHARE-AS-IMAGE CARDS ═════════ */
+  const CW=1080, CH=1350;
+  function rr(x,a,b,w,h,r){ x.beginPath(); x.moveTo(a+r,b); x.arcTo(a+w,b,a+w,b+h,r); x.arcTo(a+w,b+h,a,b+h,r); x.arcTo(a,b+h,a,b,r); x.arcTo(a,b,a+w,b,r); x.closePath(); }
+  function tx(x,str,px,py,o){ o=o||{}; x.font=o.font||'700 28px Arial, sans-serif'; x.fillStyle=o.color||'#fff'; x.textAlign=o.align||'left'; x.textBaseline=o.base||'alphabetic'; x.fillText(String(str),px,py,o.max); }
+  function frame(x,lg,kicker,title,sub){
+    const g=x.createLinearGradient(0,0,CW,CH); g.addColorStop(0,'#0b0b0b'); g.addColorStop(1,'#1c0a14'); x.fillStyle=g; x.fillRect(0,0,CW,CH);
+    const a=x.createLinearGradient(0,0,CW,0); a.addColorStop(0,'#e8186d'); a.addColorStop(1,'#ff6b00'); x.fillStyle=a; x.fillRect(0,0,CW,14); x.fillRect(0,CH-14,CW,14);
+    if(lg){ const h=84, w=Math.min(lg.width/lg.height*h,260); x.drawImage(lg,60,48,w,h); } else tx(x,'VMS',60,118,{font:'900 64px Arial, sans-serif'});
+    tx(x,'VELOCITY MOTORSPORT SERIES',CW-60,86,{font:'800 22px Arial, sans-serif',color:'#999',align:'right'});
+    tx(x,'2026 SEASON',CW-60,118,{font:'800 22px Arial, sans-serif',color:'#e8186d',align:'right'});
+    tx(x,String(kicker).toUpperCase(),60,215,{font:'900 28px Arial, sans-serif',color:'#e8186d'});
+    tx(x,String(title).toUpperCase(),60,272,{font:'900 50px Arial, sans-serif',max:CW-120});
+    if(sub) tx(x,sub,60,314,{font:'600 24px Arial, sans-serif',color:'#999',max:CW-120});
+    tx(x,'OFFICIAL LEAGUE WEBSITE',CW/2,CH-34,{font:'800 18px Arial, sans-serif',color:'#666',align:'center'});
+  }
+  function loadLogo(){ return new Promise(res=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>res(null); i.src='assets/logo.png'; }); }
+  async function render(draw,file){
+    const logo=await loadLogo();
+    const once=lg=>new Promise((res,rej)=>{ try{ const c=document.createElement('canvas'); c.width=CW; c.height=CH; draw(c.getContext('2d'),lg); c.toBlob(b=>b?res(b):rej(new Error('blob')),'image/png'); }catch(e){ rej(e); } });
+    let blob; try{ blob=await once(logo); }catch(e){ blob=await once(null); }
+    preview(blob,file);
+  }
+  function preview(blob,file){
+    let pv=$('vxPv'); if(!pv){ pv=document.createElement('div'); pv.id='vxPv'; pv.className='vx-pv'; pv.addEventListener('click',e=>{ if(e.target===pv) pv.classList.remove('open'); }); document.body.appendChild(pv); }
+    const url=URL.createObjectURL(blob), file1=new File([blob],file,{type:'image/png'});
+    const canShare=navigator.canShare&&navigator.canShare({files:[file1]}), canCopy=window.ClipboardItem&&navigator.clipboard&&navigator.clipboard.write;
+    pv.innerHTML='<img src="'+url+'" alt="Share card"><div class="vx-acts"><button type="button" class="vx-btn" data-a="dl">⬇ Download PNG</button>'+(canCopy?'<button type="button" class="vx-btn ghost" data-a="cp">Copy image</button>':'')+(canShare?'<button type="button" class="vx-btn ghost" data-a="sh">Share…</button>':'')+'<button type="button" class="vx-btn ghost" data-a="x">Close</button></div>';
+    pv.onclick=async e=>{
+      const a=e.target.closest('[data-a]'); if(!a){ if(e.target===pv) pv.classList.remove('open'); return; }
+      const k=a.dataset.a;
+      if(k==='dl') saveBlob(file,blob);
+      else if(k==='cp'){ try{ await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]); a.textContent='Copied ✓'; }catch(err){ a.textContent='Copy failed'; } }
+      else if(k==='sh'){ try{ await navigator.share({files:[file1],title:'VMS'}); }catch(err){} }
+      else pv.classList.remove('open');
+    };
+    pv.classList.add('open');
+  }
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const pv=$('vxPv'); if(pv) pv.classList.remove('open'); } });
+
+  /* ranked-list card: used by results, standings and power rankings */
+  function shareList(o){
+    render((x,lg)=>{
+      frame(x,lg,o.kicker,o.title,o.sub);
+      const top=350, rh=90, gap=6;
+      o.rows.slice(0,10).forEach((r,i)=>{
+        const y=top+i*(rh+gap);
+        x.fillStyle='rgba(255,255,255,.05)'; rr(x,60,y,CW-120,rh,6); x.fill();
+        x.fillStyle=r.color||'#e8186d'; x.fillRect(60,y,10,rh);
+        tx(x,r.left,118,y+rh/2+14,{font:'900 40px Arial, sans-serif',color:i<3?'#e8186d':'#fff',align:'center'});
+        tx(x,r.name,176,y+40,{font:'800 34px Arial, sans-serif',max:560});
+        if(r.sub) tx(x,r.sub,176,y+72,{font:'600 22px Arial, sans-serif',color:'#999',max:560});
+        tx(x,r.right,CW-92,y+(r.rlab?50:rh/2+14),{font:'900 40px Arial, sans-serif',align:'right'});
+        if(r.rlab) tx(x,r.rlab,CW-92,y+76,{font:'800 15px Arial, sans-serif',color:'#999',align:'right'});
+      });
+    },o.file);
+  }
+
+  function shareBar(id,after,label,onclick){
+    if($(id)||!after) return;
+    const d=document.createElement('div'); d.className='vx-bar'; d.id=id;
+    d.innerHTML='<button type="button" class="vx-btn">🖼️ '+label+'</button>';
+    after.insertAdjacentElement('afterend',d); d.firstChild.onclick=onclick;
+  }
+
+  /* results page */
+  shareBar('shRes',$('resMeta'),'Share results as image',()=>{
+    const s=rs.series; const have=roundsWithResults(s);
+    const race=have.find(r=>r.rnd===rs.rnd)||have[have.length-1]; if(!race) return;
+    const rows=D.results[rkey(race,s)]||[];
+    shareList({file:'VMS-'+s.toUpperCase()+'-R'+race.rnd+'-results.png',kicker:FULL[s]+' · Race Results',title:'R'+race.rnd+' · '+race.name,sub:race.circuit,
+      rows:rows.slice(0,10).map(r=>({left:'P'+r.pos,name:r.name,sub:[r.team,r.pole?'POLE':'',r.fl?'FASTEST LAP':''].filter(Boolean).join('  ·  '),right:'+'+r.pts,rlab:'PTS',color:teamColor(s,r.team,r.name)}))});
+  });
+
+  /* standings page */
+  shareBar('shSt',$('stView'),'Share standings as image',()=>{
+    const s=st.series, data=D.standings[s];
+    if(st.view==='drivers'){
+      const list=data.drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts), top=list[0]?list[0].pts:0;
+      shareList({file:'VMS-'+s.toUpperCase()+'-driver-standings.png',kicker:FULL[s]+' · Drivers\' Championship',title:'Championship Standings',sub:'Top 10 after '+roundsWithResults(s).length+' rounds',
+        rows:list.slice(0,10).map((d,i)=>({left:String(i+1),name:d.name,sub:(d.team||'')+(i?'  ·  -'+(top-d.pts):''),right:String(d.pts),rlab:'PTS',color:teamColor(s,d.team,d.name)}))});
+    }else{
+      const list=data.constructors.slice().sort((a,b)=>b.pts-a.pts), top=list[0]?list[0].pts:0;
+      shareList({file:'VMS-'+s.toUpperCase()+'-constructor-standings.png',kicker:FULL[s]+' · Constructors\' Championship',title:'Team Standings',sub:'Top 10 after '+roundsWithResults(s).length+' rounds',
+        rows:list.slice(0,10).map((c,i)=>({left:String(i+1),name:c.name,sub:i?'-'+(top-c.pts)+' behind the leader':'Championship leader',right:String(c.pts),rlab:'PTS',color:c.color}))});
+    }
+  });
+
+  /* driver profile card (adds a button inside the existing driver modal) */
+  function driverCard(s,name){
+    const c=canon(s,name), d=D.standings[s].drivers.find(x=>canon(s,x.name)===c); if(!d) return;
+    const li=lineupFor(s,name), S=driverStats(s,d), col=teamColor(s,d.team,d.name);
+    const pr=power(s).list.find(o=>o.k===c);
+    const results=[]; real.forEach(r=>{ const hit=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===c); if(hit) results.push({r,hit}); });
+    render((x,lg)=>{
+      frame(x,lg,FULL[s]+(li&&li.num&&li.num!=='—'?' · #'+li.num:'')+' · Driver Profile',d.name,d.team||'');
+      x.fillStyle=col; x.fillRect(60,330,CW-120,8);
+      const tiles=[['P'+(S.pos||'–'),'STANDING'],[String(S.pts),'POINTS'],[String(S.wins),'WINS'],[String(S.pods),'PODIUMS'],[S.poles+' / '+S.fls,'POLES / FL'],[pr?'#'+pr.rank:'–','POWER RANK']];
+      tiles.forEach((t,i)=>{ const cx=60+(i%3)*(CW-120+20)/3, cy=370+Math.floor(i/3)*170, w=(CW-120-40)/3;
+        x.fillStyle='rgba(255,255,255,.05)'; rr(x,cx,cy,w,150,8); x.fill();
+        tx(x,t[0],cx+w/2,cy+82,{font:'900 60px Arial, sans-serif',align:'center',max:w-20});
+        tx(x,t[1],cx+w/2,cy+122,{font:'800 18px Arial, sans-serif',color:'#999',align:'center'}); });
+      tx(x,'RECENT RESULTS',60,740,{font:'900 24px Arial, sans-serif',color:'#e8186d'});
+      results.slice(-6).reverse().forEach((q,i)=>{ const y=765+i*78;
+        x.fillStyle='rgba(255,255,255,.05)'; rr(x,60,y,CW-120,68,6); x.fill();
+        tx(x,'R'+q.r.rnd,90,y+44,{font:'900 26px Arial, sans-serif',color:'#999'});
+        tx(x,q.r.name,170,y+44,{font:'700 28px Arial, sans-serif',max:520});
+        tx(x,(DNFRE.test(q.hit.note||'')?'DNF':'P'+q.hit.pos)+(q.hit.pole?' · POLE':'')+(q.hit.fl?' · FL':''),CW-250,y+44,{font:'800 26px Arial, sans-serif',align:'right',max:260});
+        tx(x,'+'+q.hit.pts,CW-90,y+44,{font:'900 30px Arial, sans-serif',align:'right',color:'#e8186d'}); });
+    },'VMS-'+s.toUpperCase()+'-'+String(d.name).replace(/[^A-Za-z0-9]+/g,'-')+'.png');
+  }
+  const _od=openDriver;
+  openDriver=function(s,name){
+    _od.apply(this,arguments);
+    const mb=$('modalBox'); if(!mb) return;
+    mb.insertAdjacentHTML('beforeend','<div class="vx-bar" style="margin-top:16px"><button type="button" class="vx-btn" data-share="1">🖼️ Share driver card</button></div>');
+    const b=mb.querySelector('[data-share]'); if(b) b.onclick=()=>driverCard(s,name);
+  };
+
+  /* ═════════ 8. CAREER LADDER (Teams → Career Ladder) ═════════ */
+  /* Confirmed promotions / relegations — add a line whenever a driver moves up or down the ladder, e.g.
+     {name:'Driver Name', from:'f3', to:'f2', rnd:'09'}   (rnd = the round they made the move; optional) */
+  const LADDER_MOVES=[];
+  const tmNav=$('tmSub'), h2hPane=document.querySelector('.tm-pane[data-p="tmh2h"]');
+  if(tmNav&&h2hPane){
+    tmNav.insertAdjacentHTML('beforeend','<button type="button" data-p="tmladder">Career Ladder</button>');
+    h2hPane.insertAdjacentHTML('afterend','<div class="tm-pane" data-p="tmladder"><section id="ladder"><div class="section-head"><div><div class="title">Career <span class="yellow">Ladder</span></div><div class="line"></div></div><span class="sub">F3 → F2 → F1 · the road to the top</span></div><div id="clBoard"></div></section></div>');
+    tmNav.addEventListener('click',e=>{ const b=e.target.closest('button[data-p]'); if(b&&b.dataset.p==='tmladder') renderLadder(); });
+  }
+  function ladderRow(s,d,i,zone){
+    const S=driverStats(s,d);
+    return '<div class="cl-it'+(zone?' zone':'')+'" data-s="'+s+'" data-name="'+esc(d.name)+'"><div><b>'+(i+1)+'. '+esc(d.name)+'</b><small>'+esc(d.team||'')+'</small></div><div style="text-align:right"><em>'+d.pts+'</em><small>'+(S.ppr!=null?S.ppr.toFixed(1)+' / race':'')+'</small></div></div>';
+  }
+  function renderLadder(){
+    const box=$('clBoard'); if(!box) return;
+    const top=s=>D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts);
+    const order=['f3','f2','f1'], info={f3:['Rising Stars','Top 3 are on promotion watch'],f2:['Elite Development','Top 3 are on promotion watch'],f1:['Pinnacle Series','The summit']};
+    const cols=order.map((s,ci)=>{
+      const list=top(s).slice(0,6);
+      return '<div class="cl-col"><span class="cl-sub">'+info[s][0]+'</span><h3>'+esc(FULL[s])+'</h3><small style="color:#888;display:block;margin-bottom:8px">'+info[s][1]+'</small>'+
+        list.map((d,i)=>ladderRow(s,d,i,s!=='f1'&&i<3)).join('')+(ci<2?'<div class="cl-arrow">➜</div>':'')+'</div>';
+    }).join('');
+    /* same driver name racing in more than one series this season */
+    const seen={}; SERIES.forEach(s=>top(s).forEach((d,i)=>{ const k=canon(s,d.name); (seen[k]=seen[k]||[]).push({s,d,pos:i+1}); }));
+    const multi=Object.values(seen).filter(a=>a.length>1&&new Set(a.map(x=>x.s)).size>1);
+    const chips=multi.map(a=>'<div class="cl-chip" data-s="'+a[0].s+'" data-name="'+esc(a[0].d.name)+'"><b>'+esc(a[0].d.name)+'</b> <span>'+a.sort((x,y)=>order.indexOf(x.s)-order.indexOf(y.s)).map(x=>FULL[x.s].replace('VMS ','')+' P'+x.pos+' · '+x.d.pts+' pts').join('  →  ')+'</span></div>').join('');
+    const moves=LADDER_MOVES.map(m=>'<div class="cl-chip" data-s="'+esc(m.to)+'" data-name="'+esc(m.name)+'"><b>'+esc(m.name)+'</b> <span>'+(order.indexOf(m.to)>order.indexOf(m.from)?'⬆ Promoted':'⬇ Moved down')+' '+esc(FULL[m.from]||m.from)+' → '+esc(FULL[m.to]||m.to)+(m.rnd?' · R'+esc(m.rnd):'')+'</span></div>').join('');
+    box.innerHTML='<div class="cl-grid">'+cols+'</div>'+
+      '<div class="section-head" style="margin-top:8px"><div><div class="title" style="font-size:22px">Confirmed <span class="yellow">Moves</span></div></div></div><div class="cl-x">'+(moves||'<div class="empty" style="width:100%">No promotions recorded yet — add them to <code>LADDER_MOVES</code> at the bottom of app.js.</div>')+'</div>'+
+      '<div class="section-head"><div><div class="title" style="font-size:22px">Multi-Series <span class="yellow">Drivers</span></div></div><span class="sub">Matched by name — double-check shared names</span></div><div class="cl-x">'+(chips||'<div class="empty" style="width:100%">No driver appears in more than one series.</div>')+'</div>';
+    box.onclick=e=>{ const it=e.target.closest('[data-name]'); if(it) openDriver(it.dataset.s,it.dataset.name); };
+  }
+})();
