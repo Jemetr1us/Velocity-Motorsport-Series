@@ -1951,7 +1951,125 @@ async function loadNews(force){
   const $=id=>document.getElementById(id);
   const KEY='vms-fantasy-v2', NDRV=3, NTEAM=2;
   let BUDGET=100;
-  let PR={drivers:{},teams:{}};   /* price overrides: drivers keyed by canonical name, teams by team name */
+  /* built-in price list (from fantasy-prices.json); data/fantasy-prices.json still overrides it when present.
+     drivers keyed by canonical (lowercase) name, teams by team name */
+  const DEFAULT_PR={
+    "drivers": {
+      "f1": {
+        "nick": 50,
+        "lory": 38,
+        "sly": 23,
+        "gkf": 18,
+        "ageftyg2": 12,
+        "joshua": 5,
+        "unironically": 14,
+        "arin": 10,
+        "shadowrex": 18,
+        "daih_v": 3,
+        "vitality": 3,
+        "yokesecapo": 25,
+        "sun_rise": 3,
+        "sckibles": 8,
+        "lewis": 3,
+        "rox": 40,
+        "skirmis": 5,
+        "peters": 13,
+        "amin": 10,
+        "diego": 20,
+        "syxe": 10,
+        "bence": 5,
+        "infinity": 13,
+        "maldonado": 3,
+        "nath": 10,
+        "emirovic": 5,
+        "batwert": 5,
+        "yuki": 3
+      },
+      "f2": {
+        "skirmis": 48,
+        "gamrin": 40,
+        "crocs": 43,
+        "juan": 50,
+        "alien": 35,
+        "zaphira": 12,
+        "jeffz": 8,
+        "peters": 5,
+        "style": 5,
+        "gui": 20,
+        "bence": 23,
+        "zayn": 13,
+        "ao": 18,
+        "kyo": 38,
+        "maldonado": 20,
+        "wavee": 10,
+        "messi": 33
+      },
+      "f3": {
+        "piko": 50,
+        "jeffz": 50,
+        "ukkiett": 48,
+        "bartos": 43,
+        "dark shadow": 43,
+        "fabian": 33,
+        "lancelot": 30,
+        "syxe": 25,
+        "sckibles": 25,
+        "kriekel": 25,
+        "piti": 18,
+        "wibz": 15,
+        "maslo": 15,
+        "bleh": 13,
+        "halo": 13,
+        "bence": 15,
+        "lance": 15,
+        "chicken_bake": 15,
+        "dante": 10,
+        "elias": 17
+      }
+    },
+    "teams": {
+      "f1": {
+        "Scuderia Ferrari": 45,
+        "Richard Mille LM Motorsport F1": 45,
+        "Renault Sport Formula 1 Team": 35,
+        "Mercedes-AMG": 20,
+        "Aero Apex Racing": 18,
+        "GlitchGP F1 Team": 25,
+        "Vodafone McLaren": 23,
+        "BMW Sauber F1 Team": 30,
+        "Tarigy's Motorsport Team F1": 25,
+        "Vanguard Sabre Motorsport": 20,
+        "Hertz Porsche": 15
+      },
+      "f2": {
+        "LM Performance F2": 45,
+        "Carti Racing Association": 50,
+        "Renault Sport Formula 2 Team": 43,
+        "Nissan Nissmo (Night Reapers X)": 35,
+        "Tarigy’s Motorsport Team F2": 25,
+        "Aero Apex Racing F2": 38,
+        "AF Corsa": 20,
+        "GlitchGP F2 Team": 30,
+        "BWL Sim Racing Team": 20,
+        "Vanguard Sabre Racing": 25,
+        "BMW Sauber F2 Team (OKX HP Crimson GP)": 25
+      },
+      "f3": {
+        "LMP": 65,
+        "Tarigy’s Motorsport Team F3": 45,
+        "Pola Sabre Motorsports": 45,
+        "Renault Sport Formula 3 Team": 40,
+        "Aston Martin Racing F3": 25,
+        "GlitchGP F3": 30,
+        "Aero Apex Racing F3": 15,
+        "Carti Racing Association": 43,
+        "Kogun Technologies F3 Team": 20,
+        "Anonymous Juniors": 20,
+        "BMW Sauber F3 Team": 28
+      }
+    }
+  };
+  let PR=DEFAULT_PR;
 
   let store={name:'',teams:{},league:[]};
   try{ const r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&typeof r==='object') store=Object.assign(store,r); }catch(e){}
@@ -1973,8 +2091,9 @@ async function loadNews(force){
   }
   function teamPool(s,raw){
     const cs=D.standings[s].constructors, maxP=Math.max(1,...cs.map(c=>+c.pts||0)), ov=(!raw&&PR.teams&&PR.teams[s])||{};
+    const ovByNorm={}; Object.keys(ov).forEach(k=>{ ovByNorm[normTeam(k)]=ov[k]; });   /* so "Renault Sport Formula 2 Team" also matches "Renault Sport Formula 2 Team (Isreal)" */
     return cs.map(c=>{
-      const def=Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8))), o=num(ov[c.name]);
+      const def=Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8))), o=num(ov[c.name]!=null?ov[c.name]:ovByNorm[normTeam(c.name)]);
       return {name:c.name,key:c.name,color:c.color,pts:+c.pts||0,def,price:o==null?def:o,custom:o!=null};
     }).sort((a,b)=>b.price-a.price||b.pts-a.pts);
   }
