@@ -227,7 +227,7 @@
     },
     {
       "name": "Vanguard Sabre Motorsport",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Director of Sabre",
       "color": "#7f1010",
       "drivers": [
         {
@@ -508,7 +508,7 @@
     },
     {
       "name": "Vanguard Sabre Racing",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Director of Sabre",
       "color": "#7f1010",
       "drivers": [
         {
@@ -789,13 +789,21 @@
     },
     {
       "name": "Renault Sport Formula 3 Team",
-      "engine": "CEO: Neon | Renault & McLaren CEO · Director: Doxxi (@BUBOJEPES2)",
+      "engine": "CEO: Neon | Renault & McLaren CEO",
       "color": "#60a5fa",
       "drivers": [
         {
           "num": "27",
           "code": "MD1",
           "name": "Aarnav",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "21",
+          "code": "MD2",
+          "name": "Georgie",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -874,7 +882,7 @@
     },
     {
       "name": "Pola Sabre Motorsports",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead",
+      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Director of Sabre",
       "color": "#1e40af",
       "drivers": [
         {
@@ -995,6 +1003,14 @@
       "color": "#7dd3fc",
       "drivers": [
         {
+          "num": "29",
+          "code": "MD1",
+          "name": "Cross",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
           "num": "37",
           "code": "MD2",
           "name": "Elias",
@@ -1050,9 +1066,9 @@
           "pods": 0
         },
         {
-          "num": "15",
+          "num": "37",
           "code": "RD1",
-          "name": "Leo",
+          "name": "Pxul",
           "pts": 0,
           "wins": 0,
           "pods": 0
