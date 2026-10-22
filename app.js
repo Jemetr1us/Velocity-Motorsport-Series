@@ -1941,13 +1941,17 @@ async function loadNews(force){
 
 /* ═══════════════════════════════════════════════════════════════════════════
    FANTASY VMS
-   Pick 5 drivers + 1 team under a $100M budget, name a captain (2× points).
+   Pick 3 drivers + 2 teams under a budget, name a captain (2× points).
    Scores come straight from the real race results, counted from the round you lock in.
-   Teams live in the visitor's browser; friends compare by swapping share codes.
+   Prices follow championship points unless overridden in data/fantasy-prices.json
+   (edit them with edit-fantasy-prices.html). Teams live in the visitor's browser;
+   friends compare by swapping share codes.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function(){
   const $=id=>document.getElementById(id);
-  const KEY='vms-fantasy-v1', BUDGET=100, NDRV=5;
+  const KEY='vms-fantasy-v2', NDRV=3, NTEAM=2;
+  let BUDGET=100;
+  let PR={drivers:{},teams:{}};   /* price overrides: drivers keyed by canonical name, teams by team name */
 
   let store={name:'',teams:{},league:[]};
   try{ const r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&typeof r==='object') store=Object.assign(store,r); }catch(e){}
@@ -1956,20 +1960,29 @@ async function loadNews(force){
   const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} };
 
   const fs={series:'f1',mode:'drivers',q:'',draft:{},msg:'',msgOk:false};
+  const num=v=>{ const n=Math.round(+v); return (v!==''&&v!=null&&isFinite(n)&&n>=0)?n:null; };
 
   /* ───────── prices & pools ───────── */
-  function pool(s){
+  function pool(s,raw){
     const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
-    const maxP=Math.max(1,...ds.map(d=>+d.pts||0));
-    return ds.map(d=>({name:d.name,team:d.team||'',pts:+d.pts||0,price:Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8)))}))
-      .sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
+    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), ov=(!raw&&PR.drivers&&PR.drivers[s])||{};
+    return ds.map(d=>{
+      const def=Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8))), o=num(ov[canon(s,d.name)]);
+      return {name:d.name,key:canon(s,d.name),team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
+    }).sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
   }
-  function teamPool(s){
-    const cs=D.standings[s].constructors, maxP=Math.max(1,...cs.map(c=>+c.pts||0));
-    return cs.map(c=>({name:c.name,color:c.color,pts:+c.pts||0,price:Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8)))}))
-      .sort((a,b)=>b.price-a.price||b.pts-a.pts);
+  function teamPool(s,raw){
+    const cs=D.standings[s].constructors, maxP=Math.max(1,...cs.map(c=>+c.pts||0)), ov=(!raw&&PR.teams&&PR.teams[s])||{};
+    return cs.map(c=>{
+      const def=Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8))), o=num(ov[c.name]);
+      return {name:c.name,key:c.name,color:c.color,pts:+c.pts||0,def,price:o==null?def:o,custom:o!=null};
+    }).sort((a,b)=>b.price-a.price||b.pts-a.pts);
   }
-  const hist=s=>((store.teams[s]&&store.teams[s].h)||[]).slice();
+  /* the price editor (edit-fantasy-prices.html) reads this */
+  window.VMS_FANTASY={pool:(s)=>pool(s,true),teamPool:(s)=>teamPool(s,true),get budget(){return BUDGET;}};
+
+  const validSnap=x=>x&&typeof x.from==='number'&&Array.isArray(x.d)&&x.d.length===NDRV&&Array.isArray(x.t)&&x.t.length===NTEAM&&typeof x.c==='string';
+  const hist=s=>((store.teams[s]&&store.teams[s].h)||[]).filter(validSnap);
 
   /* ───────── scoring ───────── */
   function scoreHist(s,h){
@@ -1982,9 +1995,8 @@ async function loadNews(force){
         const hit=rows.find(x=>canon(s,x.name)===canon(s,n)), p=hit?(+hit.pts||0):0, cap=snap.c===n;
         return {name:n,pts:p,cap,val:cap?p*2:p};
       });
-      const keys=teamKeys(s,snap.t);
-      const tp=rows.filter(x=>keys.has(teamKey(s,x.team))).reduce((n,x)=>n+(+x.pts||0),0);
-      const t=drv.reduce((n,x)=>n+x.val,0)+tp; total+=t; out.push({r,drv,tp,total:t});
+      const tms=snap.t.map(tn=>{ const keys=teamKeys(s,tn); return {name:tn,pts:rows.filter(x=>keys.has(teamKey(s,x.team))).reduce((n,x)=>n+(+x.pts||0),0)}; });
+      const t=drv.reduce((n,x)=>n+x.val,0)+tms.reduce((n,x)=>n+x.pts,0); total+=t; out.push({r,drv,tms,total:t});
     });
     return {rounds:out,total};
   }
@@ -1993,11 +2005,11 @@ async function loadNews(force){
   const encode=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
   function decode(str){
     let o; try{ o=JSON.parse(decodeURIComponent(escape(atob(String(str).trim())))); }catch(e){ return null; }
-    if(!o||o.v!==1||!SERIES.includes(o.s)||!Array.isArray(o.h)||!o.h.length||o.h.length>30) return null;
+    if(!o||o.v!==2||!SERIES.includes(o.s)||!Array.isArray(o.h)||!o.h.length||o.h.length>30) return null;
     const str1=x=>typeof x==='string'&&x.length>0&&x.length<=60;
     const h=[]; for(const x of o.h){
-      if(!x||typeof x.from!=='number'||!Array.isArray(x.d)||x.d.length!==NDRV||!x.d.every(str1)||!str1(x.c)||!str1(x.t)||!x.d.includes(x.c)) return null;
-      h.push({from:Math.floor(x.from),d:x.d.slice(),c:x.c,t:x.t});
+      if(!x||typeof x.from!=='number'||!Array.isArray(x.d)||x.d.length!==NDRV||!x.d.every(str1)||!str1(x.c)||!Array.isArray(x.t)||x.t.length!==NTEAM||!x.t.every(str1)||!x.d.includes(x.c)) return null;
+      h.push({from:Math.floor(x.from),d:x.d.slice(),c:x.c,t:x.t.slice()});
     }
     h.sort((a,b)=>a.from-b.from);
     return {n:String(o.n||'Manager').slice(0,24),s:o.s,h};
@@ -2012,25 +2024,26 @@ async function loadNews(force){
   }
 
   /* ───────── draft ───────── */
+  const blank=()=>({d:[],c:'',t:[]});
+  const fromSnap=x=>({d:x.d.slice(),c:x.c,t:x.t.slice()});
   function draftFor(s){
-    if(!fs.draft[s]){
-      const h=hist(s), last=h[h.length-1];
-      fs.draft[s]=last?{d:last.d.slice(),c:last.c,t:last.t}:{d:[],c:'',t:''};
-    }
+    if(!fs.draft[s]){ const h=hist(s); fs.draft[s]=h.length?fromSnap(h[h.length-1]):blank(); }
     return fs.draft[s];
   }
   function spend(s,dr){
     const P=pool(s), T=teamPool(s);
     const dp=n=>{ const p=P.find(x=>canon(s,x.name)===canon(s,n)); return p?p.price:0; };
-    const tp=dr.t?(T.find(x=>x.name===dr.t)||{price:0}).price:0;
-    return dr.d.reduce((n,x)=>n+dp(x),0)+tp;
+    const tp=n=>{ const t=T.find(x=>x.name===n); return t?t.price:0; };
+    return dr.d.reduce((n,x)=>n+dp(x),0)+dr.t.reduce((n,x)=>n+tp(x),0);
   }
-  const problems=(s,dr)=>{
-    const p=[]; if(dr.d.length<NDRV) p.push('pick '+(NDRV-dr.d.length)+' more driver'+(NDRV-dr.d.length>1?'s':''));
-    if(!dr.t) p.push('pick a team'); if(dr.d.length&&!dr.c) p.push('choose a captain (C)');
-    if(spend(s,dr)>BUDGET) p.push('you are $'+(spend(s,dr)-BUDGET)+'M over budget');
+  function problems(s,dr){
+    const p=[], md=NDRV-dr.d.length, mt=NTEAM-dr.t.length;
+    if(md>0) p.push('pick '+md+' more driver'+(md>1?'s':''));
+    if(mt>0) p.push('pick '+mt+' more team'+(mt>1?'s':''));
+    if(dr.d.length&&!dr.c) p.push('choose a captain (C)');
+    const sp=spend(s,dr); if(sp>BUDGET) p.push('you are $'+(sp-BUDGET)+'M over budget');
     return p;
-  };
+  }
 
   /* ───────── view ───────── */
   const view=document.createElement('div'); view.className='view'; view.id='view-fantasy';
@@ -2039,7 +2052,7 @@ async function loadNews(force){
     '<div class="fn-grid"><div class="panel fn-team" id="fnTeam"></div><div class="fn-poolwrap"><div class="tabs" id="fnMode"></div><input id="fnQ" class="fn-q" placeholder="Search…" autocomplete="off" spellcheck="false"><div class="panel scroll fn-pool" id="fnPool"></div></div></div>'+
     '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Your <span class="yellow">Scores</span></div></div></div><div class="panel scroll" id="fnScores"></div>'+
     '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Mini-<span class="yellow">League</span></div></div><span class="sub">Swap codes with friends</span></div><div id="fnLeague"></div>'+
-    '<details class="vx-how"><summary>How Fantasy VMS works</summary><p>Pick <b>5 drivers</b> and <b>1 team</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget (prices follow current championship points). Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points your team scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p></details></section>';
+    '<details class="vx-how" id="fnRules"></details></section>';
   const after=$('view-records')||$('view-teams');
   if(after) after.after(view); else document.querySelector('main').appendChild(view);
   VIEWS.splice(VIEWS.indexOf('records')>=0?VIEWS.indexOf('records')+1:VIEWS.length,0,'fantasy');
@@ -2074,10 +2087,11 @@ async function loadNews(force){
   const money=n=>'$'+n+'M';
   function render(){
     if(!$('fnSeries')) return;
-    const s=fs.series, dr=draftFor(s), wi=windowInfo();
+    const s=fs.series, wi=windowInfo();
     tabs($('fnSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ fs.series=k; fs.q=''; fs.msg=''; if($('fnQ')) $('fnQ').value=''; render(); });
     tabs($('fnMode'),[['drivers','Drivers'],['teams','Teams']],fs.mode,k=>{ fs.mode=k; render(); });
     $('fnInfo').innerHTML=wi.open?'<span>🔓 Transfers open until <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> starts · your team scores from that round</span>':'<span>🔒 '+esc(wi.why)+'</span>';
+    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
     renderTeam(); renderPool(); renderScores(); renderLeague();
   }
   function renderTeam(){
@@ -2088,29 +2102,31 @@ async function loadNews(force){
       const n=dr.d[i];
       slots.push(n?'<div class="fn-slot"><div class="fn-who"><b>'+esc(n)+'</b><small>'+esc(info(n).team)+' · '+money(info(n).price)+'</small></div><button type="button" class="'+(dr.c===n?'on':'')+'" data-act="cap" data-i="'+i+'" title="Captain — double points">C</button><button type="button" data-act="rm-d" data-i="'+i+'" title="Remove">×</button></div>':'<div class="fn-slot empty">Driver '+(i+1)+'</div>');
     }
-    const t=dr.t?T.find(x=>x.name===dr.t):null;
-    const teamSlot=t?'<div class="fn-slot"><div class="fn-who"><b>'+esc(t.name)+'</b><small>'+money(t.price)+'</small></div><button type="button" data-act="rm-t" title="Remove">×</button></div>':'<div class="fn-slot empty">Team</div>';
-    const saved=hist(s).length?hist(s)[hist(s).length-1]:null;
+    const tslots=[]; for(let i=0;i<NTEAM;i++){
+      const t=dr.t[i]?T.find(x=>x.name===dr.t[i]):null;
+      tslots.push(t?'<div class="fn-slot"><div class="fn-who"><b>'+esc(t.name)+'</b><small>'+money(t.price)+'</small></div><button type="button" data-act="rm-t" data-i="'+i+'" title="Remove">×</button></div>':'<div class="fn-slot empty">Team '+(i+1)+'</div>');
+    }
+    const saved=hist(s).length;
     $('fnTeam').innerHTML='<h3>'+esc(FULL[s])+' · Your Team</h3><input class="fn-name" id="fnNm" maxlength="24" placeholder="Manager name" value="'+esc(store.name)+'">'+
-      '<span class="fn-h">Drivers</span>'+slots.join('')+'<span class="fn-h">Team</span>'+teamSlot+
+      '<span class="fn-h">Drivers</span>'+slots.join('')+'<span class="fn-h">Teams</span>'+tslots.join('')+
       '<div class="fn-bud'+(spent>BUDGET?' over':'')+'"><span>'+money(spent)+' / '+money(BUDGET)+'</span><span>'+(spent>BUDGET?'over by '+money(spent-BUDGET):money(BUDGET-spent)+' left')+'</span></div><div class="fn-bar"><i style="width:'+Math.min(100,spent/BUDGET*100)+'%"></i></div>'+
       '<div class="fn-acts"><button type="button" class="vx-btn" data-act="save"'+(wi.open&&!pr.length?'':' disabled')+'>'+(saved?'Update team':'Lock in team')+'</button><button type="button" class="vx-btn ghost" data-act="reset">Reset</button></div>'+
       '<div class="fn-msg'+(fs.msgOk?' ok':'')+'" id="fnMsg">'+(fs.msg?esc(fs.msg):(wi.open&&pr.length?'To lock in: '+esc(pr.join(', '))+'.':!wi.open?esc(wi.why):''))+'</div>';
     $('fnNm').onchange=e=>{ store.name=e.target.value.slice(0,24); persist(); renderLeague(); };
   }
   function renderPool(){
-    const s=fs.series, dr=draftFor(s), q=fs.q.trim().toLowerCase(), full=dr.d.length>=NDRV;
+    const s=fs.series, dr=draftFor(s), q=fs.q.trim().toLowerCase();
     if(fs.mode==='drivers'){
-      const rows=pool(s).filter(x=>!q||(x.name+' '+x.team).toLowerCase().includes(q));
+      const full=dr.d.length>=NDRV, rows=pool(s).filter(x=>!q||(x.name+' '+x.team).toLowerCase().includes(q));
       $('fnPool').innerHTML='<table><thead><tr><th>Driver</th><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
-        const on=dr.d.some(n=>canon(s,n)===canon(s,x.name));
+        const on=dr.d.some(n=>canon(s,n)===x.key);
         return '<tr><td><b>'+esc(x.name)+'</b></td><td class="muted">'+esc(x.team)+'</td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-d" data-name="'+esc(x.name)+'"'+(on||full?' disabled':'')+'>'+(on?'Added':full?'Full':'Add')+'</button></td></tr>';
       }).join('')+'</tbody></table>';
     }else{
-      const rows=teamPool(s).filter(x=>!q||x.name.toLowerCase().includes(q));
+      const full=dr.t.length>=NTEAM, rows=teamPool(s).filter(x=>!q||x.name.toLowerCase().includes(q));
       $('fnPool').innerHTML='<table><thead><tr><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
-        const on=dr.t===x.name;
-        return '<tr><td><span class="dot" style="background:'+esc(x.color)+'"></span><b>'+esc(x.name)+'</b></td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-t" data-name="'+esc(x.name)+'"'+(on?' disabled':'')+'>'+(on?'Picked':'Pick')+'</button></td></tr>';
+        const on=dr.t.includes(x.name);
+        return '<tr><td><span class="dot" style="background:'+esc(x.color)+'"></span><b>'+esc(x.name)+'</b></td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-t" data-name="'+esc(x.name)+'"'+(on||full?' disabled':'')+'>'+(on?'Picked':full?'Full':'Pick')+'</button></td></tr>';
       }).join('')+'</tbody></table>';
     }
   }
@@ -2119,8 +2135,8 @@ async function loadNews(force){
     if(!h.length){ box.innerHTML='<div class="empty">Lock in a team to start scoring.</div>'; return; }
     const sc=scoreHist(s,h);
     if(!sc.rounds.length){ box.innerHTML='<div class="empty">Your team counts from Round '+h[0].from+' — scores appear once that race is in the results.</div>'; return; }
-    box.innerHTML='<table><thead><tr><th>Round</th><th>Drivers</th><th>Team</th><th>Total</th></tr></thead><tbody>'+sc.rounds.map(x=>
-      '<tr><td class="pos">R'+esc(x.r.rnd)+' <span class="muted">'+esc(x.r.name)+'</span></td><td>'+x.drv.map(d=>'<span class="fn-chip"><b>'+esc(d.name)+'</b> '+d.pts+(d.cap?' <i>×2</i>':'')+'</span>').join('')+'</td><td>'+x.tp+'</td><td class="points">'+x.total+'</td></tr>').join('')+
+    box.innerHTML='<table><thead><tr><th>Round</th><th>Drivers</th><th>Teams</th><th>Total</th></tr></thead><tbody>'+sc.rounds.map(x=>
+      '<tr><td class="pos">R'+esc(x.r.rnd)+' <span class="muted">'+esc(x.r.name)+'</span></td><td>'+x.drv.map(d=>'<span class="fn-chip"><b>'+esc(d.name)+'</b> '+d.pts+(d.cap?' <i>×2</i>':'')+'</span>').join('')+'</td><td>'+x.tms.map(t=>'<span class="fn-chip"><b>'+esc(t.name)+'</b> '+t.pts+'</span>').join('')+'</td><td class="points">'+x.total+'</td></tr>').join('')+
       '<tr class="lead"><td colspan="3"><b>Season total</b></td><td class="points">'+sc.total+'</td></tr></tbody></table>';
   }
   function renderLeague(){
@@ -2128,14 +2144,15 @@ async function loadNews(force){
     const me=store.name||'You';
     const rows=[]; if(mine.length) rows.push({n:me+' (you)',h:mine,you:true});
     store.league.forEach((e,i)=>{ if(e.s===s) rows.push({n:e.n,h:e.h,i}); });
-    rows.forEach(r=>{ const sc=scoreHist(s,r.h); r.total=sc.total; r.rounds=sc.rounds.length; const last=r.h[r.h.length-1]; r.cap=last.c; r.team=last.t; });
+    rows.forEach(r=>{ const sc=scoreHist(s,r.h); r.total=sc.total; const last=r.h[r.h.length-1]; r.cap=last.c; r.team=last.t.join(' + '); });
     rows.sort((a,b)=>b.total-a.total);
-    const code=mine.length?encode({v:1,n:me,s,h:mine}):'';
-    box.innerHTML='<div class="fn-lg"><div class="panel scroll">'+(rows.length?'<table><thead><tr><th>#</th><th>Manager</th><th>Captain</th><th>Team</th><th>Pts</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>
+    const code=mine.length?encode({v:2,n:me,s,h:mine}):'';
+    const lab='font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px';
+    box.innerHTML='<div class="fn-lg"><div class="panel scroll">'+(rows.length?'<table><thead><tr><th>#</th><th>Manager</th><th>Captain</th><th>Teams</th><th>Pts</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>
       '<tr'+(r.you?' class="lead"':'')+'><td class="'+(i<3?'pos':'')+'">'+(i+1)+'</td><td><b>'+esc(r.n)+'</b></td><td class="muted">'+esc(r.cap)+'</td><td class="muted">'+esc(r.team)+'</td><td class="points">'+r.total+'</td><td>'+(r.you?'':'<button type="button" class="fn-add" data-act="rm-lg" data-i="'+r.i+'">Remove</button>')+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Lock in a team, then add friends\' codes to build a league for '+esc(FULL[s])+'.</div>')+'</div>'+
-      '<div><span class="fn-h" style="font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px">Your share code ('+esc(FULL[s])+')</span>'+
+      '<div><span style="'+lab+'">Your share code ('+esc(FULL[s])+')</span>'+
       (code?'<textarea class="fn-ta" id="fnCode" readonly>'+esc(code)+'</textarea><div class="fn-acts" style="margin:8px 0 18px"><button type="button" class="vx-btn" data-act="copy">Copy code</button></div>':'<div class="empty" style="margin-bottom:18px">Lock in a team to get a code.</div>')+
-      '<span style="font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px">Add a friend\'s code</span><textarea class="fn-ta" id="fnImp" placeholder="Paste a code here"></textarea><div class="fn-acts" style="margin-top:8px"><button type="button" class="vx-btn ghost" data-act="import">Add to league</button></div><div class="fn-msg" id="fnLgMsg"></div></div></div>';
+      '<span style="'+lab+'">Add a friend\'s code</span><textarea class="fn-ta" id="fnImp" placeholder="Paste a code here"></textarea><div class="fn-acts" style="margin-top:8px"><button type="button" class="vx-btn ghost" data-act="import">Add to league</button></div><div class="fn-msg" id="fnLgMsg"></div></div></div>';
   }
 
   /* ───────── actions ───────── */
@@ -2145,14 +2162,14 @@ async function loadNews(force){
     if(act==='add-d'){ if(dr.d.length<NDRV&&!dr.d.some(n=>canon(s,n)===canon(s,b.dataset.name))){ dr.d.push(b.dataset.name); if(!dr.c) dr.c=b.dataset.name; } }
     else if(act==='rm-d'){ const n=dr.d[+b.dataset.i]; dr.d.splice(+b.dataset.i,1); if(dr.c===n) dr.c=dr.d[0]||''; }
     else if(act==='cap'){ dr.c=dr.d[+b.dataset.i]; }
-    else if(act==='add-t'){ dr.t=b.dataset.name; }
-    else if(act==='rm-t'){ dr.t=''; }
-    else if(act==='reset'){ const h=hist(s), last=h[h.length-1]; fs.draft[s]=last?{d:last.d.slice(),c:last.c,t:last.t}:{d:[],c:'',t:''}; }
+    else if(act==='add-t'){ if(dr.t.length<NTEAM&&!dr.t.includes(b.dataset.name)) dr.t.push(b.dataset.name); }
+    else if(act==='rm-t'){ dr.t.splice(+b.dataset.i,1); }
+    else if(act==='reset'){ const h=hist(s); fs.draft[s]=h.length?fromSnap(h[h.length-1]):blank(); }
     else if(act==='save'){
       const wi=windowInfo(), pr=problems(s,dr);
       if(!wi.open||pr.length){ fs.msg=wi.open?'Can\'t lock in yet: '+pr.join(', ')+'.':wi.why; }
       else{
-        const h=hist(s), snap={from:parseInt(wi.nx.rnd,10),d:dr.d.slice(),c:dr.c,t:dr.t};
+        const h=hist(s), snap={from:parseInt(wi.nx.rnd,10),d:dr.d.slice(),c:dr.c,t:dr.t.slice()};
         if(h.length&&h[h.length-1].from===snap.from) h[h.length-1]=snap; else h.push(snap);
         store.teams[s]={h}; persist(); fs.msg='Team locked in — scoring from Round '+wi.nx.rnd+'.'; fs.msgOk=true;
       }
@@ -2176,6 +2193,14 @@ async function loadNews(force){
     else render();
   });
   view.addEventListener('input',e=>{ if(e.target.id==='fnQ'){ fs.q=e.target.value; renderPool(); } });
+
+  /* price overrides + budget from data/fantasy-prices.json (written by edit-fantasy-prices.html) */
+  fetch('data/fantasy-prices.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j||typeof j!=='object') return;
+    PR={drivers:(j.drivers&&typeof j.drivers==='object')?j.drivers:{},teams:(j.teams&&typeof j.teams==='object')?j.teams:{}};
+    if(+j.budget>0) BUDGET=Math.round(+j.budget);
+    render();
+  }).catch(()=>{});
 
   /* open the Fantasy view like the other pages */
   const _go=go;
