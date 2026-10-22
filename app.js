@@ -1703,9 +1703,7 @@ async function loadNews(force){
    VMS ADD-ONS
    1. Race sessions in the viewer's own timezone (home countdown box + calendar)
    2. Add-to-calendar (.ics) per round + full-season download
-   3. Shareable image cards (results, standings, driver profile, power rankings)
-   7. Power Rankings (Standings → Power Rankings)
-   8. Career Ladder (Teams → Career Ladder)
+   3. Shareable image cards (results, standings, driver profile)
    ═══════════════════════════════════════════════════════════════════════════ */
 (function(){
   const $=id=>document.getElementById(id);
@@ -1726,25 +1724,7 @@ async function loadNews(force){
    '.vx-pv{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:18px;flex-direction:column;gap:14px}'+
    '.vx-pv.open{display:flex}.vx-pv img{max-height:78vh;max-width:100%;box-shadow:0 10px 60px #000}'+
    '.vx-pv .vx-acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}'+
-   '.pw-row{display:flex;align-items:center;gap:14px;padding:12px 14px;border-bottom:1px solid #222;cursor:pointer;flex-wrap:wrap}'+
-   '.pw-row:hover{background:rgba(255,255,255,.04)}'+
-   '.pw-rk{font:900 22px Arial,sans-serif;width:34px;color:#fff}.pw-row:nth-child(-n+3) .pw-rk{color:#e8186d}'+
-   '.pw-mv{width:46px;font:800 11px Arial,sans-serif;letter-spacing:.5px}.pw-mv.up{color:#3ddc84}.pw-mv.dn{color:#ff5a5f}.pw-mv.eq{color:#666}.pw-mv.nw{color:#f5a623}'+
-   '.pw-nm{flex:1;min-width:150px}.pw-nm b{display:block;font-size:15px}.pw-nm small{color:#888;font-size:11px}'+
-   '.pw-tag{font:800 10px Arial,sans-serif;letter-spacing:.8px;text-transform:uppercase;color:#f5a623;min-width:90px}'+
-   '.pw-sp{display:flex;align-items:flex-end;gap:3px;height:30px;width:90px}.pw-sp i{flex:1;background:#555;min-height:3px;display:block}'+
-   '.pw-rt{width:120px;text-align:right}.pw-rt strong{font:900 24px Arial,sans-serif;display:block;line-height:1}.pw-rt .pw-bar{height:4px;background:#222;margin-top:6px}.pw-rt .pw-bar i{display:block;height:100%;background:linear-gradient(90deg,#e8186d,#ff6b00)}'+
-   '.vx-how{margin-top:18px;color:#999;font-size:13px;line-height:1.7}.vx-how summary{cursor:pointer;color:#fff;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:12px}'+
-   '.cl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px}'+
-   '@media(max-width:900px){.cl-grid{grid-template-columns:1fr}.pw-sp,.pw-tag{display:none}}'+
-   '.cl-col{border:1px solid #2a2a2a;background:rgba(255,255,255,.02);padding:16px;position:relative}'+
-   '.cl-col h3{margin:0 0 4px;font-size:18px}.cl-col .cl-sub{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;font-weight:900;margin-bottom:12px;display:block}'+
-   '.cl-it{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #222;cursor:pointer;font-size:13px}'+
-   '.cl-it:hover b{color:#e8186d}.cl-it small{display:block;color:#888;font-size:11px}.cl-it em{font-style:normal;font-weight:900}'+
-   '.cl-it.zone{background:linear-gradient(90deg,rgba(232,24,109,.12),transparent);margin:0 -16px;padding:8px 16px}'+
-   '.cl-arrow{position:absolute;right:-14px;top:50%;font-size:22px;color:#e8186d;z-index:2}@media(max-width:900px){.cl-arrow{display:none}}'+
-   '.cl-x{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 26px}.cl-chip{border:1px solid #333;padding:8px 12px;font-size:12px;cursor:pointer}.cl-chip b{color:#fff}.cl-chip span{color:#aaa}'+
-   '.cl-chip:hover{border-color:#e8186d}';
+   '';
    document.head.appendChild(st); }
 
   /* ═════════ 1 + 2. SESSION TIMES IN YOUR TIMEZONE + .ICS ═════════ */
@@ -1837,80 +1817,8 @@ async function loadNews(force){
     saveBlob(name,new Blob([buildIcs(rounds)],{type:'text/calendar;charset=utf-8'}));
   }
 
-  /* ═════════ 7. POWER RANKINGS ═════════ */
-  const DNFRE=/DNF|DSq|DSQ|DNS/i, DSRE=/DSq|DSQ|DNS/i, MIN_RACES=3;
-  function powerBoard(s,upto){
-    const rounds=roundsWithResults(s).slice(0,upto), m={};
-    rounds.forEach((r,ri)=>{
-      const rows=(D.results[rkey(r,s)]||[]).filter(x=>!/Retired from championship/i.test(x.note||''));
-      const n=Math.max(rows.length,1);
-      rows.forEach(x=>{
-        const pos=+x.pos; if(!pos) return;
-        const base=100*(1-(pos-1)/n), dnf=DNFRE.test(x.note||'');
-        const score=DSRE.test(x.note||'')?0:dnf?base*0.4:base;
-        const k=canon(s,x.name), o=m[k]||(m[k]={k,name:x.name,team:x.team,rs:[]});
-        o.name=x.name; o.team=x.team||o.team;
-        o.rs.push({ri,rnd:r.rnd,score,pos,pts:+x.pts||0,dnf,pole:!!x.pole,fl:!!x.fl});
-      });
-    });
-    const list=Object.values(m).filter(o=>o.rs.length>=MIN_RACES);
-    list.forEach(o=>{ o.ppr=o.rs.reduce((n,x)=>n+x.pts,0)/o.rs.length; });
-    const maxPpr=Math.max(1,...list.map(o=>o.ppr));
-    list.forEach(o=>{
-      const sc=o.rs.map(x=>x.score), n=sc.length, mean=sc.reduce((a,b)=>a+b,0)/n;
-      const last=sc.slice(-4), w=last.map((_,i)=>i+1+(4-last.length)), form=last.reduce((a,v,i)=>a+v*w[i],0)/w.reduce((a,b)=>a+b,0);
-      const sd=Math.sqrt(sc.reduce((a,v)=>a+(v-mean)*(v-mean),0)/n);
-      const wins=o.rs.filter(x=>x.pos===1&&!x.dnf).length, pods=o.rs.filter(x=>x.pos<=3&&!x.dnf).length;
-      const poles=o.rs.filter(x=>x.pole).length, fls=o.rs.filter(x=>x.fl).length;
-      const parts={form, pace:o.ppr/maxPpr*100, cons:Math.max(0,100-sd*2), rel:o.rs.filter(x=>!x.dnf).length/n*100, peak:Math.min(100,(wins*40+pods*15+poles*15+fls*10)/n)};
-      o.parts=parts; o.mean=mean; o.form=form;
-      o.rating=parts.form*.40+parts.pace*.25+parts.cons*.15+parts.rel*.10+parts.peak*.10;
-      o.tag=(last.length>=3&&last.slice(-3).reduce((a,b)=>a+b,0)/3>=75)?'🔥 On fire':form-mean>=12?'📈 Rising':form-mean<=-12?'📉 Slumping':'';
-    });
-    list.sort((a,b)=>b.rating-a.rating); list.forEach((o,i)=>o.rank=i+1);
-    return list;
-  }
-  function power(s){
-    const rounds=roundsWithResults(s), n=rounds.length;
-    const now=powerBoard(s,n), prev=n>1?powerBoard(s,n-1):[];
-    /* movement is measured among drivers ranked both before and after the latest round, so new entrants don't push everyone "down" */
-    const inPrev=new Set(prev.map(o=>o.k)), inNow=new Set(now.map(o=>o.k)), pm={}, nm={};
-    prev.filter(o=>inNow.has(o.k)).forEach((o,i)=>pm[o.k]=i+1);
-    now.filter(o=>inPrev.has(o.k)).forEach((o,i)=>nm[o.k]=i+1);
-    now.forEach(o=>{ o.move=o.k in pm?pm[o.k]-nm[o.k]:null; });
-    return {list:now,last:rounds[n-1]||null};
-  }
   const teamColor=(s,team,name)=>{ const c=conFor(s,team); return (c&&c.color)||(lineupFor(s,name)||{}).color||'#e8186d'; };
-  const pw={series:'f1'};
-
-  const stSub=$('stSub'), anchorPane=document.querySelector('.st-pane[data-p="heat"]')||document.querySelector('.st-pane[data-p="replay"]');
-  if(stSub&&anchorPane){
-    stSub.insertAdjacentHTML('beforeend','<button type="button" data-p="power">Power Rankings</button>');
-    anchorPane.insertAdjacentHTML('afterend','<div class="st-pane" data-p="power"><section id="power"><div class="section-head"><div><div class="title">Power <span class="yellow">Rankings</span></div><div class="line"></div></div><span class="sub" id="pwSub">Who is quickest right now</span></div><div class="tabs" id="pwSeries"></div><div class="vx-bar"><button type="button" class="vx-btn" id="pwShare">🖼️ Share as image</button><span>Ranked on form, pace, consistency, reliability &amp; results · min. '+MIN_RACES+' races</span></div><div id="pwBoard"></div><details class="vx-how"><summary>How the rating works</summary><p>Every finish is scored 0–100 relative to that race\'s field (a DNF counts 40%, a disqualification 0). The rating blends <b>Form</b> (last 4 races, newest weighted most) 40% · <b>Pace</b> (points per race vs. the best in the series) 25% · <b>Consistency</b> (how little the results swing) 15% · <b>Reliability</b> (finishes ÷ starts) 10% · <b>Peaks</b> (wins, podiums, poles, fastest laps) 10%. Arrows compare with the rankings before the latest round.</p></details></section></div>');
-    const _sp=stPane; stPane=function(p){ _sp.apply(this,arguments); if(p==='power') renderPower(); };
-  }
-  function renderPower(){
-    const box=$('pwBoard'); if(!box) return;
-    tabs($('pwSeries'),SERIES.map(s=>[s,FULL[s]]),pw.series,k=>{pw.series=k;renderPower();});
-    const s=pw.series, {list,last}=power(s);
-    if($('pwSub')) $('pwSub').textContent=last?'After Round '+last.rnd+' · '+last.name:'No results yet';
-    if(!list.length){ box.innerHTML='<div class="empty">Not enough race data yet (needs '+MIN_RACES+'+ races per driver).</div>'; return; }
-    box.innerHTML='<div class="panel">'+list.map(o=>{
-      const mv=o.move==null?'<span class="pw-mv nw">NEW</span>':o.move>0?'<span class="pw-mv up">▲ '+o.move+'</span>':o.move<0?'<span class="pw-mv dn">▼ '+(-o.move)+'</span>':'<span class="pw-mv eq">–</span>';
-      const sp=o.rs.slice(-6).map(x=>'<i title="R'+esc(String(x.rnd))+': P'+x.pos+'" style="height:'+Math.max(8,x.score)+'%;background:'+(x.dnf?'#5a1d20':x.pos===1?'#e8186d':x.pos<=3?'#ff6b00':'#555')+'"></i>').join('');
-      return '<div class="pw-row" data-name="'+esc(o.name)+'"><div class="pw-rk">'+o.rank+'</div>'+mv+
-        '<div class="pw-nm"><b>'+esc(o.name)+'</b><small style="color:'+esc(teamColor(s,o.team,o.name))+'">● </small><small>'+esc(o.team||'')+'</small></div>'+
-        '<div class="pw-tag">'+esc(o.tag)+'</div><div class="pw-sp">'+sp+'</div>'+
-        '<div class="pw-rt"><strong>'+Math.round(o.rating)+'</strong><div class="pw-bar"><i style="width:'+Math.round(o.rating)+'%"></i></div></div></div>';
-    }).join('')+'</div>';
-    box.onclick=e=>{ const r=e.target.closest('.pw-row'); if(r) openDriver(s,r.dataset.name); };
-  }
-  if($('pwShare')) $('pwShare').onclick=()=>{
-    const s=pw.series, {list,last}=power(s);
-    if(!list.length) return;
-    shareList({file:'VMS-'+s.toUpperCase()+'-power-rankings.png',kicker:FULL[s]+' · Power Rankings',title:last?('After Round '+last.rnd+' · '+last.name):'Season',sub:'Form · pace · consistency · reliability',
-      rows:list.slice(0,10).map(o=>({left:String(o.rank),name:o.name,sub:(o.team||'')+(o.tag?'  '+o.tag.replace(/[^\x20-\x7E]/g,'').trim():''),right:String(Math.round(o.rating)),rlab:'RATING',color:teamColor(s,o.team,o.name)}))});
-  };
+  const DNFRE=/DNF|DSq|DSQ|DNS/i;
 
   /* ═════════ 3. SHARE-AS-IMAGE CARDS ═════════ */
   const CW=1080, CH=1350;
@@ -1951,7 +1859,7 @@ async function loadNews(force){
   }
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ const pv=$('vxPv'); if(pv) pv.classList.remove('open'); } });
 
-  /* ranked-list card: used by results, standings and power rankings */
+  /* ranked-list card: used by results and standings */
   function shareList(o){
     render((x,lg)=>{
       frame(x,lg,o.kicker,o.title,o.sub);
@@ -2003,12 +1911,11 @@ async function loadNews(force){
   function driverCard(s,name){
     const c=canon(s,name), d=D.standings[s].drivers.find(x=>canon(s,x.name)===c); if(!d) return;
     const li=lineupFor(s,name), S=driverStats(s,d), col=teamColor(s,d.team,d.name);
-    const pr=power(s).list.find(o=>o.k===c);
     const results=[]; real.forEach(r=>{ const hit=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===c); if(hit) results.push({r,hit}); });
     render((x,lg)=>{
       frame(x,lg,FULL[s]+(li&&li.num&&li.num!=='—'?' · #'+li.num:'')+' · Driver Profile',d.name,d.team||'');
       x.fillStyle=col; x.fillRect(60,330,CW-120,8);
-      const tiles=[['P'+(S.pos||'–'),'STANDING'],[String(S.pts),'POINTS'],[String(S.wins),'WINS'],[String(S.pods),'PODIUMS'],[S.poles+' / '+S.fls,'POLES / FL'],[pr?'#'+pr.rank:'–','POWER RANK']];
+      const tiles=[['P'+(S.pos||'–'),'STANDING'],[String(S.pts),'POINTS'],[String(S.wins),'WINS'],[String(S.pods),'PODIUMS'],[S.poles+' / '+S.fls,'POLES / FL'],[S.avg!=null?S.avg.toFixed(1):'–','AVG FINISH']];
       tiles.forEach((t,i)=>{ const cx=60+(i%3)*(CW-120+20)/3, cy=370+Math.floor(i/3)*170, w=(CW-120-40)/3;
         x.fillStyle='rgba(255,255,255,.05)'; rr(x,cx,cy,w,150,8); x.fill();
         tx(x,t[0],cx+w/2,cy+82,{font:'900 60px Arial, sans-serif',align:'center',max:w-20});
@@ -2030,37 +1937,248 @@ async function loadNews(force){
     const b=mb.querySelector('[data-share]'); if(b) b.onclick=()=>driverCard(s,name);
   };
 
-  /* ═════════ 8. CAREER LADDER (Teams → Career Ladder) ═════════ */
-  /* Confirmed promotions / relegations — add a line whenever a driver moves up or down the ladder, e.g.
-     {name:'Driver Name', from:'f3', to:'f2', rnd:'09'}   (rnd = the round they made the move; optional) */
-  const LADDER_MOVES=[];
-  const tmNav=$('tmSub'), h2hPane=document.querySelector('.tm-pane[data-p="tmh2h"]');
-  if(tmNav&&h2hPane){
-    tmNav.insertAdjacentHTML('beforeend','<button type="button" data-p="tmladder">Career Ladder</button>');
-    h2hPane.insertAdjacentHTML('afterend','<div class="tm-pane" data-p="tmladder"><section id="ladder"><div class="section-head"><div><div class="title">Career <span class="yellow">Ladder</span></div><div class="line"></div></div><span class="sub">F3 → F2 → F1 · the road to the top</span></div><div id="clBoard"></div></section></div>');
-    tmNav.addEventListener('click',e=>{ const b=e.target.closest('button[data-p]'); if(b&&b.dataset.p==='tmladder') renderLadder(); });
+})();
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FANTASY VMS
+   Pick 5 drivers + 1 team under a $100M budget, name a captain (2× points).
+   Scores come straight from the real race results, counted from the round you lock in.
+   Teams live in the visitor's browser; friends compare by swapping share codes.
+   ═══════════════════════════════════════════════════════════════════════════ */
+(function(){
+  const $=id=>document.getElementById(id);
+  const KEY='vms-fantasy-v1', BUDGET=100, NDRV=5;
+
+  let store={name:'',teams:{},league:[]};
+  try{ const r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&typeof r==='object') store=Object.assign(store,r); }catch(e){}
+  if(!store.teams||typeof store.teams!=='object') store.teams={};
+  if(!Array.isArray(store.league)) store.league=[];
+  const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} };
+
+  const fs={series:'f1',mode:'drivers',q:'',draft:{},msg:'',msgOk:false};
+
+  /* ───────── prices & pools ───────── */
+  function pool(s){
+    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
+    const maxP=Math.max(1,...ds.map(d=>+d.pts||0));
+    return ds.map(d=>({name:d.name,team:d.team||'',pts:+d.pts||0,price:Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8)))}))
+      .sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
   }
-  function ladderRow(s,d,i,zone){
-    const S=driverStats(s,d);
-    return '<div class="cl-it'+(zone?' zone':'')+'" data-s="'+s+'" data-name="'+esc(d.name)+'"><div><b>'+(i+1)+'. '+esc(d.name)+'</b><small>'+esc(d.team||'')+'</small></div><div style="text-align:right"><em>'+d.pts+'</em><small>'+(S.ppr!=null?S.ppr.toFixed(1)+' / race':'')+'</small></div></div>';
+  function teamPool(s){
+    const cs=D.standings[s].constructors, maxP=Math.max(1,...cs.map(c=>+c.pts||0));
+    return cs.map(c=>({name:c.name,color:c.color,pts:+c.pts||0,price:Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8)))}))
+      .sort((a,b)=>b.price-a.price||b.pts-a.pts);
   }
-  function renderLadder(){
-    const box=$('clBoard'); if(!box) return;
-    const top=s=>D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts);
-    const order=['f3','f2','f1'], info={f3:['Rising Stars','Top 3 are on promotion watch'],f2:['Elite Development','Top 3 are on promotion watch'],f1:['Pinnacle Series','The summit']};
-    const cols=order.map((s,ci)=>{
-      const list=top(s).slice(0,6);
-      return '<div class="cl-col"><span class="cl-sub">'+info[s][0]+'</span><h3>'+esc(FULL[s])+'</h3><small style="color:#888;display:block;margin-bottom:8px">'+info[s][1]+'</small>'+
-        list.map((d,i)=>ladderRow(s,d,i,s!=='f1'&&i<3)).join('')+(ci<2?'<div class="cl-arrow">➜</div>':'')+'</div>';
-    }).join('');
-    /* same driver name racing in more than one series this season */
-    const seen={}; SERIES.forEach(s=>top(s).forEach((d,i)=>{ const k=canon(s,d.name); (seen[k]=seen[k]||[]).push({s,d,pos:i+1}); }));
-    const multi=Object.values(seen).filter(a=>a.length>1&&new Set(a.map(x=>x.s)).size>1);
-    const chips=multi.map(a=>'<div class="cl-chip" data-s="'+a[0].s+'" data-name="'+esc(a[0].d.name)+'"><b>'+esc(a[0].d.name)+'</b> <span>'+a.sort((x,y)=>order.indexOf(x.s)-order.indexOf(y.s)).map(x=>FULL[x.s].replace('VMS ','')+' P'+x.pos+' · '+x.d.pts+' pts').join('  →  ')+'</span></div>').join('');
-    const moves=LADDER_MOVES.map(m=>'<div class="cl-chip" data-s="'+esc(m.to)+'" data-name="'+esc(m.name)+'"><b>'+esc(m.name)+'</b> <span>'+(order.indexOf(m.to)>order.indexOf(m.from)?'⬆ Promoted':'⬇ Moved down')+' '+esc(FULL[m.from]||m.from)+' → '+esc(FULL[m.to]||m.to)+(m.rnd?' · R'+esc(m.rnd):'')+'</span></div>').join('');
-    box.innerHTML='<div class="cl-grid">'+cols+'</div>'+
-      '<div class="section-head" style="margin-top:8px"><div><div class="title" style="font-size:22px">Confirmed <span class="yellow">Moves</span></div></div></div><div class="cl-x">'+(moves||'<div class="empty" style="width:100%">No promotions recorded yet — add them to <code>LADDER_MOVES</code> at the bottom of app.js.</div>')+'</div>'+
-      '<div class="section-head"><div><div class="title" style="font-size:22px">Multi-Series <span class="yellow">Drivers</span></div></div><span class="sub">Matched by name — double-check shared names</span></div><div class="cl-x">'+(chips||'<div class="empty" style="width:100%">No driver appears in more than one series.</div>')+'</div>';
-    box.onclick=e=>{ const it=e.target.closest('[data-name]'); if(it) openDriver(it.dataset.s,it.dataset.name); };
+  const hist=s=>((store.teams[s]&&store.teams[s].h)||[]).slice();
+
+  /* ───────── scoring ───────── */
+  function scoreHist(s,h){
+    const out=[]; let total=0;
+    roundsWithResults(s).forEach(r=>{
+      const rn=parseInt(r.rnd,10); let snap=null; h.forEach(x=>{ if(x.from<=rn) snap=x; });
+      if(!snap) return;
+      const rows=D.results[rkey(r,s)]||[];
+      const drv=snap.d.map(n=>{
+        const hit=rows.find(x=>canon(s,x.name)===canon(s,n)), p=hit?(+hit.pts||0):0, cap=snap.c===n;
+        return {name:n,pts:p,cap,val:cap?p*2:p};
+      });
+      const keys=teamKeys(s,snap.t);
+      const tp=rows.filter(x=>keys.has(teamKey(s,x.team))).reduce((n,x)=>n+(+x.pts||0),0);
+      const t=drv.reduce((n,x)=>n+x.val,0)+tp; total+=t; out.push({r,drv,tp,total:t});
+    });
+    return {rounds:out,total};
   }
+
+  /* ───────── share codes ───────── */
+  const encode=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+  function decode(str){
+    let o; try{ o=JSON.parse(decodeURIComponent(escape(atob(String(str).trim())))); }catch(e){ return null; }
+    if(!o||o.v!==1||!SERIES.includes(o.s)||!Array.isArray(o.h)||!o.h.length||o.h.length>30) return null;
+    const str1=x=>typeof x==='string'&&x.length>0&&x.length<=60;
+    const h=[]; for(const x of o.h){
+      if(!x||typeof x.from!=='number'||!Array.isArray(x.d)||x.d.length!==NDRV||!x.d.every(str1)||!str1(x.c)||!str1(x.t)||!x.d.includes(x.c)) return null;
+      h.push({from:Math.floor(x.from),d:x.d.slice(),c:x.c,t:x.t});
+    }
+    h.sort((a,b)=>a.from-b.from);
+    return {n:String(o.n||'Manager').slice(0,24),s:o.s,h};
+  }
+
+  /* ───────── edit window ───────── */
+  function windowInfo(){
+    const nx=nextRace();
+    if(!nx) return {open:false,nx:null,why:'The season is over — fantasy is closed.'};
+    if(isLive(nx)) return {open:false,nx,why:'Round '+nx.rnd+' is live — transfers reopen once the race weekend ends.'};
+    return {open:true,nx,why:''};
+  }
+
+  /* ───────── draft ───────── */
+  function draftFor(s){
+    if(!fs.draft[s]){
+      const h=hist(s), last=h[h.length-1];
+      fs.draft[s]=last?{d:last.d.slice(),c:last.c,t:last.t}:{d:[],c:'',t:''};
+    }
+    return fs.draft[s];
+  }
+  function spend(s,dr){
+    const P=pool(s), T=teamPool(s);
+    const dp=n=>{ const p=P.find(x=>canon(s,x.name)===canon(s,n)); return p?p.price:0; };
+    const tp=dr.t?(T.find(x=>x.name===dr.t)||{price:0}).price:0;
+    return dr.d.reduce((n,x)=>n+dp(x),0)+tp;
+  }
+  const problems=(s,dr)=>{
+    const p=[]; if(dr.d.length<NDRV) p.push('pick '+(NDRV-dr.d.length)+' more driver'+(NDRV-dr.d.length>1?'s':''));
+    if(!dr.t) p.push('pick a team'); if(dr.d.length&&!dr.c) p.push('choose a captain (C)');
+    if(spend(s,dr)>BUDGET) p.push('you are $'+(spend(s,dr)-BUDGET)+'M over budget');
+    return p;
+  };
+
+  /* ───────── view ───────── */
+  const view=document.createElement('div'); view.className='view'; view.id='view-fantasy';
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Fantasy <span class="yellow">VMS</span></div><div class="line"></div></div><span class="sub">Build your team · real race points</span></div></div>'+
+    '<section><div class="tabs" id="fnSeries"></div><div class="vx-bar" id="fnInfo"></div>'+
+    '<div class="fn-grid"><div class="panel fn-team" id="fnTeam"></div><div class="fn-poolwrap"><div class="tabs" id="fnMode"></div><input id="fnQ" class="fn-q" placeholder="Search…" autocomplete="off" spellcheck="false"><div class="panel scroll fn-pool" id="fnPool"></div></div></div>'+
+    '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Your <span class="yellow">Scores</span></div></div></div><div class="panel scroll" id="fnScores"></div>'+
+    '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Mini-<span class="yellow">League</span></div></div><span class="sub">Swap codes with friends</span></div><div id="fnLeague"></div>'+
+    '<details class="vx-how"><summary>How Fantasy VMS works</summary><p>Pick <b>5 drivers</b> and <b>1 team</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget (prices follow current championship points). Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points your team scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p></details></section>';
+  const after=$('view-records')||$('view-teams');
+  if(after) after.after(view); else document.querySelector('main').appendChild(view);
+  VIEWS.splice(VIEWS.indexOf('records')>=0?VIEWS.indexOf('records')+1:VIEWS.length,0,'fantasy');
+  (function(){
+    const a=document.createElement('a'); a.href='#fantasy'; a.dataset.v='fantasy'; a.textContent='Fantasy';
+    const prev=document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]');
+    if(prev) prev.after(a);
+  })();
+
+  if(!$('vx-fan-css')){ const st=document.createElement('style'); st.id='vx-fan-css'; st.textContent=
+    '.fn-grid{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:20px;align-items:start}'+
+    '@media(max-width:900px){.fn-grid{grid-template-columns:1fr}}'+
+    '.fn-team{padding:18px}.fn-team h3{margin:0 0 4px;font-size:18px}.fn-team .fn-h{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;margin:14px 0 8px;display:block}'+
+    '.fn-name{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:9px 10px;font:600 13px Arial,sans-serif;margin-top:8px}'+
+    '.fn-slot{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #2a2a2a;background:rgba(255,255,255,.03);margin-bottom:6px;font-size:13px}'+
+    '.fn-slot.empty{color:#666;border-style:dashed}.fn-slot .fn-who{flex:1;min-width:0}.fn-slot b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fn-slot small{color:#888;font-size:11px}'+
+    '.fn-slot button{background:transparent;border:1px solid #444;color:#ccc;width:28px;height:28px;cursor:pointer;font:800 12px Arial,sans-serif}.fn-slot button:hover{border-color:#e8186d;color:#fff}'+
+    '.fn-slot button.on{background:#e8186d;border-color:#e8186d;color:#fff}'+
+    '.fn-bud{margin:14px 0 4px;font:800 12px Arial,sans-serif;letter-spacing:1px;display:flex;justify-content:space-between;color:#ddd}.fn-bud.over{color:#ff5a5f}'+
+    '.fn-bar{height:6px;background:#222;margin-bottom:12px}.fn-bar i{display:block;height:100%;background:linear-gradient(90deg,#e8186d,#ff6b00)}.fn-bud.over+.fn-bar i{background:#ff5a5f}'+
+    '.fn-acts{display:flex;gap:8px;flex-wrap:wrap}.fn-acts .vx-btn[disabled]{opacity:.35;cursor:not-allowed}'+
+    '.fn-msg{margin-top:10px;font-size:12px;color:#ff9a9a;line-height:1.5}.fn-msg.ok{color:#7be3a2}'+
+    '.fn-q{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:10px 12px;font:600 13px Arial,sans-serif;margin:0 0 10px}'+
+    '.fn-pool{max-height:560px;overflow:auto}.fn-add{background:transparent;border:1px solid #444;color:#ddd;padding:5px 10px;font:800 10px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}'+
+    '.fn-add:hover:not([disabled]){border-color:#e8186d;color:#fff}.fn-add[disabled]{opacity:.35;cursor:not-allowed}'+
+    '.fn-chip{display:inline-block;margin:2px 8px 2px 0;font-size:12px;color:#ccc}.fn-chip b{color:#fff}.fn-chip i{color:#e8186d;font-style:normal;font-weight:900}'+
+    '.fn-ta{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#ccc;padding:10px;font:12px monospace;min-height:64px;resize:vertical}'+
+    '.fn-lg{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:900px){.fn-lg{grid-template-columns:1fr}}';
+    document.head.appendChild(st); }
+
+  /* ───────── render ───────── */
+  const money=n=>'$'+n+'M';
+  function render(){
+    if(!$('fnSeries')) return;
+    const s=fs.series, dr=draftFor(s), wi=windowInfo();
+    tabs($('fnSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ fs.series=k; fs.q=''; fs.msg=''; if($('fnQ')) $('fnQ').value=''; render(); });
+    tabs($('fnMode'),[['drivers','Drivers'],['teams','Teams']],fs.mode,k=>{ fs.mode=k; render(); });
+    $('fnInfo').innerHTML=wi.open?'<span>🔓 Transfers open until <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> starts · your team scores from that round</span>':'<span>🔒 '+esc(wi.why)+'</span>';
+    renderTeam(); renderPool(); renderScores(); renderLeague();
+  }
+  function renderTeam(){
+    const s=fs.series, dr=draftFor(s), wi=windowInfo(), P=pool(s), T=teamPool(s);
+    const info=n=>P.find(x=>canon(s,x.name)===canon(s,n))||{team:'',price:0};
+    const spent=spend(s,dr), pr=problems(s,dr);
+    const slots=[]; for(let i=0;i<NDRV;i++){
+      const n=dr.d[i];
+      slots.push(n?'<div class="fn-slot"><div class="fn-who"><b>'+esc(n)+'</b><small>'+esc(info(n).team)+' · '+money(info(n).price)+'</small></div><button type="button" class="'+(dr.c===n?'on':'')+'" data-act="cap" data-i="'+i+'" title="Captain — double points">C</button><button type="button" data-act="rm-d" data-i="'+i+'" title="Remove">×</button></div>':'<div class="fn-slot empty">Driver '+(i+1)+'</div>');
+    }
+    const t=dr.t?T.find(x=>x.name===dr.t):null;
+    const teamSlot=t?'<div class="fn-slot"><div class="fn-who"><b>'+esc(t.name)+'</b><small>'+money(t.price)+'</small></div><button type="button" data-act="rm-t" title="Remove">×</button></div>':'<div class="fn-slot empty">Team</div>';
+    const saved=hist(s).length?hist(s)[hist(s).length-1]:null;
+    $('fnTeam').innerHTML='<h3>'+esc(FULL[s])+' · Your Team</h3><input class="fn-name" id="fnNm" maxlength="24" placeholder="Manager name" value="'+esc(store.name)+'">'+
+      '<span class="fn-h">Drivers</span>'+slots.join('')+'<span class="fn-h">Team</span>'+teamSlot+
+      '<div class="fn-bud'+(spent>BUDGET?' over':'')+'"><span>'+money(spent)+' / '+money(BUDGET)+'</span><span>'+(spent>BUDGET?'over by '+money(spent-BUDGET):money(BUDGET-spent)+' left')+'</span></div><div class="fn-bar"><i style="width:'+Math.min(100,spent/BUDGET*100)+'%"></i></div>'+
+      '<div class="fn-acts"><button type="button" class="vx-btn" data-act="save"'+(wi.open&&!pr.length?'':' disabled')+'>'+(saved?'Update team':'Lock in team')+'</button><button type="button" class="vx-btn ghost" data-act="reset">Reset</button></div>'+
+      '<div class="fn-msg'+(fs.msgOk?' ok':'')+'" id="fnMsg">'+(fs.msg?esc(fs.msg):(wi.open&&pr.length?'To lock in: '+esc(pr.join(', '))+'.':!wi.open?esc(wi.why):''))+'</div>';
+    $('fnNm').onchange=e=>{ store.name=e.target.value.slice(0,24); persist(); renderLeague(); };
+  }
+  function renderPool(){
+    const s=fs.series, dr=draftFor(s), q=fs.q.trim().toLowerCase(), full=dr.d.length>=NDRV;
+    if(fs.mode==='drivers'){
+      const rows=pool(s).filter(x=>!q||(x.name+' '+x.team).toLowerCase().includes(q));
+      $('fnPool').innerHTML='<table><thead><tr><th>Driver</th><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
+        const on=dr.d.some(n=>canon(s,n)===canon(s,x.name));
+        return '<tr><td><b>'+esc(x.name)+'</b></td><td class="muted">'+esc(x.team)+'</td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-d" data-name="'+esc(x.name)+'"'+(on||full?' disabled':'')+'>'+(on?'Added':full?'Full':'Add')+'</button></td></tr>';
+      }).join('')+'</tbody></table>';
+    }else{
+      const rows=teamPool(s).filter(x=>!q||x.name.toLowerCase().includes(q));
+      $('fnPool').innerHTML='<table><thead><tr><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
+        const on=dr.t===x.name;
+        return '<tr><td><span class="dot" style="background:'+esc(x.color)+'"></span><b>'+esc(x.name)+'</b></td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-t" data-name="'+esc(x.name)+'"'+(on?' disabled':'')+'>'+(on?'Picked':'Pick')+'</button></td></tr>';
+      }).join('')+'</tbody></table>';
+    }
+  }
+  function renderScores(){
+    const s=fs.series, h=hist(s), box=$('fnScores');
+    if(!h.length){ box.innerHTML='<div class="empty">Lock in a team to start scoring.</div>'; return; }
+    const sc=scoreHist(s,h);
+    if(!sc.rounds.length){ box.innerHTML='<div class="empty">Your team counts from Round '+h[0].from+' — scores appear once that race is in the results.</div>'; return; }
+    box.innerHTML='<table><thead><tr><th>Round</th><th>Drivers</th><th>Team</th><th>Total</th></tr></thead><tbody>'+sc.rounds.map(x=>
+      '<tr><td class="pos">R'+esc(x.r.rnd)+' <span class="muted">'+esc(x.r.name)+'</span></td><td>'+x.drv.map(d=>'<span class="fn-chip"><b>'+esc(d.name)+'</b> '+d.pts+(d.cap?' <i>×2</i>':'')+'</span>').join('')+'</td><td>'+x.tp+'</td><td class="points">'+x.total+'</td></tr>').join('')+
+      '<tr class="lead"><td colspan="3"><b>Season total</b></td><td class="points">'+sc.total+'</td></tr></tbody></table>';
+  }
+  function renderLeague(){
+    const s=fs.series, box=$('fnLeague'), mine=hist(s);
+    const me=store.name||'You';
+    const rows=[]; if(mine.length) rows.push({n:me+' (you)',h:mine,you:true});
+    store.league.forEach((e,i)=>{ if(e.s===s) rows.push({n:e.n,h:e.h,i}); });
+    rows.forEach(r=>{ const sc=scoreHist(s,r.h); r.total=sc.total; r.rounds=sc.rounds.length; const last=r.h[r.h.length-1]; r.cap=last.c; r.team=last.t; });
+    rows.sort((a,b)=>b.total-a.total);
+    const code=mine.length?encode({v:1,n:me,s,h:mine}):'';
+    box.innerHTML='<div class="fn-lg"><div class="panel scroll">'+(rows.length?'<table><thead><tr><th>#</th><th>Manager</th><th>Captain</th><th>Team</th><th>Pts</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>
+      '<tr'+(r.you?' class="lead"':'')+'><td class="'+(i<3?'pos':'')+'">'+(i+1)+'</td><td><b>'+esc(r.n)+'</b></td><td class="muted">'+esc(r.cap)+'</td><td class="muted">'+esc(r.team)+'</td><td class="points">'+r.total+'</td><td>'+(r.you?'':'<button type="button" class="fn-add" data-act="rm-lg" data-i="'+r.i+'">Remove</button>')+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Lock in a team, then add friends\' codes to build a league for '+esc(FULL[s])+'.</div>')+'</div>'+
+      '<div><span class="fn-h" style="font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px">Your share code ('+esc(FULL[s])+')</span>'+
+      (code?'<textarea class="fn-ta" id="fnCode" readonly>'+esc(code)+'</textarea><div class="fn-acts" style="margin:8px 0 18px"><button type="button" class="vx-btn" data-act="copy">Copy code</button></div>':'<div class="empty" style="margin-bottom:18px">Lock in a team to get a code.</div>')+
+      '<span style="font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px">Add a friend\'s code</span><textarea class="fn-ta" id="fnImp" placeholder="Paste a code here"></textarea><div class="fn-acts" style="margin-top:8px"><button type="button" class="vx-btn ghost" data-act="import">Add to league</button></div><div class="fn-msg" id="fnLgMsg"></div></div></div>';
+  }
+
+  /* ───────── actions ───────── */
+  view.addEventListener('click',e=>{
+    const b=e.target.closest('[data-act]'); if(!b||b.disabled) return;
+    const s=fs.series, dr=draftFor(s), act=b.dataset.act; fs.msg=''; fs.msgOk=false;
+    if(act==='add-d'){ if(dr.d.length<NDRV&&!dr.d.some(n=>canon(s,n)===canon(s,b.dataset.name))){ dr.d.push(b.dataset.name); if(!dr.c) dr.c=b.dataset.name; } }
+    else if(act==='rm-d'){ const n=dr.d[+b.dataset.i]; dr.d.splice(+b.dataset.i,1); if(dr.c===n) dr.c=dr.d[0]||''; }
+    else if(act==='cap'){ dr.c=dr.d[+b.dataset.i]; }
+    else if(act==='add-t'){ dr.t=b.dataset.name; }
+    else if(act==='rm-t'){ dr.t=''; }
+    else if(act==='reset'){ const h=hist(s), last=h[h.length-1]; fs.draft[s]=last?{d:last.d.slice(),c:last.c,t:last.t}:{d:[],c:'',t:''}; }
+    else if(act==='save'){
+      const wi=windowInfo(), pr=problems(s,dr);
+      if(!wi.open||pr.length){ fs.msg=wi.open?'Can\'t lock in yet: '+pr.join(', ')+'.':wi.why; }
+      else{
+        const h=hist(s), snap={from:parseInt(wi.nx.rnd,10),d:dr.d.slice(),c:dr.c,t:dr.t};
+        if(h.length&&h[h.length-1].from===snap.from) h[h.length-1]=snap; else h.push(snap);
+        store.teams[s]={h}; persist(); fs.msg='Team locked in — scoring from Round '+wi.nx.rnd+'.'; fs.msgOk=true;
+      }
+    }
+    else if(act==='rm-lg'){ store.league.splice(+b.dataset.i,1); persist(); }
+    else if(act==='copy'){
+      const ta=$('fnCode'); if(!ta) return;
+      const done=()=>{ b.textContent='Copied ✓'; };
+      try{ navigator.clipboard.writeText(ta.value).then(done,()=>{ ta.select(); document.execCommand('copy'); done(); }); }catch(err){ ta.select(); try{ document.execCommand('copy'); done(); }catch(e2){} }
+      return;
+    }
+    else if(act==='import'){
+      const ta=$('fnImp'), msg=$('fnLgMsg'); if(!ta) return;
+      const o=decode(ta.value);
+      if(!o){ msg.textContent='That code doesn\'t look right — ask your friend to copy it again.'; return; }
+      const idx=store.league.findIndex(x=>x.n===o.n&&x.s===o.s);
+      if(idx>=0) store.league[idx]=o; else if(store.league.length>=30){ msg.textContent='League is full (30 managers).'; return; } else store.league.push(o);
+      persist(); render(); const m2=$('fnLgMsg'); if(m2){ m2.classList.add('ok'); m2.textContent=o.n+' added to the '+FULL[o.s]+' league.'; } return;
+    }
+    if(['add-d','rm-d','cap','add-t','rm-t','reset','save'].includes(act)){ renderTeam(); renderPool(); if(act==='save'){ renderScores(); renderLeague(); } }
+    else render();
+  });
+  view.addEventListener('input',e=>{ if(e.target.id==='fnQ'){ fs.q=e.target.value; renderPool(); } });
+
+  /* open the Fantasy view like the other pages */
+  const _go=go;
+  go=function(v){ _go.apply(this,arguments); if(v==='fantasy') render(); };
+  try{ if(location.hash==='#fantasy') go('fantasy'); }catch(e){}
 })();
