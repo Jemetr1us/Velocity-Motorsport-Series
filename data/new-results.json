@@ -176,27 +176,26 @@
       },
       {
         "pos": 8,
+        "name": "YellowRice",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 4,
+        "gap": "+6.693"
+      },
+      {
+        "pos": 9,
         "name": "Piko",
         "team": "LMP",
-        "pts": 6,
+        "pts": 4,
         "fl": true,
         "gap": "+9.703",
         "note": "(5s Pen)"
       },
       {
-        "pos": 9,
+        "pos": 10,
         "name": "Chicken_Bake",
         "team": "GlitchGP F3",
-        "pts": 2,
-        "gap": "+10.617"
-      },
-      {
-        "pos": 10,
-        "name": "YellowRice",
-        "team": "Renault Sport Formula 3 Team",
         "pts": 1,
-        "gap": "+6.693",
-        "note": "(5s Pen)"
+        "gap": "+10.617"
       },
       {
         "pos": 11,
