@@ -1957,81 +1957,79 @@ async function loadNews(force){
     "drivers": {
       "f1": {
         "nick": 40,
-        "lory": 39,
-        "sly": 7,
+        "lory": 35,
+        "sly": 20,
         "gkf": 14,
-        "ageftyg2": 5,
+        "ageftyg2": 10,
         "joshua": 5,
         "unironically": 12,
         "arin": 7,
         "shadowrex": 11,
         "daih_v": 4,
         "vitality": 5,
-        "yokesecapo": 12,
+        "yokesecapo": 25,
         "sun_rise": 4,
         "sckibles": 5,
         "lewis": 4,
-        "rox": 8,
+        "rox": 37.5,
         "skirmis": 4,
-        "peters": 6,
+        "peters": 17.5,
         "amin": 5,
-        "diego": 6,
+        "diego": 22.5,
         "syxe": 6,
         "bence": 4,
         "infinity": 3,
         "maldonado": 4,
-        "nath": 4,
-        "emirovic": 4,
-        "batwert": 4,
+        "nath": 12.5,
+        "emirovic": 5,
+        "batwert": 7.5,
         "yuki": 3
       },
       "f2": {
-        "skirmis": 36,
-        "gamrin": 35,
+        "skirmis": 38,
+        "gamrin": 36,
         "crocs": 38,
         "juan": 40,
         "alien": 20,
         "zaphira": 7,
-        "jeffz": 9,
-        "peters": 8,
         "style": 4,
-        "gui": 8,
+        "gui": 17.5,
         "bence": 4,
-        "zayn": 4,
-        "ao": 5,
-        "kyo": 6,
+        "zayn": 10,
+        "ao": 15,
+        "kyo": 22.5,
         "maldonado": 4,
-        "wavee": 4,
-        "messi": 6
+        "wavee": 5,
+        "messi": 17.5
       },
       "f3": {
         "piko": 40,
         "jeffz": 40,
-        "ukkiett": 30,
-        "bartos": 26,
-        "dark shadow": 13,
-        "fabian": 11,
-        "lancelot": 16,
-        "syxe": 6,
-        "sckibles": 9,
-        "kriekel": 6,
-        "piti": 4,
-        "wibz": 6,
-        "maslo": 6,
-        "bleh": 3,
-        "halo": 3,
-        "bence": 3,
-        "lance": 3,
-        "chicken_bake": 3,
-        "dante": 3,
-        "elias": 3
+        "ukkiett": 35,
+        "bartos": 30,
+        "dark shadow": 27.5,
+        "fabian": 22.5,
+        "lancelot": 20,
+        "syxe": 15,
+        "sckibles": 12.5,
+        "kriekel": 15,
+        "piti": 12.5,
+        "wibz": 10,
+        "maslo": 12.5,
+        "bleh": 10,
+        "halo": 2.5,
+        "bence": 5,
+        "lance": 7.5,
+        "chicken_bake": 7.5,
+        "dante": 7.5,
+        "elias": 15
       }
     },
     "teams": {
       "f1": {
         "Scuderia Ferrari": 45,
         "Richard Mille LM Motorsport F1": 45,
-        "Renault Sport Formula 1 Team": 35,
+        "Renault Sport Formula 1 Team": 40,
         "Mercedes-AMG": 20,
         "Aero Apex Racing": 18,
         "GlitchGP F1 Team": 25,
@@ -2055,7 +2053,7 @@ async function loadNews(force){
         "BMW Sauber F2 Team (OKX HP Crimson GP)": 25
       },
       "f3": {
-        "LMP": 65,
+        "LMP": 55,
         "Tarigy’s Motorsport Team F3": 45,
         "Pola Sabre Motorsports": 45,
         "Renault Sport Formula 3 Team": 40,
@@ -2078,43 +2076,15 @@ async function loadNews(force){
   const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} };
 
   const fs={series:'f1',mode:'drivers',q:'',draft:{},msg:'',msgOk:false};
-  const num=v=>{ const n=Math.round(+v); return (v!==''&&v!=null&&isFinite(n)&&n>=0)?n:null; };
+  const num=v=>{ const n=+v; return (v!==''&&v!=null&&isFinite(n)&&n>=0)?Math.round(n*100)/100:null; };
 
   /* ───────── prices & pools ───────── */
-  /* ── Driver pricing from the Form Heatmap ──────────────────────────────────
-     Uses the same data the heatmap draws (finishing position per round) for drivers on the WDC.
-     form   = weighted average of the last AUTO.rounds rounds, newest round counts most.
-              each round is worth the league's points scale (D.points) by finishing position (P1 = 1.0 … P10 = .04),
-              DNF/DSQ/DNS and DNP (blank heatmap cell) are worth 0.
-     rating = formW * form + (1 - formW) * season-points share   (keeps one fluke race from wrecking a price)
-     price  = min + (max - min) * (rating / best rating) ^ curve  → best-form driver is always exactly `max`. */
-  const AUTO={on:true,max:40,min:3,rounds:5,formW:0.6,curve:1.15};
-  const AUTO_BAD=/DNF|DSq|DSQ|DNS/i, AUTO_PTS=[25,18,15,12,10,8,6,4,2,1];   /* fallback; real scale comes from D.points */
-  const posVal=(s,p)=>{ const t=(D.points&&D.points[s])||AUTO_PTS; return p>=1&&p<=t.length?t[p-1]/t[0]:0.02; };   /* P11+ = finished, outside points */
-  function formRatings(s,ds){
-    const rs=roundsWithResults(s).slice(-AUTO.rounds);                          /* same rounds as the heatmap columns */
-    const w=rs.map((_,i)=>i+1), wsum=w.reduce((a,b)=>a+b,0);                   /* oldest = 1 … newest = n */
-    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), out={};
-    ds.forEach(d=>{
-      const k=canon(s,d.name); let f=0;
-      rs.forEach((r,i)=>{
-        const x=(D.results[rkey(r,s)]||[]).find(y=>canon(s,y.name)===k);
-        if(!x||AUTO_BAD.test(x.note||'')) return;                               /* DNP / DNF = 0 */
-        f+=w[i]*posVal(s,+x.pos);
-      });
-      const season=(+d.pts||0)/maxP;
-      out[k]=rs.length?AUTO.formW*(wsum?f/wsum:0)+(1-AUTO.formW)*season:season; /* no results yet → season points only */
-    });
-    return out;
-  }
   function pool(s,raw){
-    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');   /* WDC drivers only */
-    const ov=(!raw&&PR.drivers&&PR.drivers[s])||{}, rt=formRatings(s,ds), top=Math.max(1e-9,...Object.values(rt));
+    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
+    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), ov=(!raw&&PR.drivers&&PR.drivers[s])||{};
     return ds.map(d=>{
-      const k=canon(s,d.name), r=Math.max(0,rt[k]||0)/top;
-      const def=Math.max(AUTO.min,Math.round(AUTO.min+(AUTO.max-AUTO.min)*Math.pow(r,AUTO.curve)));
-      const o=AUTO.on?null:num(ov[k]);                                           /* manual prices only when auto is switched off */
-      return {name:d.name,key:k,team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
+      const def=Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8))), o=num(ov[canon(s,d.name)]);
+      return {name:d.name,key:canon(s,d.name),team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
     }).sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
   }
   function teamPool(s,raw){
@@ -2231,14 +2201,14 @@ async function loadNews(force){
     document.head.appendChild(st); }
 
   /* ───────── render ───────── */
-  const money=n=>'$'+n+'M';
+  const money=n=>'$'+(Math.round(n*100)/100)+'M';
   function render(){
     if(!$('fnSeries')) return;
     const s=fs.series, wi=windowInfo();
     tabs($('fnSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ fs.series=k; fs.q=''; fs.msg=''; if($('fnQ')) $('fnQ').value=''; render(); });
     tabs($('fnMode'),[['drivers','Drivers'],['teams','Teams']],fs.mode,k=>{ fs.mode=k; render(); });
     $('fnInfo').innerHTML=wi.open?'<span>🔓 Transfers open until <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> starts · your team scores from that round</span>':'<span>🔒 '+esc(wi.why)+'</span>';
-    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Driver prices follow <b>recent form</b> — the last '+AUTO.rounds+' rounds on the Form Heatmap — and move after every race. The best-form driver costs $'+AUTO.max+'M.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
+    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
     renderTeam(); renderPool(); renderScores(); renderLeague();
   }
   function renderTeam(){
@@ -2348,12 +2318,10 @@ async function loadNews(force){
     const merged={drivers:{},teams:{}};
     ['drivers','teams'].forEach(k=>{
       const base=DEFAULT_PR[k]||{}, inc=(j[k]&&typeof j[k]==='object')?j[k]:{};
-      new Set([...Object.keys(base),...Object.keys(inc)]).forEach(s=>{ merged[k][s]=Object.assign({},base[s],inc[s]); });
+      new Set([...Object.keys(base),...Object.keys(inc)]).forEach(s=>{ merged[k][s]=inc[s]?Object.assign({},inc[s]):Object.assign({},base[s]); });
     });
     PR=merged;
     if(+j.budget>0) BUDGET=Math.round(+j.budget);
-    if(j.autoDriverPrices===false) AUTO.on=false;
-    if(+j.maxDriverPrice>0) AUTO.max=Math.round(+j.maxDriverPrice);
     render();
   }).catch(()=>{});
 
