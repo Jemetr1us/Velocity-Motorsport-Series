@@ -1956,75 +1956,75 @@ async function loadNews(force){
   const DEFAULT_PR={
     "drivers": {
       "f1": {
-        "nick": 50,
-        "lory": 38,
-        "sly": 23,
-        "gkf": 18,
-        "ageftyg2": 12,
+        "nick": 40,
+        "lory": 39,
+        "sly": 7,
+        "gkf": 14,
+        "ageftyg2": 5,
         "joshua": 5,
-        "unironically": 14,
-        "arin": 10,
-        "shadowrex": 18,
-        "daih_v": 3,
-        "vitality": 3,
-        "yokesecapo": 25,
-        "sun_rise": 3,
-        "sckibles": 8,
-        "lewis": 3,
-        "rox": 40,
-        "skirmis": 5,
-        "peters": 13,
-        "amin": 10,
-        "diego": 20,
-        "syxe": 10,
-        "bence": 5,
-        "infinity": 13,
-        "maldonado": 3,
-        "nath": 10,
-        "emirovic": 5,
-        "batwert": 5,
+        "unironically": 12,
+        "arin": 7,
+        "shadowrex": 11,
+        "daih_v": 4,
+        "vitality": 5,
+        "yokesecapo": 12,
+        "sun_rise": 4,
+        "sckibles": 5,
+        "lewis": 4,
+        "rox": 8,
+        "skirmis": 4,
+        "peters": 6,
+        "amin": 5,
+        "diego": 6,
+        "syxe": 6,
+        "bence": 4,
+        "infinity": 3,
+        "maldonado": 4,
+        "nath": 4,
+        "emirovic": 4,
+        "batwert": 4,
         "yuki": 3
       },
       "f2": {
-        "skirmis": 48,
-        "gamrin": 40,
-        "crocs": 43,
-        "juan": 50,
-        "alien": 35,
-        "zaphira": 12,
-        "jeffz": 8,
-        "peters": 5,
-        "style": 5,
-        "gui": 20,
-        "bence": 23,
-        "zayn": 13,
-        "ao": 18,
-        "kyo": 38,
-        "maldonado": 20,
-        "wavee": 10,
-        "messi": 33
+        "skirmis": 36,
+        "gamrin": 35,
+        "crocs": 38,
+        "juan": 40,
+        "alien": 20,
+        "zaphira": 7,
+        "jeffz": 9,
+        "peters": 8,
+        "style": 4,
+        "gui": 8,
+        "bence": 4,
+        "zayn": 4,
+        "ao": 5,
+        "kyo": 6,
+        "maldonado": 4,
+        "wavee": 4,
+        "messi": 6
       },
       "f3": {
-        "piko": 50,
-        "jeffz": 50,
-        "ukkiett": 48,
-        "bartos": 43,
-        "dark shadow": 43,
-        "fabian": 33,
-        "lancelot": 30,
-        "syxe": 25,
-        "sckibles": 25,
-        "kriekel": 25,
-        "piti": 18,
-        "wibz": 15,
-        "maslo": 15,
-        "bleh": 13,
-        "halo": 13,
-        "bence": 15,
-        "lance": 15,
-        "chicken_bake": 15,
-        "dante": 10,
-        "elias": 17
+        "piko": 40,
+        "jeffz": 40,
+        "ukkiett": 30,
+        "bartos": 26,
+        "dark shadow": 13,
+        "fabian": 11,
+        "lancelot": 16,
+        "syxe": 6,
+        "sckibles": 9,
+        "kriekel": 6,
+        "piti": 4,
+        "wibz": 6,
+        "maslo": 6,
+        "bleh": 3,
+        "halo": 3,
+        "bence": 3,
+        "lance": 3,
+        "chicken_bake": 3,
+        "dante": 3,
+        "elias": 3
       }
     },
     "teams": {
@@ -2081,12 +2081,40 @@ async function loadNews(force){
   const num=v=>{ const n=Math.round(+v); return (v!==''&&v!=null&&isFinite(n)&&n>=0)?n:null; };
 
   /* ───────── prices & pools ───────── */
+  /* ── Driver pricing from the Form Heatmap ──────────────────────────────────
+     Uses the same data the heatmap draws (finishing position per round) for drivers on the WDC.
+     form   = weighted average of the last AUTO.rounds rounds, newest round counts most.
+              each round is worth the league's points scale (D.points) by finishing position (P1 = 1.0 … P10 = .04),
+              DNF/DSQ/DNS and DNP (blank heatmap cell) are worth 0.
+     rating = formW * form + (1 - formW) * season-points share   (keeps one fluke race from wrecking a price)
+     price  = min + (max - min) * (rating / best rating) ^ curve  → best-form driver is always exactly `max`. */
+  const AUTO={on:true,max:40,min:3,rounds:5,formW:0.6,curve:1.15};
+  const AUTO_BAD=/DNF|DSq|DSQ|DNS/i, AUTO_PTS=[25,18,15,12,10,8,6,4,2,1];   /* fallback; real scale comes from D.points */
+  const posVal=(s,p)=>{ const t=(D.points&&D.points[s])||AUTO_PTS; return p>=1&&p<=t.length?t[p-1]/t[0]:0.02; };   /* P11+ = finished, outside points */
+  function formRatings(s,ds){
+    const rs=roundsWithResults(s).slice(-AUTO.rounds);                          /* same rounds as the heatmap columns */
+    const w=rs.map((_,i)=>i+1), wsum=w.reduce((a,b)=>a+b,0);                   /* oldest = 1 … newest = n */
+    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), out={};
+    ds.forEach(d=>{
+      const k=canon(s,d.name); let f=0;
+      rs.forEach((r,i)=>{
+        const x=(D.results[rkey(r,s)]||[]).find(y=>canon(s,y.name)===k);
+        if(!x||AUTO_BAD.test(x.note||'')) return;                               /* DNP / DNF = 0 */
+        f+=w[i]*posVal(s,+x.pos);
+      });
+      const season=(+d.pts||0)/maxP;
+      out[k]=rs.length?AUTO.formW*(wsum?f/wsum:0)+(1-AUTO.formW)*season:season; /* no results yet → season points only */
+    });
+    return out;
+  }
   function pool(s,raw){
-    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
-    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), ov=(!raw&&PR.drivers&&PR.drivers[s])||{};
+    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');   /* WDC drivers only */
+    const ov=(!raw&&PR.drivers&&PR.drivers[s])||{}, rt=formRatings(s,ds), top=Math.max(1e-9,...Object.values(rt));
     return ds.map(d=>{
-      const def=Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8))), o=num(ov[canon(s,d.name)]);
-      return {name:d.name,key:canon(s,d.name),team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
+      const k=canon(s,d.name), r=Math.max(0,rt[k]||0)/top;
+      const def=Math.max(AUTO.min,Math.round(AUTO.min+(AUTO.max-AUTO.min)*Math.pow(r,AUTO.curve)));
+      const o=AUTO.on?null:num(ov[k]);                                           /* manual prices only when auto is switched off */
+      return {name:d.name,key:k,team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
     }).sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
   }
   function teamPool(s,raw){
@@ -2210,7 +2238,7 @@ async function loadNews(force){
     tabs($('fnSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ fs.series=k; fs.q=''; fs.msg=''; if($('fnQ')) $('fnQ').value=''; render(); });
     tabs($('fnMode'),[['drivers','Drivers'],['teams','Teams']],fs.mode,k=>{ fs.mode=k; render(); });
     $('fnInfo').innerHTML=wi.open?'<span>🔓 Transfers open until <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> starts · your team scores from that round</span>':'<span>🔒 '+esc(wi.why)+'</span>';
-    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
+    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Driver prices follow <b>recent form</b> — the last '+AUTO.rounds+' rounds on the Form Heatmap — and move after every race. The best-form driver costs $'+AUTO.max+'M.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
     renderTeam(); renderPool(); renderScores(); renderLeague();
   }
   function renderTeam(){
@@ -2324,6 +2352,8 @@ async function loadNews(force){
     });
     PR=merged;
     if(+j.budget>0) BUDGET=Math.round(+j.budget);
+    if(j.autoDriverPrices===false) AUTO.on=false;
+    if(+j.maxDriverPrice>0) AUTO.max=Math.round(+j.maxDriverPrice);
     render();
   }).catch(()=>{});
 
