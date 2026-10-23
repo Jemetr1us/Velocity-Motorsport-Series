@@ -1206,6 +1206,7 @@ function openTeam(s,teamName){
 /* ───────── champions ───────── */
 const CHAMPS=[
   {series:'f1',type:'driver',name:'Nick',kind:"World Drivers' Champion"},
+  {series:'f2',type:'team',name:'LM Performance F2',kind:"World Constructors' Champion"}
   {series:'f3',type:'team',name:'LMP',kind:"World Constructors' Champion"}
 ];
 function renderChampions(){
