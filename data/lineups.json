@@ -37,9 +37,9 @@
       "color": "#dc143c",
       "drivers": [
         {
-          "num": "3",
+          "num": "—",
           "code": "MD1",
-          "name": "Nick",
+          "name": "CC Merchant",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -423,7 +423,7 @@
     },
     {
       "name": "Tarigy's Motorsport Team F2",
-      "engine": "CEO: Flande | Tarigy's CEO · Director: LauuuSON | Tarigy's Director",
+      "engine": "CEO: Flande | Tarigy's CEO · Director: .",
       "color": "#7b2cbf",
       "drivers": [
         {
@@ -719,7 +719,7 @@
     },
     {
       "name": "Tarigy's Motorsport Team F3",
-      "engine": "CEO: Flande | Tarigy's CEO · Director: LauuuSON | Tarigy's Director",
+      "engine": "CEO: Flande | Tarigy's CEO · Director: .",
       "color": "#f59e0b",
       "drivers": [
         {
