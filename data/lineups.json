@@ -286,9 +286,9 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "14",
           "code": "RD2",
-          "name": "Mista1403",
+          "name": "Mista",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -536,16 +536,8 @@
           "pods": 0
         },
         {
-          "num": "41",
-          "code": "RD1",
-          "name": "Penguin",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
           "num": "36",
-          "code": "RD2",
+          "code": "RD1",
           "name": "Jimmy",
           "pts": 0,
           "wins": 0,
