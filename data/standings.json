@@ -288,57 +288,57 @@
       },
       {
         "pos": 10,
+        "name": "Vittorioso",
+        "team": "Nissan Nissmo",
+        "pts": 23
+      },
+      {
+        "pos": 11,
         "name": "Fandrs",
         "team": "GlitchGP F2 Team",
         "pts": 22
       },
       {
-        "pos": 11,
+        "pos": 12,
         "name": "Hazza",
         "team": "Aero Apex Racing F2",
         "pts": 20
       },
       {
-        "pos": 12,
+        "pos": 13,
         "name": "Igor",
         "team": "Tarigy’s Motorsport Team F2 (Acura)",
         "pts": 20
       },
       {
-        "pos": 13,
+        "pos": 14,
         "name": "Gui",
         "team": "Renault Sport Formula 2 Team (Isreal)",
         "pts": 20
       },
       {
-        "pos": 14,
+        "pos": 15,
         "name": "Zayn",
         "team": "AF Corsa",
         "pts": 16
       },
       {
-        "pos": 15,
+        "pos": 16,
         "name": "Bence",
         "team": "GlitchGP F2 Team",
         "pts": 16
       },
       {
-        "pos": 16,
+        "pos": 17,
         "name": "Kyo",
         "team": "Aero Apex Racing F2",
         "pts": 14
       },
       {
-        "pos": 17,
+        "pos": 18,
         "name": "AO",
         "team": "BMW Sauber F2 Team (OKX HP Crimson GP)",
         "pts": 14
-      },
-      {
-        "pos": 18,
-        "name": "Vittorio",
-        "team": "Nissan Nissmo (Night Reapers X)",
-        "pts": 13
       },
       {
         "pos": 19,
@@ -378,36 +378,30 @@
       },
       {
         "pos": 25,
-        "name": "Vittorioso",
-        "team": "Nissan Nissmo",
-        "pts": 10
-      },
-      {
-        "pos": 26,
         "name": "Penguin",
         "team": "Vanguard Sabre Racing",
         "pts": 6
       },
       {
-        "pos": 27,
+        "pos": 26,
         "name": "Alonso",
         "team": "Tarigy's Motorsport Team F2",
         "pts": 4
       },
       {
-        "pos": 28,
+        "pos": 27,
         "name": "Dante",
         "team": "Tarigy’s Motorsport Team F2 (Acura)",
         "pts": 3
       },
       {
-        "pos": 29,
+        "pos": 28,
         "name": "Lewis",
         "team": "Vanguard Sabre Racing",
         "pts": 2
       },
       {
-        "pos": 30,
+        "pos": 29,
         "name": "FB",
         "team": "Aero Apex Racing F2",
         "pts": 1
