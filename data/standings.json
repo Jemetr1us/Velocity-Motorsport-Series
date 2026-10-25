@@ -45,32 +45,32 @@
       },
       {
         "pos": 8,
+        "name": "Yokesecapo",
+        "team": "Scuderia Ferrari",
+        "pts": 36
+      },
+      {
+        "pos": 9,
         "name": "Arin",
         "team": "Aero Apex Racing",
         "pts": 34
       },
       {
-        "pos": 9,
+        "pos": 10,
         "name": "ShadowRex",
         "team": "Tarigy's Motorsport Team F1",
         "pts": 28
       },
       {
-        "pos": 10,
+        "pos": 11,
         "name": "Vitality",
         "team": "Scuderia Ferrari",
         "pts": 24
       },
       {
-        "pos": 11,
+        "pos": 12,
         "name": "Daih_V",
         "team": "Vanguard Sabre Motorsport",
-        "pts": 24
-      },
-      {
-        "pos": 12,
-        "name": "Yokesecapo",
-        "team": "Scuderia Ferrari",
         "pts": 24
       },
       {
