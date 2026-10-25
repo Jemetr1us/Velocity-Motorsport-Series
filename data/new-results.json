@@ -283,5 +283,104 @@
         "note": "DSq"
       }
     ]
+  },
+  {
+    "series": "f2",
+    "rnd": "18",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "Skirmis",
+        "team": "LM Performance F2",
+        "pts": 25,
+        "gap": "Leader"
+      },
+      {
+        "pos": 2,
+        "name": "Crocs",
+        "team": "Carti Racing Association",
+        "pts": 21,
+        "fl": true,
+        "pole": true,
+        "gap": "+0.909"
+      },
+      {
+        "pos": 3,
+        "name": "Gui",
+        "team": "Renault Sport Formula 2 Team (Isreal)",
+        "pts": 15,
+        "gap": "+1.899"
+      },
+      {
+        "pos": 4,
+        "name": "Kyo",
+        "team": "Aero Apex Racing F2",
+        "pts": 12,
+        "gap": "+5.567"
+      },
+      {
+        "pos": 5,
+        "name": "FFAAXOLV The ORIGINAL🗕 🗗 🗙",
+        "team": "GlitchGP F2 Team",
+        "pts": 10,
+        "gap": "+9.489"
+      },
+      {
+        "pos": 6,
+        "name": "Vittorioso",
+        "team": "Nissan Nissmo",
+        "pts": 8,
+        "gap": "+12.850"
+      },
+      {
+        "pos": 7,
+        "name": "Elf",
+        "team": "Vanguard Sabre Racing",
+        "pts": 6,
+        "gap": "+13.416"
+      },
+      {
+        "pos": 8,
+        "name": "Patrykowski",
+        "team": "BWL Sim Racing Team",
+        "pts": 4,
+        "gap": "+19.479"
+      },
+      {
+        "pos": 9,
+        "name": "Lewis",
+        "team": "Vanguard Sabre Racing",
+        "pts": 2,
+        "gap": "+21.640"
+      },
+      {
+        "pos": 10,
+        "name": "Zayn",
+        "team": "AF Corsa",
+        "pts": 1,
+        "gap": "+22.974"
+      },
+      {
+        "pos": 11,
+        "name": "Soap<3 (local femboy)",
+        "team": "Renault Sport Formula 2 Team",
+        "pts": 0,
+        "gap": "+28.392"
+      },
+      {
+        "pos": 12,
+        "name": "Alonso",
+        "team": "Tarigy's Motorsport Team F2",
+        "pts": 0,
+        "gap": "+28.516"
+      },
+      {
+        "pos": 13,
+        "name": "RuTa",
+        "team": "GlitchGP F2 Team",
+        "pts": 0,
+        "gap": "+1 Lap"
+      }
+    ]
   }
 ]
