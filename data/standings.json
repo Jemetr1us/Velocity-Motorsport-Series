@@ -170,7 +170,65 @@
         "pts": 2
       }
     ],
-    "driversFull": true
+    "driversFull": true,
+    "constructors": [
+      {
+        "pos": 1,
+        "name": "Richard Mille LM Motorsport F1",
+        "pts": 369
+      },
+      {
+        "pos": 2,
+        "name": "Scuderia Ferrari",
+        "pts": 365
+      },
+      {
+        "pos": 3,
+        "name": "Renault Sport Formula 1 Team",
+        "pts": 181
+      },
+      {
+        "pos": 4,
+        "name": "Mercedes-AMG",
+        "pts": 143
+      },
+      {
+        "pos": 5,
+        "name": "Aero Apex Racing",
+        "pts": 117
+      },
+      {
+        "pos": 6,
+        "name": "GlitchGP F1 Team",
+        "pts": 94
+      },
+      {
+        "pos": 7,
+        "name": "Vodafone McLaren",
+        "pts": 78
+      },
+      {
+        "pos": 8,
+        "name": "Sahara Force India F1 Team",
+        "pts": 68
+      },
+      {
+        "pos": 9,
+        "name": "Tarigy's Motorsport Team F1",
+        "pts": 64
+      },
+      {
+        "pos": 10,
+        "name": "Vanguard Sabre Motorsport",
+        "pts": 36
+      },
+      {
+        "pos": 11,
+        "name": "Hertz Porsche",
+        "pts": 33
+      }
+    ],
+    "constructorsFull": true
   },
   "f2": {
     "drivers": [
