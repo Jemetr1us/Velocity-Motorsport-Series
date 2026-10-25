@@ -1,5 +1,32 @@
 [
   {
+    "id": "1563934712311980044",
+    "date": "2026-10-25T15:18:11.917000+00:00",
+    "author": "Silky | Head of F1, F2 & F3",
+    "text": "@Asia @Oceania idk if u lot actually change",
+    "files": [],
+    "links": [],
+    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1563934712311980044"
+  },
+  {
+    "id": "1563934593437143202",
+    "date": "2026-10-25T15:17:43.575000+00:00",
+    "author": "Silky | Head of F1, F2 & F3",
+    "text": "**APPARENTLY** times for the Americas go back next week, idek tbh thats what jem said\n\n@North America @South America",
+    "files": [],
+    "links": [],
+    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1563934593437143202"
+  },
+  {
+    "id": "1563934264892985437",
+    "date": "2026-10-25T15:16:25.244000+00:00",
+    "author": "Silky | Head of F1, F2 & F3",
+    "text": "Because of clocks going back 1 hour for the Europeans (BST is now GMT for UK, CEST is now CET for Europe), race times are now **UTC +0** instead of UTC +1, which is what they were for the whole of the summer. Only Europe has changed their times, so people from the Americas and Asia will now race an hour **later** for you lot (i think).\n\n@VMS Formula 1 Main Driver @VMS Formula 3 Main Driver @VMS Formula 1 Reserve Driver @VMS Formula 3 Reserve Driver @VMS Formula 1 CEO @VMS Formula 3 CEO",
+    "files": [],
+    "links": [],
+    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1563934264892985437"
+  },
+  {
     "id": "1563905739410640916",
     "date": "2026-10-25T13:23:04.239000+00:00",
     "author": "Silky | Head of F1, F2 & F3",
@@ -263,38 +290,5 @@
     "files": [],
     "links": [],
     "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1561474194946924665"
-  },
-  {
-    "id": "1561471277527601254",
-    "date": "2026-10-18T20:09:23.296000+00:00",
-    "author": "Silky | Head of F1, F2 & F3",
-    "text": "@Aarnav | 🇮🇳 | 27 has recieved a **10s Time Penalty** for overtaking under a Safety Car, as seen here -> https://cdn.discordapp.com/attachments/1561422075514847262/1561422151792197732/copy_A3C090BE-53A3-4867-9CCA-EA436F48F4E7.mov?ex=6ad64b32&is=6ad4f9b2&hm=713f4e5af6df1ec1afe9ac19edc605532d4dc65b858928eef3d6c843f1d92a89&\n\n@Race Ping",
-    "files": [],
-    "links": [],
-    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1561471277527601254"
-  },
-  {
-    "id": "1561430261353287831",
-    "date": "2026-10-18T17:26:24.278000+00:00",
-    "author": "Silky | Head of F1, F2 & F3",
-    "text": "@Maslo | 🇵🇱 | 88 has been given a 10s Time Penalty for jumping out his car on grid, as seen in the attached video\n\n@Race Ping",
-    "files": [
-      {
-        "type": "video",
-        "name": "socialVideoUrl.mov",
-        "path": "media/1541422876148764763-1561430261353287831-1.mov"
-      }
-    ],
-    "links": [],
-    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1561430261353287831"
-  },
-  {
-    "id": "1561423124464144385",
-    "date": "2026-10-18T16:58:02.711000+00:00",
-    "author": "Silky | Head of F1, F2 & F3",
-    "text": "@Race Ping",
-    "files": [],
-    "links": [],
-    "url": "https://discord.com/channels/1465084438298886176/1541422876148764763/1561423124464144385"
   }
 ]
