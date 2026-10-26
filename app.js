@@ -2457,33 +2457,3 @@ async function loadNews(force){
   render();
   try{ if(location.hash==='#archive') go('archive'); }catch(e){}
 })();
-
-/* ───────── Hamburger side menu (replaces the top nav bar) ───────── */
-(function(){
-  const nav=document.querySelector('header nav'); if(!nav) return;
-  if(!document.getElementById('sb-css')){
-    const css=document.createElement('style'); css.id='sb-css';
-    css.textContent=`
-    #sbBtn{position:fixed;top:12px;left:12px;z-index:1003;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#15151b;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
-    #sbBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:transform .25s,opacity .2s}
-    body.sb-open #sbBtn span:nth-child(1){transform:translateY(7px) rotate(45deg)}
-    body.sb-open #sbBtn span:nth-child(2){opacity:0}
-    body.sb-open #sbBtn span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
-    header nav{position:fixed!important;top:0;left:0;bottom:0;width:270px;max-width:82vw;z-index:1002;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:2px!important;padding:70px 12px 24px!important;margin:0!important;background:#0e0e13!important;border-right:1px solid rgba(255,255,255,.1);overflow-y:auto;transform:translateX(-105%);transition:transform .28s ease;box-shadow:none}
-    body.sb-open header nav{transform:none;box-shadow:8px 0 40px rgba(0,0,0,.55)}
-    header nav a{display:block!important;width:auto!important;padding:12px 14px!important;border-radius:8px;text-align:left!important}
-    header nav a.on{background:rgba(232,24,109,.18)}
-    #sbOv{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s}
-    body.sb-open #sbOv{opacity:1;pointer-events:auto}
-    header{padding-left:68px!important}`;
-    document.head.appendChild(css);
-  }
-  const btn=document.createElement('button'); btn.id='sbBtn'; btn.type='button'; btn.setAttribute('aria-label','Menu'); btn.setAttribute('aria-expanded','false'); btn.innerHTML='<span></span><span></span><span></span>';
-  const ov=document.createElement('div'); ov.id='sbOv';
-  document.body.appendChild(ov); document.body.appendChild(btn);
-  const set=o=>{ document.body.classList.toggle('sb-open',o); btn.setAttribute('aria-expanded',String(o)); };
-  btn.onclick=()=>set(!document.body.classList.contains('sb-open'));
-  ov.onclick=()=>set(false);
-  nav.addEventListener('click',e=>{ if(e.target.closest('a')) set(false); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape') set(false); });
-})();
