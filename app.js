@@ -2332,13 +2332,12 @@ async function loadNews(force){
 })();
 
 /* ───────── Archive: Season 0 ─────────
-   Final S0 driver standings, transcribed from the old league table.
-   Round cells: [value, marks]  marks: 'w' = win (gold ring), 'p' = podium/top-3 ring, 'f' = purple (fastest lap)
-   Plain strings are normal finishes, '--' = did not enter, 'OUT' = retired/out. */
+   Cells: [value, marks]  marks: w = win (gold ring), p = podium ring, f = fastest lap (purple)
+   Plain string = normal finish, '--' = didn't enter, 'OUT' = retired. */
 (function(){
   const $=id=>document.getElementById(id);
-  const ROUNDS=[['🇮🇹','Italy'],['🇧🇪','Belgium'],['🇸🇬','Singapore'],['🇶🇦','Qatar'],['🇨🇳','China'],['🇨🇦','Canada'],['🇺🇸','USA'],['🇮🇹','Italy'],['🇸🇬','Singapore'],['🇭🇺','Hungary'],['🇲🇽','Mexico'],['🇧🇷','Brazil'],['🏁','Round 13'],['🇬🇧','Great Britain']];
-  const TEAM_COL={'BMW Audi':'#e8212b','Koenigsegg Scuderia Ferrari':'#e8212b','Williams':'#3aa0ff','Oscar Mayer Racing Cadillac':'#f5e027','Google Pixel McLaren':'#ff8a1f','APXGP':'#f5e027','Red Bull':'#2f6fe0','Aston Martin':'#0b8a6a','Mercedes':'#2ee6c8','Racing Wienies':'#f5e027'};
+  const ROUNDS=[['🇮🇹','Italy'],['🇧🇪','Belgium'],['🇸🇬','Singapore'],['🇶🇦','Qatar'],['🇨🇳','China'],['🇨🇦','Canada'],['🇺🇸','USA'],['🇮🇹','Italy (2)'],['🇸🇬','Singapore (2)'],['🇭🇺','Hungary'],['🇲🇽','Mexico'],['🇧🇷','Brazil'],['🏁','Round 13'],['🇬🇧','Great Britain']];
+  const TEAM_COL={'BMW Audi':'#ff4d57','Koenigsegg Scuderia Ferrari':'#ff4d57','Williams':'#3aa0ff','Oscar Mayer Racing Cadillac':'#f5e027','Google Pixel McLaren':'#ff8a1f','APXGP':'#f5e027','Red Bull':'#4b86f0','Aston Martin':'#16b890','Mercedes':'#2ee6c8','Racing Wienies':'#f5e027'};
   const N='--', O='OUT';
   // [pos, #, flag, name, team, rounds[14], pts, gap]
   const S0=[
@@ -2368,59 +2367,123 @@ async function loadNews(force){
    [24,'','🇲🇾','Newbie','Racing Wienies',[N,'4','10',N,N,N,N,N,N,N,N,N,N,N],14,'-202'],
    [25,'52','','Kenzo','BMW Audi',[N,N,N,'10',N,'4',N,N,N,N,N,N,N,N],14,'-202']
   ];
+  const st={tab:'standings',rnd:0};
+  const val=c=>Array.isArray(c)?c[0]:c, mk=c=>Array.isArray(c)?c[1]:'';
+  const col=t=>TEAM_COL[t]||'#e8186d';
 
-  const css=document.createElement('style');
-  css.textContent=`
-  .ar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
-  .ar{border-collapse:collapse;width:100%;min-width:1100px;font-size:13px}
-  .ar th,.ar td{padding:9px 6px;text-align:center;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.07)}
-  .ar th{font-size:12px;position:sticky;top:0}
-  .ar td.l,.ar th.l{text-align:left}
-  .ar td.pos{font-weight:800}
-  .ar .num{font-weight:800;margin-right:8px}
-  .ar .ring{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.35);font-weight:700}
-  .ar .ring.w{border-color:#f5b800}
-  .ar .f{color:#b44dff}
-  .ar .muted{opacity:.4}
-  .ar-note{margin-top:10px;font-size:12px;opacity:.65}
-  .ar-key{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;opacity:.8;align-items:center}`;
-  document.head.appendChild(css);
+  if(!document.getElementById('ar-css')){
+    const css=document.createElement('style'); css.id='ar-css';
+    css.textContent=`
+    #view-archive .ar-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;background:#15151b;border:1px solid rgba(255,255,255,.08)}
+    #view-archive table.ar{border-collapse:collapse;width:100%;min-width:1080px;font-size:13px;background:transparent}
+    #view-archive table.ar th,#view-archive table.ar td{padding:8px 6px;text-align:center;white-space:nowrap;border:0;border-bottom:1px solid rgba(255,255,255,.07);background:transparent}
+    #view-archive table.ar th{font-size:12px;opacity:.85}
+    #view-archive table.ar .l{text-align:left}
+    #view-archive table.ar td:nth-child(2){position:sticky;left:0;background:#15151b;z-index:1}
+    #view-archive .ring{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-width:28px;height:28px;padding:0 3px;border-radius:50%;border:2px solid rgba(255,255,255,.35);font-weight:700}
+    #view-archive .ring.w{border-color:#f5b800}
+    #view-archive .fl{color:#b862ff}
+    #view-archive .mu{opacity:.35}
+    #view-archive .ar-key{display:flex;gap:16px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;opacity:.85;align-items:center}
+    #view-archive .ar-key .ring{min-width:18px;height:18px;margin-right:5px;padding:0}
+    #view-archive .ar-note{margin-top:10px;font-size:12px;opacity:.65}
+    #view-archive .ar-sub{margin:0 0 14px}
+    #view-archive .ar-rounds{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+    #view-archive .ar-rounds button{padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#15151b;color:inherit;cursor:pointer;font:inherit;font-size:13px}
+    #view-archive .ar-rounds button.on{border-color:#e8186d;background:#e8186d}
+    #view-archive table.rr{border-collapse:collapse;width:100%;font-size:14px}
+    #view-archive table.rr th,#view-archive table.rr td{padding:10px 8px;text-align:left;border:0;border-bottom:1px solid rgba(255,255,255,.07);background:transparent}
+    #view-archive table.rr td.c,#view-archive table.rr th.c{text-align:center}
+    #view-archive .tag2{display:inline-block;margin-left:6px;padding:1px 6px;border-radius:6px;font-size:10px;font-weight:800;background:rgba(255,255,255,.12)}
+    #view-archive .tag2.fl2{background:#7a2bd1}`;
+    document.head.appendChild(css);
+  }
 
-  const cell=c=>{
-    if(c===N) return '<td class="muted">--</td>';
-    if(c===O) return '<td>OUT</td>';
-    if(typeof c==='string') return '<td>'+esc(c)+'</td>';
-    const [v,m]=c;
-    return '<td><span class="ring'+(m.includes('w')?' w':'')+(m.includes('f')?' f':'')+'">'+esc(v)+'</span></td>';
-  };
+  function ring(c){
+    const v=val(c), m=mk(c);
+    if(v===N) return '<span class="mu">--</span>';
+    if(v===O) return 'OUT';
+    if(!m) return esc(v);
+    return '<span class="ring'+(m.includes('w')?' w':'')+(m.includes('f')?' fl':'')+'">'+esc(v)+'</span>';
+  }
 
-  function render(){
-    const box=$('arBoard'); if(!box) return;
+  function standings(){
     const head='<tr><th>Pos</th><th class="l">Driver</th><th class="l">Team</th>'+ROUNDS.map((r,i)=>'<th title="R'+(i+1)+' · '+esc(r[1])+'">'+r[0]+'</th>').join('')+'<th>Points</th><th>Dif</th></tr>';
-    const body=S0.map(r=>{
-      const col=TEAM_COL[r[4]]||'#e8186d';
-      return '<tr><td class="pos">'+r[0]+'</td>'+
-        '<td class="l"><span class="num" style="color:'+col+'">'+esc(r[1])+'</span>'+esc(r[2])+' <b>'+esc(r[3])+'</b></td>'+
-        '<td class="l" style="color:'+col+'">'+esc(r[4])+'</td>'+
-        r[5].map(cell).join('')+
-        '<td class="points"><b>'+r[6]+'</b></td><td class="muted" style="opacity:.7">'+esc(r[7])+'</td></tr>';
-    }).join('');
-    box.innerHTML='<div class="ar-key"><span><span class="ring" style="display:inline-flex;min-width:20px;height:20px;border-radius:50%;border:2px solid #f5b800;align-items:center;justify-content:center"></span> Win</span>'+
-      '<span><span style="display:inline-flex;min-width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.35)"></span> Podium / top finish</span>'+
-      '<span><b class="f">26</b> Fastest lap</span></div>'+
-      '<div class="ar-wrap"><table class="ar"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+
+    const body=S0.map(r=>'<tr><td><b>'+r[0]+'</b></td>'+
+      '<td class="l"><b style="color:'+col(r[4])+';margin-right:6px">'+esc(r[1])+'</b>'+esc(r[2])+' <b>'+esc(r[3])+'</b></td>'+
+      '<td class="l" style="color:'+col(r[4])+'">'+esc(r[4])+'</td>'+
+      r[5].map(c=>'<td>'+ring(c)+'</td>').join('')+
+      '<td><b>'+r[6]+'</b></td><td class="mu" style="opacity:.7">'+esc(r[7])+'</td></tr>').join('');
+    return '<div class="ar-key"><span><span class="ring w"></span>Win</span><span><span class="ring"></span>Podium</span><span><b class="fl">26</b> Fastest lap</span></div>'+
+      '<div class="ar-scroll"><table class="ar"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+
       '<div class="ar-note">Final Season 0 drivers\' standings. Hover a flag for the round name.</div>';
   }
 
+  function results(){
+    const i=st.rnd;
+    const rows=S0.map(r=>({r,c:r[5][i]})).filter(x=>val(x.c)!==N);
+    const scored=rows.filter(x=>val(x.c)!==O).sort((a,b)=>(+val(b.c))-(+val(a.c)));
+    const out=rows.filter(x=>val(x.c)===O);
+    const list=scored.concat(out);
+    const picker='<div class="ar-rounds">'+ROUNDS.map((r,k)=>'<button type="button" data-rnd="'+k+'" class="'+(k===i?'on':'')+'" title="'+esc(r[1])+'">R'+(k+1)+' '+r[0]+'</button>').join('')+'</div>';
+    const body=list.map((x,p)=>{
+      const isOut=val(x.c)===O, m=mk(x.c);
+      return '<tr><td class="c"><b>'+(isOut?'OUT':p+1)+'</b></td>'+
+        '<td><b style="color:'+col(x.r[4])+';margin-right:6px">'+esc(x.r[1])+'</b>'+esc(x.r[2])+' <b>'+esc(x.r[3])+'</b>'+(m.includes('f')?'<span class="tag2 fl2">FL</span>':'')+'</td>'+
+        '<td style="color:'+col(x.r[4])+'">'+esc(x.r[4])+'</td>'+
+        '<td class="c"><b>'+(isOut?'0':esc(val(x.c)))+'</b></td></tr>';
+    }).join('');
+    return picker+'<h3 class="ar-sub">Round '+(i+1)+' · '+ROUNDS[i][0]+' '+esc(ROUNDS[i][1])+'</h3>'+
+      (list.length?'<div class="ar-scroll"><table class="rr"><thead><tr><th class="c">Pos</th><th>Driver</th><th>Team</th><th class="c">Pts</th></tr></thead><tbody>'+body+'</tbody></table></div>':'<div class="empty">No entries recorded for this round.</div>')+
+      '<div class="ar-note">Order is ranked by points scored (the old table only recorded points, not finishing positions), so ties and sprint/bonus points can shift the real order.</div>';
+  }
+
+  function render(){
+    const t=$('arTabs'), b=$('arBoard'); if(!b) return;
+    t.innerHTML=[['standings','Standings'],['results','Race Results']].map(([k,l])=>'<button type="button" class="tab'+(k===st.tab?' on':'')+'" data-k="'+k+'">'+l+'</button>').join('');
+    b.innerHTML=st.tab==='results'?results():standings();
+  }
+
   const view=document.createElement('div'); view.className='view'; view.id='view-archive';
-  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season 0 <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Final standings</span></div></div><section><div class="tabs" id="arTabs"></div><div id="arBoard"></div></section>';
-  const after=document.getElementById('view-records')||document.getElementById('view-teams');
-  after.after(view);
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season 0 <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Final standings &amp; results</span></div></div><section><div class="tabs" id="arTabs"></div><div id="arBoard"></div></section>';
+  (document.getElementById('view-records')||document.getElementById('view-teams')).after(view);
   VIEWS.push('archive');
   const a=document.createElement('a'); a.href='#archive'; a.dataset.v='archive'; a.textContent='Archive';
-  const navAnchor=document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]');
-  navAnchor.after(a);
-  $('arTabs').innerHTML='<button class="tab on" data-k="s0">Season 0</button>';
+  (document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]')).after(a);
+  view.addEventListener('click',e=>{
+    const t=e.target.closest('#arTabs .tab'); if(t){ st.tab=t.dataset.k; render(); return; }
+    const r=e.target.closest('[data-rnd]'); if(r){ st.rnd=+r.dataset.rnd; render(); }
+  });
   render();
   try{ if(location.hash==='#archive') go('archive'); }catch(e){}
+})();
+
+/* ───────── Hamburger side menu (replaces the top nav bar) ───────── */
+(function(){
+  const nav=document.querySelector('header nav'); if(!nav) return;
+  if(!document.getElementById('sb-css')){
+    const css=document.createElement('style'); css.id='sb-css';
+    css.textContent=`
+    #sbBtn{position:fixed;top:12px;left:12px;z-index:1003;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#15151b;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0}
+    #sbBtn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:transform .25s,opacity .2s}
+    body.sb-open #sbBtn span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+    body.sb-open #sbBtn span:nth-child(2){opacity:0}
+    body.sb-open #sbBtn span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+    header nav{position:fixed!important;top:0;left:0;bottom:0;width:270px;max-width:82vw;z-index:1002;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:2px!important;padding:70px 12px 24px!important;margin:0!important;background:#0e0e13!important;border-right:1px solid rgba(255,255,255,.1);overflow-y:auto;transform:translateX(-105%);transition:transform .28s ease;box-shadow:none}
+    body.sb-open header nav{transform:none;box-shadow:8px 0 40px rgba(0,0,0,.55)}
+    header nav a{display:block!important;width:auto!important;padding:12px 14px!important;border-radius:8px;text-align:left!important}
+    header nav a.on{background:rgba(232,24,109,.18)}
+    #sbOv{position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s}
+    body.sb-open #sbOv{opacity:1;pointer-events:auto}
+    header{padding-left:68px!important}`;
+    document.head.appendChild(css);
+  }
+  const btn=document.createElement('button'); btn.id='sbBtn'; btn.type='button'; btn.setAttribute('aria-label','Menu'); btn.setAttribute('aria-expanded','false'); btn.innerHTML='<span></span><span></span><span></span>';
+  const ov=document.createElement('div'); ov.id='sbOv';
+  document.body.appendChild(ov); document.body.appendChild(btn);
+  const set=o=>{ document.body.classList.toggle('sb-open',o); btn.setAttribute('aria-expanded',String(o)); };
+  btn.onclick=()=>set(!document.body.classList.contains('sb-open'));
+  ov.onclick=()=>set(false);
+  nav.addEventListener('click',e=>{ if(e.target.closest('a')) set(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') set(false); });
 })();
