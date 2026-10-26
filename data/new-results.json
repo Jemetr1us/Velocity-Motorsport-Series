@@ -285,6 +285,135 @@
     ]
   },
   {
+    "series": "f1",
+    "rnd": "16",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "Nick",
+        "team": "Scuderia Ferrari",
+        "pts": 26,
+        "fl": true,
+        "gap": "Leader"
+      },
+      {
+        "pos": 2,
+        "name": "Rox",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 18,
+        "pole": true,
+        "gap": "+11.198"
+      },
+      {
+        "pos": 3,
+        "name": "yokesecapo",
+        "team": "Scuderia Ferrari",
+        "pts": 15,
+        "gap": "+14.699"
+      },
+      {
+        "pos": 4,
+        "name": "Sly",
+        "team": "Sahara Force India F1 Team",
+        "pts": 12,
+        "gap": "+18.231"
+      },
+      {
+        "pos": 5,
+        "name": "Bence",
+        "team": "GlitchGP F1 Team",
+        "pts": 10,
+        "gap": "+22.631"
+      },
+      {
+        "pos": 6,
+        "name": "Peters",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 8,
+        "gap": "+23.197"
+      },
+      {
+        "pos": 7,
+        "name": "gkf",
+        "team": "Vodafone McLaren",
+        "pts": 6,
+        "gap": "+27.085"
+      },
+      {
+        "pos": 8,
+        "name": "Lory",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 4,
+        "gap": "+29.315",
+        "note": "(10s Pen)"
+      },
+      {
+        "pos": 9,
+        "name": "ShadowRex",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 2,
+        "gap": "+54.130"
+      },
+      {
+        "pos": 10,
+        "name": "Emirović",
+        "team": "Mercedes-AMG",
+        "pts": 1,
+        "gap": "+1 Lap"
+      },
+      {
+        "pos": 11,
+        "name": "Batwert",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 0,
+        "gap": "+1 Lap"
+      },
+      {
+        "pos": 12,
+        "name": "Shaye",
+        "team": "Vodafone McLaren",
+        "pts": 0,
+        "gap": "+2 Laps"
+      },
+      {
+        "pos": 13,
+        "name": "Anti",
+        "team": "GlitchGP F1 Team",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 14,
+        "name": "Ferchu",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 15,
+        "name": "Infinity",
+        "team": "Aero Apex Racing",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 16,
+        "name": "Leo",
+        "team": "Mercedes-AMG",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      }
+    ]
+  },
+  {
     "series": "f2",
     "rnd": "18",
     "rows": [
