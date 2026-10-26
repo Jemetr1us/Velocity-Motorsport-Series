@@ -6,9 +6,9 @@
       "color": "#a78bfa",
       "drivers": [
         {
-          "num": "19",
+          "num": "91",
           "code": "MD1",
-          "name": "Peters",
+          "name": "Juantoes",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -284,14 +284,6 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "RD2",
-          "name": "unknown-user",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
         }
       ]
     },
@@ -309,8 +301,16 @@
           "pods": 0
         },
         {
-          "num": "43",
+          "num": "19",
           "code": "MD2",
+          "name": "Peters",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "43",
+          "code": "RD1",
           "name": "Ferchu",
           "pts": 0,
           "wins": 0,
@@ -318,7 +318,7 @@
         },
         {
           "num": "0",
-          "code": "RD1",
+          "code": "RD2",
           "name": "Octi (destroyer)",
           "pts": 0,
           "wins": 0,
