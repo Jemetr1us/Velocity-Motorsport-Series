@@ -45,14 +45,6 @@
           "pods": 0
         },
         {
-          "num": "12",
-          "code": "MD2",
-          "name": "Jack",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
           "num": "—",
           "code": "RD1",
           "name": "Vitality I I 67",
@@ -193,8 +185,16 @@
           "pods": 0
         },
         {
-          "num": "7",
+          "num": "12",
           "code": "RD1",
+          "name": "Jack",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "7",
+          "code": "RD2",
           "name": "Leo",
           "pts": 0,
           "wins": 0,
@@ -235,7 +235,7 @@
     },
     {
       "name": "Vanguard Sabre Motorsport",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Vanguard Director",
+      "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
       "color": "#7f1010",
       "drivers": [
         {
@@ -288,7 +288,7 @@
         {
           "num": "—",
           "code": "RD2",
-          "name": "Mista_Filip1403",
+          "name": "unknown-user",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -516,7 +516,7 @@
     },
     {
       "name": "Vanguard Sabre Racing",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Vanguard Director",
+      "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
       "color": "#7f1010",
       "drivers": [
         {
@@ -882,7 +882,7 @@
     },
     {
       "name": "Pola Sabre Motorsports",
-      "engine": "CEO: POnight_LAlloy · Director: Gearhead | Vanguard Director",
+      "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
       "color": "#1e40af",
       "drivers": [
         {
