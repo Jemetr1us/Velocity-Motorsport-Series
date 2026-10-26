@@ -2330,3 +2330,97 @@ async function loadNews(force){
   go=function(v){ _go.apply(this,arguments); if(v==='fantasy') render(); };
   try{ if(location.hash==='#fantasy') go('fantasy'); }catch(e){}
 })();
+
+/* ───────── Archive: Season 0 ─────────
+   Final S0 driver standings, transcribed from the old league table.
+   Round cells: [value, marks]  marks: 'w' = win (gold ring), 'p' = podium/top-3 ring, 'f' = purple (fastest lap)
+   Plain strings are normal finishes, '--' = did not enter, 'OUT' = retired/out. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const ROUNDS=[['🇮🇹','Italy'],['🇧🇪','Belgium'],['🇸🇬','Singapore'],['🇶🇦','Qatar'],['🇨🇳','China'],['🇨🇦','Canada'],['🇺🇸','USA'],['🇮🇹','Italy'],['🇸🇬','Singapore'],['🇭🇺','Hungary'],['🇲🇽','Mexico'],['🇧🇷','Brazil'],['🏁','Round 13'],['🇬🇧','Great Britain']];
+  const TEAM_COL={'BMW Audi':'#e8212b','Koenigsegg Scuderia Ferrari':'#e8212b','Williams':'#3aa0ff','Oscar Mayer Racing Cadillac':'#f5e027','Google Pixel McLaren':'#ff8a1f','APXGP':'#f5e027','Red Bull':'#2f6fe0','Aston Martin':'#0b8a6a','Mercedes':'#2ee6c8','Racing Wienies':'#f5e027'};
+  const N='--', O='OUT';
+  // [pos, #, flag, name, team, rounds[14], pts, gap]
+  const S0=[
+   [1,'44','🇮🇹','Lory','BMW Audi',[['18','p'],['26','wf'],['26','wf'],['26','wf'],['23','p'],'10','8',['15','p'],'12',['18','p'],['15','p'],'19',N,O],216,'--'],
+   [2,'3','🇺🇸','Nick','Koenigsegg Scuderia Ferrari',[N,N,N,N,['25','w'],['25','w'],N,N,['15','p'],['26','wf'],['26','wf'],['15','p'],['19','pf'],['26','wf']],177,'-39'],
+   [3,'10','🇨🇦','Micheal','Williams',[N,N,N,N,['11','f'],['15','p'],['26','wf'],['18','p'],['26','wf'],O,N,['33','w'],O,N],147,'-69'],
+   [4,'','🇳🇱','Zemmer','Koenigsegg Scuderia Ferrari',[N,N,N,N,N,['19','pf'],['18','p'],['26','wf'],['18','p'],O,['18','p'],N,O,N],99,'-117'],
+   [5,'81','🇬🇧','Silky','Oscar Mayer Racing Cadillac',[['15','p'],'10',O,'12','13',N,'10','2',O,'12',N,'8','2','12'],96,'-120'],
+   [6,'20','🇬🇧','Nath','Google Pixel McLaren',[N,N,O,['15','p'],'4','6','12','4','10',O,'8',O,'10',['18','p']],87,'-129'],
+   [7,'41','🇺🇸','Ryan','APXGP',[N,N,N,N,['21','p'],'12',N,'8','4',N,N,N,N,N],45,'-171'],
+   [8,'12','🇲🇽','Dio','Red Bull',[N,N,'12',['18','p'],'7',N,N,N,N,N,N,N,N,N],37,'-179'],
+   [9,'31','','Smol','Oscar Mayer Racing Cadillac',[N,N,N,N,N,N,['15','p'],O,N,'10','12',N,N,O],37,'-179'],
+   [10,'','','DSB','Aston Martin',[N,N,N,N,N,N,N,N,N,N,N,N,N,N],36,'-180'],
+   [11,'','','NOvac','BMW Audi',[N,N,N,N,N,N,N,'12',N,N,N,['22','pf'],N,N],34,'-182'],
+   [12,'23','🇨🇿','Gamrin','APXGP',[N,N,N,N,N,'8','2',N,N,N,N,N,'12','10'],32,'-184'],
+   [13,'','','Juan','Oscar Mayer Racing Cadillac',[N,N,N,N,N,N,N,'6',N,N,N,N,['25','w'],N],31,'-185'],
+   [14,'67','🇨🇦','Vitality','Red Bull',[N,N,N,N,N,N,'4','0',O,['15','p'],N,'4',O,'8'],31,'-185'],
+   [15,'95','🇷🇴','Alpha','Mercedes',[N,'6',O,N,'6',N,N,'0','8','8',N,N,O,N],28,'-188'],
+   [16,'2','🇮🇹','Khecco','Koenigsegg Scuderia Ferrari',[['26','wf'],N,N,N,N,N,N,N,N,N,N,N,N,N],26,'-190'],
+   [17,'9','','Pringle','Mercedes',[N,N,N,N,N,N,'6','10',O,N,'10',N,N,N],26,'-190'],
+   [18,'','','Jeffz','Racing Wienies',[N,N,N,N,N,N,N,N,N,N,N,'14','8',O],22,'-194'],
+   [19,'33','','Something','Racing Wienies',[N,N,['18','p'],N,'2',N,N,N,N,N,N,N,N,N],20,'-196'],
+   [20,'','','Matteo','Koenigsegg Scuderia Ferrari',[N,N,N,N,N,N,N,N,N,N,N,'5',N,['15','p']],20,'-196'],
+   [21,'55','🇬🇧','Elijah','Koenigsegg Scuderia Ferrari',[N,['18','p'],N,N,N,N,N,N,N,N,N,N,N,N],18,'-198'],
+   [22,'8','','Matt','Williams',[N,['15','p'],O,O,O,N,'0',N,N,N,N,N,N,N],15,'-201'],
+   [23,'','','Mikos','BMW Audi',[N,N,N,N,N,N,N,N,N,N,N,N,['15','p'],N],15,'-201'],
+   [24,'','🇲🇾','Newbie','Racing Wienies',[N,'4','10',N,N,N,N,N,N,N,N,N,N,N],14,'-202'],
+   [25,'52','','Kenzo','BMW Audi',[N,N,N,'10',N,'4',N,N,N,N,N,N,N,N],14,'-202']
+  ];
+
+  const css=document.createElement('style');
+  css.textContent=`
+  .ar-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:10px}
+  .ar{border-collapse:collapse;width:100%;min-width:1100px;font-size:13px}
+  .ar th,.ar td{padding:9px 6px;text-align:center;white-space:nowrap;border-bottom:1px solid rgba(255,255,255,.07)}
+  .ar th{font-size:12px;position:sticky;top:0}
+  .ar td.l,.ar th.l{text-align:left}
+  .ar td.pos{font-weight:800}
+  .ar .num{font-weight:800;margin-right:8px}
+  .ar .ring{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.35);font-weight:700}
+  .ar .ring.w{border-color:#f5b800}
+  .ar .f{color:#b44dff}
+  .ar .muted{opacity:.4}
+  .ar-note{margin-top:10px;font-size:12px;opacity:.65}
+  .ar-key{display:flex;gap:14px;flex-wrap:wrap;margin:0 0 12px;font-size:12px;opacity:.8;align-items:center}`;
+  document.head.appendChild(css);
+
+  const cell=c=>{
+    if(c===N) return '<td class="muted">--</td>';
+    if(c===O) return '<td>OUT</td>';
+    if(typeof c==='string') return '<td>'+esc(c)+'</td>';
+    const [v,m]=c;
+    return '<td><span class="ring'+(m.includes('w')?' w':'')+(m.includes('f')?' f':'')+'">'+esc(v)+'</span></td>';
+  };
+
+  function render(){
+    const box=$('arBoard'); if(!box) return;
+    const head='<tr><th>Pos</th><th class="l">Driver</th><th class="l">Team</th>'+ROUNDS.map((r,i)=>'<th title="R'+(i+1)+' · '+esc(r[1])+'">'+r[0]+'</th>').join('')+'<th>Points</th><th>Dif</th></tr>';
+    const body=S0.map(r=>{
+      const col=TEAM_COL[r[4]]||'#e8186d';
+      return '<tr><td class="pos">'+r[0]+'</td>'+
+        '<td class="l"><span class="num" style="color:'+col+'">'+esc(r[1])+'</span>'+esc(r[2])+' <b>'+esc(r[3])+'</b></td>'+
+        '<td class="l" style="color:'+col+'">'+esc(r[4])+'</td>'+
+        r[5].map(cell).join('')+
+        '<td class="points"><b>'+r[6]+'</b></td><td class="muted" style="opacity:.7">'+esc(r[7])+'</td></tr>';
+    }).join('');
+    box.innerHTML='<div class="ar-key"><span><span class="ring" style="display:inline-flex;min-width:20px;height:20px;border-radius:50%;border:2px solid #f5b800;align-items:center;justify-content:center"></span> Win</span>'+
+      '<span><span style="display:inline-flex;min-width:20px;height:20px;border-radius:50%;border:2px solid rgba(255,255,255,.35)"></span> Podium / top finish</span>'+
+      '<span><b class="f">26</b> Fastest lap</span></div>'+
+      '<div class="ar-wrap"><table class="ar"><thead>'+head+'</thead><tbody>'+body+'</tbody></table></div>'+
+      '<div class="ar-note">Final Season 0 drivers\' standings. Hover a flag for the round name.</div>';
+  }
+
+  const view=document.createElement('div'); view.className='view'; view.id='view-archive';
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season 0 <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Final standings</span></div></div><section><div class="tabs" id="arTabs"></div><div id="arBoard"></div></section>';
+  const after=document.getElementById('view-records')||document.getElementById('view-teams');
+  after.after(view);
+  VIEWS.push('archive');
+  const a=document.createElement('a'); a.href='#archive'; a.dataset.v='archive'; a.textContent='Archive';
+  const navAnchor=document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]');
+  navAnchor.after(a);
+  $('arTabs').innerHTML='<button class="tab on" data-k="s0">Season 0</button>';
+  render();
+  try{ if(location.hash==='#archive') go('archive'); }catch(e){}
+})();
