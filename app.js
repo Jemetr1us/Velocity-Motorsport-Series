@@ -1486,7 +1486,7 @@ function renderRecords(){
   view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season <span class="yellow">Records</span></div><div class="line"></div></div><span class="sub">2026 season leaders</span></div></div><section><div class="tabs" id="recSeries"></div><div id="recBoard"></div></section>';
   document.getElementById('view-teams').after(view);
   VIEWS.splice(VIEWS.indexOf('teams')+1,0,'records');
-  const a=document.createElement('a'); a.href='#records'; a.dataset.v='records'; a.textContent='Season Records';
+  const a=document.createElement('a'); a.href='#records'; a.dataset.v='records'; a.textContent='Records';
   document.querySelector('header nav a[data-v="teams"]').after(a);
   renderRecords();
   if(location.hash==='#records') go('records');
@@ -1630,6 +1630,25 @@ function renderRecords(){
 
 /* ───────── News: FIA announcements + media (data/fia.json, data/media.json — written by the Discord sync) ───────── */
 const nw={tab:'fia',fia:null,media:null,at:0};
+
+/* ───────── layout fixes: one-line top bar + smaller news/media boxes ───────── */
+(function(){
+  if(document.getElementById('vx-fix-css')) return;
+  const st=document.createElement('style'); st.id='vx-fix-css'; st.textContent=
+   /* top bar: keep every link on one line, scale down a little when space is tight, scroll sideways on phones */
+   'header nav{display:flex!important;flex-wrap:nowrap!important;align-items:center;white-space:nowrap;gap:clamp(8px,1.3vw,22px)!important;min-width:0;overflow-x:auto;scrollbar-width:none}'+
+   'header nav::-webkit-scrollbar{display:none}'+
+   'header nav a{white-space:nowrap!important;flex:0 0 auto;margin:0!important;font-size:clamp(10px,.95vw,13px)!important;letter-spacing:clamp(.5px,.1vw,1.5px)!important}'+
+   /* news: compact cards, small media tiles */
+   '#newsBoard .nw-list{max-width:760px}'+
+   '#newsBoard .nw-card,#newsBoard .nw-tile{height:auto!important;min-height:0!important;align-self:start}'+
+   '#newsBoard .nw-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(210px,1fr))!important;gap:14px!important;align-items:start}'+
+   '#newsBoard .nw-media{max-height:170px;overflow:hidden}'+
+   '#newsBoard .nw-tile .nw-img,#newsBoard .nw-tile .nw-vid{width:100%!important;height:170px!important;max-height:170px!important;object-fit:cover;display:block;cursor:zoom-in}'+
+   '#newsBoard .nw-card .nw-img,#newsBoard .nw-card .nw-vid{max-width:100%;max-height:240px;width:auto;height:auto;object-fit:contain;cursor:zoom-in}'+
+   '#newsBoard .nw-cap{padding:10px 12px}#newsBoard .nw-cap .nw-text{font-size:12px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}';
+  document.head.appendChild(st);
+})();
 function nwDate(iso){ try{ return new Date(iso).toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }catch(e){ return ''; } }
 function nwSafe(u){ return /^(https?:\/\/|media\/)/.test(u||'')?u:''; }
 function nwRich(t){

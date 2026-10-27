@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VMS · Add / Remove Media</title>
+<style>
+  :root{--pink:#e8186d;--org:#ff6b00;--bg:#0b0b0b;--panel:#141414;--line:#2a2a2a;--mut:#999}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:#fff;font:14px/1.5 Arial,sans-serif;padding:24px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{margin:0 0 4px;font-size:26px;text-transform:uppercase;letter-spacing:1px}
+  h1 span{color:var(--pink)}
+  p.sub{color:var(--mut);margin:0 0 22px}
+  .panel{background:var(--panel);border:1px solid var(--line);padding:18px;margin-bottom:18px}
+  .panel h2{margin:0 0 12px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--pink)}
+  label{display:block;font:800 11px Arial;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin:12px 0 5px}
+  input,textarea{width:100%;background:#0b0b0b;border:1px solid #333;color:#fff;padding:10px;font:14px Arial,sans-serif}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:700px){.row{grid-template-columns:1fr}}
+  .btn{background:linear-gradient(90deg,var(--pink),var(--org));color:#fff;border:0;padding:11px 18px;font:800 12px Arial;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+  .btn:hover{filter:brightness(1.12)}
+  .btn.ghost{background:transparent;border:1px solid #444;color:#ddd}
+  .btn.red{background:#7f1010}
+  .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .drop{border:2px dashed #444;padding:18px;text-align:center;color:var(--mut);cursor:pointer}
+  .drop.on{border-color:var(--pink);color:#fff}
+  .thumbs{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+  .thumb{position:relative;width:110px;height:80px;background:#000;border:1px solid var(--line);overflow:hidden}
+  .thumb img,.thumb video{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb button{position:absolute;top:2px;right:2px;background:#000a;color:#fff;border:0;width:22px;height:22px;cursor:pointer}
+  .thumb small{position:absolute;left:0;bottom:0;right:0;background:#000b;font-size:10px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  .item{border:1px solid var(--line);background:#0e0e0e;display:flex;flex-direction:column}
+  .item .m{height:120px;background:#000;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--mut);font-size:12px}
+  .item .m img,.item .m video{width:100%;height:100%;object-fit:cover}
+  .item .b{padding:9px 10px;flex:1;font-size:12px}
+  .item .b b{display:block;font-size:12px}
+  .item .b span{color:var(--mut);font-size:11px}
+  .item .b p{margin:6px 0 0;color:#ccc;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item button{border:0;border-top:1px solid var(--line);background:transparent;color:#ff6b6b;padding:8px;font:800 11px Arial;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+  .item button:hover{background:#2a0e10}
+  .msg{margin-top:10px;font-size:12px;color:#7be3a2}
+  .warn{border-left:3px solid var(--org);background:#1a1208;padding:10px 12px;font-size:12px;color:#e8c9a0;margin-bottom:18px}
+  .empty{color:var(--mut);padding:16px;text-align:center}
+  code{background:#222;padding:1px 5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Add / Remove <span>Media</span></h1>
+  <p class="sub">Manage what shows under News → Media on the VMS site.</p>
+
+  <div class="warn"><b>How saving works:</b> this page edits a copy of <code>data/media.json</code>. When you're done, click <b>Download media.json</b> and replace the file in your site's <code>data</code> folder (then commit/upload as usual). Images and videos you add here are saved with the download too — put them in the <code>media</code> folder next to <code>data</code>. If the Discord sync also writes <code>media.json</code>, it may overwrite manual changes on its next run.</div>
+
+  <div class="panel">
+    <h2>Add media</h2>
+    <div class="row">
+      <div><label>Posted by</label><input id="author" placeholder="e.g. VMS Media"></div>
+      <div><label>Date &amp; time</label><input id="date" type="datetime-local"></div>
+    </div>
+    <label>Caption (optional)</label>
+    <textarea id="text" placeholder="Caption or description"></textarea>
+    <label>Images / videos</label>
+    <div class="drop" id="drop">Click or drop image / video files here<input id="file" type="file" accept="image/*,video/*" multiple hidden></div>
+    <div class="thumbs" id="thumbs"></div>
+    <label>Or paste a link to an image / video / page (one per line)</label>
+    <textarea id="links" placeholder="https://… or media/photo.png"></textarea>
+    <div class="acts"><button class="btn" id="add">Add to list</button></div>
+    <div class="msg" id="addMsg"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Current media (<span id="count">0</span>)</h2>
+    <div class="acts" style="margin:0 0 14px">
+      <button class="btn" id="dl">⬇ Download media.json</button>
+      <button class="btn ghost" id="load">Load a media.json…</button>
+      <input id="loadF" type="file" accept=".json,application/json" hidden>
+      <button class="btn ghost" id="dlFiles">⬇ Download added files</button>
+    </div>
+    <div class="list" id="list"></div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let items=[];          // same shape the site reads: {id,author,date,text,url,files:[{path,name,type}],links:[]}
+let pending=[];        // files chosen in the form, not yet added: {file,url,name,type}
+const added=[];        // actual File objects for items added this session (saved to media/ by "Download added files")
+const BLOB=new Map();  // path -> {file,url} for preview of files added this session
+
+const safeName=n=>String(n).toLowerCase().replace(/[^a-z0-9._-]+/g,'-').replace(/^-+|-+$/g,'')||'file';
+const typeOf=f=>/^video\//.test(f.type)||/\.(mp4|webm|mov)$/i.test(f.name)?'video':/^image\//.test(f.type)||/\.(png|jpe?g|gif|webp|avif)$/i.test(f.name)?'image':'file';
+const typeOfUrl=u=>/\.(mp4|webm|mov)(\?|$)/i.test(u)?'video':/\.(png|jpe?g|gif|webp|avif)(\?|$)/i.test(u)?'image':'link';
+const nowLocal=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,16);};
+$('date').value=nowLocal();
+
+/* ── load the site's current media.json (works when this page sits next to the data folder) ── */
+fetch('data/media.json?t='+Date.now(),{cache:'no-store'}).then(r=>r.ok?r.json():[]).then(j=>{
+  if(Array.isArray(j)) items=j; render();
+}).catch(()=>render());
+
+/* ── file picking ── */
+const drop=$('drop'), fin=$('file');
+drop.onclick=()=>fin.click();
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('on');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('on');}));
+drop.addEventListener('drop',e=>take(e.dataTransfer.files));
+fin.onchange=()=>{take(fin.files);fin.value='';};
+function take(list){
+  [...list].forEach(f=>{
+    const t=typeOf(f); if(t==='file') return;
+    pending.push({file:f,url:URL.createObjectURL(f),name:safeName(f.name),type:t});
+  });
+  drawThumbs();
+}
+function drawThumbs(){
+  $('thumbs').innerHTML=pending.map((p,i)=>'<div class="thumb">'+(p.type==='video'?'<video src="'+p.url+'" muted></video>':'<img src="'+p.url+'" alt="">')+'<small>'+esc(p.name)+'</small><button type="button" data-i="'+i+'" title="Remove">×</button></div>').join('');
+}
+$('thumbs').onclick=e=>{const b=e.target.closest('button[data-i]'); if(!b) return; pending.splice(+b.dataset.i,1); drawThumbs();};
+
+/* ── add ── */
+$('add').onclick=()=>{
+  const links=$('links').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+  const text=$('text').value.trim();
+  if(!pending.length&&!links.length&&!text){ $('addMsg').style.color='#ff9a9a'; $('addMsg').textContent='Add at least a file, a link, or some text.'; return; }
+  const taken=new Set(items.flatMap(i=>(i.files||[]).map(f=>f.path)));
+  const files=[];
+  pending.forEach(p=>{
+    let name=p.name, k=1; const dot=name.lastIndexOf('.'), base=dot>0?name.slice(0,dot):name, ext=dot>0?name.slice(dot):'';
+    while(taken.has('media/'+name)){ name=base+'-'+(++k)+ext; }
+    const path='media/'+name; taken.add(path);
+    files.push({path,name:p.name,type:p.type});
+    added.push({name,file:p.file}); BLOB.set(path,p.url);
+  });
+  // links that point straight at an image/video become files; anything else stays a plain link
+  const plain=[];
+  links.forEach(l=>{
+    const t=typeOfUrl(l);
+    if(t!=='link'&&/^(https?:\/\/|media\/)/.test(l)) files.push({path:l,name:l.split('/').pop().split('?')[0],type:t});
+    else plain.push(l);
+  });
+  const d=$('date').value?new Date($('date').value):new Date();
+  items.unshift({
+    id:'manual-'+Date.now(),
+    author:$('author').value.trim()||'VMS',
+    date:d.toISOString(),
+    text,
+    url:plain[0]||'',
+    files,
+    links:plain,
+    manual:true
+  });
+  pending=[]; drawThumbs(); $('text').value=''; $('links').value=''; $('date').value=nowLocal();
+  $('addMsg').style.color='#7be3a2'; $('addMsg').textContent='Added. Remember to download media.json when you\'re finished.';
+  render();
+};
+
+/* ── list / remove ── */
+function preview(it){
+  const f=(it.files||[])[0];
+  if(!f) return '<span>'+((it.links||[])[0]?'Link':'Text only')+'</span>';
+  const src=BLOB.get(f.path)||f.path;
+  if(f.type==='video') return '<video src="'+esc(src)+'" muted preload="metadata"></video>';
+  if(f.type==='image') return '<img src="'+esc(src)+'" alt="" loading="lazy">';
+  return '<span>'+esc(f.name||'File')+'</span>';
+}
+function render(){
+  $('count').textContent=items.length;
+  if(!items.length){ $('list').innerHTML='<div class="empty" style="grid-column:1/-1">No media yet.</div>'; return; }
+  $('list').innerHTML=items.map((it,i)=>'<div class="item"><div class="m">'+preview(it)+'</div><div class="b"><b>'+esc(it.author||'')+'</b><span>'+esc(it.date?new Date(it.date).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}):'')+(((it.files||[]).length>1)?' · '+it.files.length+' files':'')+'</span>'+(it.text?'<p>'+esc(it.text)+'</p>':'')+'</div><button type="button" data-rm="'+i+'">Remove</button></div>').join('');
+}
+$('list').onclick=e=>{
+  const b=e.target.closest('[data-rm]'); if(!b) return;
+  const it=items[+b.dataset.rm]; if(!it) return;
+  if(!confirm('Remove this item from the media list?')) return;
+  items.splice(+b.dataset.rm,1); render();
+};
+
+/* ── save / load ── */
+function save(name,blob){
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);
+}
+$('dl').onclick=()=>{
+  const clean=items.map(({manual,...r})=>r);
+  save('media.json',new Blob([JSON.stringify(clean,null,2)],{type:'application/json'}));
+};
+$('dlFiles').onclick=()=>{
+  if(!added.length){ alert('No files were added this session.'); return; }
+  added.forEach((a,i)=>setTimeout(()=>save(a.name,a.file),i*250));
+};
+$('load').onclick=()=>$('loadF').click();
+$('loadF').onchange=e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{ try{ const j=JSON.parse(r.result); if(!Array.isArray(j)) throw 0; items=j; render(); }catch(err){ alert('That file isn\'t a valid media.json list.'); } };
+  r.readAsText(f); e.target.value='';
+};
+</script>
+</body>
+</html>
