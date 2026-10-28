@@ -138,9 +138,9 @@
           "pods": 0
         },
         {
-          "num": "7",
+          "num": "81",
           "code": "MD2",
-          "name": "Tommy",
+          "name": "Infinity",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -154,9 +154,9 @@
           "pods": 0
         },
         {
-          "num": "81",
+          "num": "7",
           "code": "RD2",
-          "name": "Infinity",
+          "name": "Tommy",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -840,7 +840,7 @@
           "pods": 0
         },
         {
-          "num": "79",
+          "num": "0",
           "code": "MD3",
           "name": "d1MA",
           "pts": 0,
