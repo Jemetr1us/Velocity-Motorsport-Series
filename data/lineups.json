@@ -855,25 +855,9 @@
       "color": "#7c3aed",
       "drivers": [
         {
-          "num": "77",
+          "num": "93",
           "code": "MD1",
-          "name": "Nyiko",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "MD2",
-          "name": "Elden",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "95",
-          "code": "MD3",
-          "name": "BETICOSSS",
+          "name": "Marcmaarten",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -912,7 +896,7 @@
         {
           "num": "—",
           "code": "RD1",
-          "name": "Alistair Macfarlane",
+          "name": "unknown-user",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -928,14 +912,6 @@
           "num": "56",
           "code": "MD1",
           "name": "Piti",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "18",
-          "code": "MD2",
-          "name": "Halo",
           "pts": 0,
           "wins": 0,
           "pods": 0
