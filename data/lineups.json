@@ -99,9 +99,9 @@
       "color": "#60a5fa",
       "drivers": [
         {
-          "num": "6",
+          "num": "23",
           "code": "MD1",
-          "name": "GreenShinobi",
+          "name": "Gamrin",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -396,25 +396,9 @@
       "color": "#d9a300",
       "drivers": [
         {
-          "num": "23",
-          "code": "MD1",
-          "name": "Gamrin",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
           "num": "—",
           "code": "MD2",
           "name": "Soap<3 (local femboy)",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "29",
-          "code": "RD1",
-          "name": "Gui",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -542,6 +526,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "10",
+          "code": "RD2",
+          "name": "Elf",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -604,14 +596,6 @@
       "engine": "CEO: Tiyu | Carti CEO · Director: Zak",
       "color": "#555555",
       "drivers": [
-        {
-          "num": "91",
-          "code": "MD1",
-          "name": "Juantoes",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
         {
           "num": "26",
           "code": "MD2",
@@ -701,7 +685,7 @@
         },
         {
           "num": "99",
-          "code": "MD3",
+          "code": "MD2",
           "name": "Jeffz",
           "pts": 0,
           "wins": 0,
@@ -709,7 +693,7 @@
         },
         {
           "num": "34",
-          "code": "RD1",
+          "code": "MD3",
           "name": "Kriekel",
           "pts": 0,
           "wins": 0,
@@ -801,9 +785,9 @@
           "pods": 0
         },
         {
-          "num": "21",
+          "num": "29",
           "code": "MD2",
-          "name": "Georgie",
+          "name": "Gui",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -878,9 +862,9 @@
           "pods": 0
         },
         {
-          "num": "10",
+          "num": "16",
           "code": "MD2",
-          "name": "Elf",
+          "name": "Sharrl",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -889,14 +873,6 @@
           "num": "04",
           "code": "MD3",
           "name": "Bartos",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "RD1",
-          "name": "unknown-user",
           "pts": 0,
           "wins": 0,
           "pods": 0
