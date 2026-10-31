@@ -589,6 +589,138 @@
     ]
   },
   {
+    "series": "f1",
+    "rnd": "17",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "Nick",
+        "team": "Scuderia Ferrari",
+        "pts": 25,
+        "gap": "Leader"
+      },
+      {
+        "pos": 2,
+        "name": "Rox",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 18,
+        "gap": "+23.616"
+      },
+      {
+        "pos": 3,
+        "name": "Juantoes",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 15,
+        "gap": "+29.232"
+      },
+      {
+        "pos": 4,
+        "name": "ShadowRex",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 12,
+        "gap": "+40.732"
+      },
+      {
+        "pos": 5,
+        "name": "Jack",
+        "team": "Mercedes-AMG",
+        "pts": 10,
+        "gap": "+44.281"
+      },
+      {
+        "pos": 6,
+        "name": "Peters",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 8,
+        "gap": "+49.832"
+      },
+      {
+        "pos": 7,
+        "name": "Batwert",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 6,
+        "gap": "+50.631"
+      },
+      {
+        "pos": 8,
+        "name": "gkf",
+        "team": "Vodafone McLaren",
+        "pts": 4,
+        "gap": "+54.231"
+      },
+      {
+        "pos": 8,
+        "name": "yokesecapo",
+        "team": "Scuderia Ferrari",
+        "pts": 4,
+        "half": true,
+        "gap": "(Article B.4.1.4)"
+      },
+      {
+        "pos": 9,
+        "name": "Diego",
+        "team": "Sahara Force India F1 Team",
+        "pts": 2,
+        "gap": "+58.297"
+      },
+      {
+        "pos": 10,
+        "name": "Gamrin",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 1,
+        "gap": "+1 Lap"
+      },
+      {
+        "pos": 11,
+        "name": "Nath",
+        "team": "Vanguard Sabre Motorsport",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 12,
+        "name": "Lory",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 13,
+        "name": "Bence",
+        "team": "GlitchGP F1 Team",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 14,
+        "name": "Infinity",
+        "team": "Aero Apex Racing",
+        "pts": 0,
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 15,
+        "name": "Anti",
+        "team": "GlitchGP F1 Team",
+        "pts": 0,
+        "status": "DNS",
+        "note": "DNS"
+      },
+      {
+        "pos": 16,
+        "name": "Elias",
+        "team": "BMW Sauber F1 Team",
+        "pts": 0,
+        "status": "DNS",
+        "note": "DNS"
+      }
+    ]
+  },
+  {
     "series": "f2",
     "rnd": "18",
     "rows": [
