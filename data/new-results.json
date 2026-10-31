@@ -643,10 +643,10 @@
       },
       {
         "pos": 8,
-        "name": "gkf",
-        "team": "Vodafone McLaren",
+        "name": "Diego",
+        "team": "Sahara Force India F1 Team",
         "pts": 4,
-        "gap": "+54.231"
+        "gap": "+58.297"
       },
       {
         "pos": 8,
@@ -658,10 +658,11 @@
       },
       {
         "pos": 9,
-        "name": "Diego",
-        "team": "Sahara Force India F1 Team",
+        "name": "gkf",
+        "team": "Vodafone McLaren",
         "pts": 2,
-        "gap": "+58.297"
+        "gap": "+64.231",
+        "note": "(10s Pen)"
       },
       {
         "pos": 10,
