@@ -169,9 +169,9 @@
       "color": "#00d2be",
       "drivers": [
         {
-          "num": "14",
+          "num": "12",
           "code": "MD1",
-          "name": "Unironically",
+          "name": "Jack",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -185,17 +185,9 @@
           "pods": 0
         },
         {
-          "num": "12",
+          "num": "14",
           "code": "RD1",
-          "name": "Jack",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "7",
-          "code": "RD2",
-          "name": "Leo",
+          "name": "Unironically",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -881,6 +873,14 @@
           "num": "04",
           "code": "MD3",
           "name": "Bartos",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "RD1",
+          "name": "Alistair",
           "pts": 0,
           "wins": 0,
           "pods": 0
