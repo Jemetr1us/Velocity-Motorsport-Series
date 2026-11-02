@@ -2573,3 +2573,141 @@ async function loadNews(force){
   render();
   try{ const h0=(typeof _h!=='undefined'?_h:location.hash.slice(1)); if(h0==='betting'||location.hash==='#betting') go('betting'); }catch(e){}
 })();
+
+/* ═════════ VMS EXTRAS: Points Race · Podium share card · confetti · Lights Out game · 3D tilt cards ═════════ */
+(function(){
+  const $=id=>document.getElementById(id);
+  const css=document.createElement('style'); css.id='vx-extra-css'; css.textContent=
+      '#vx-conf{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999}'+
+   '.pr-wrap{overflow-x:auto}.pr-svg{width:100%;min-width:640px;height:auto;display:block}'+
+   '.pr-svg .ln{cursor:pointer;transition:opacity .2s}.pr-svg path.l{fill:none;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:prd 1.4s ease forwards}'+
+   '@keyframes prd{to{stroke-dashoffset:0}}.pr-svg.hl .ln{opacity:.12}.pr-svg.hl .ln.on{opacity:1}.pr-svg.hl .ln.on path.l{stroke-width:4}'+
+   '.pr-svg text{font:700 11px Arial,sans-serif;fill:#888}.pr-svg text.nm{font-size:12px}'+
+   '.vx-share{background:transparent;border:1px solid #444;color:#ddd;padding:8px 14px;font:800 11px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-left:auto}'+
+   '.vx-share:hover{border-color:#e8186d;color:#fff}';
+  document.head.appendChild(css);
+
+  /* confetti (click a champion card, or ↑↑↓↓←→←→BA) */
+  function confetti(){
+    if($('vx-conf')) return; const c=document.createElement('canvas'); c.id='vx-conf'; document.body.appendChild(c);
+    const x=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+    const col=['#e8186d','#ff6b00','#ffd34e','#ffffff','#1a56c4'];
+    const p=Array.from({length:170},()=>({x:c.width/2+(Math.random()-.5)*200,y:c.height*.62,vx:(Math.random()-.5)*16,vy:-8-Math.random()*13,s:5+Math.random()*7,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:col[Math.random()*col.length|0]}));
+    let n=0; (function f(){
+      x.clearRect(0,0,c.width,c.height); p.forEach(a=>{a.vy+=.38;a.vx*=.99;a.x+=a.vx;a.y+=a.vy;a.r+=a.vr;x.save();x.translate(a.x,a.y);x.rotate(a.r);x.fillStyle=a.c;x.fillRect(-a.s/2,-a.s/4,a.s,a.s/2);x.restore();});
+      if(++n<190) requestAnimationFrame(f); else c.remove();
+    })();
+  }
+  document.addEventListener('click',e=>{ if(e.target.closest('.champ')) confetti(); });
+  const kc=[38,38,40,40,37,39,37,39,66,65]; let ki=0;
+  document.addEventListener('keydown',e=>{ ki=(e.keyCode===kc[ki])?ki+1:(e.keyCode===kc[0]?1:0); if(ki===kc.length){ki=0;confetti();} });
+
+  /* ───── Points Race: cumulative points line chart (Standings → Points Race) ───── */
+  const sub=$('stSub'), anchor=document.querySelector('.st-pane[data-p="heat"]')||document.querySelector('.st-pane[data-p="replay"]');
+  const pr={series:'f1'}, PAL=['#e8186d','#ff6b00','#ffd34e','#37d6c4','#9b7bff','#7fb2ff','#b8f35a','#ff8fb3'];
+  function prRender(){
+    const box=$('prBoard'); if(!box) return;
+    tabs($('prSeries'),SERIES.map(s=>[s,FULL[s]]),pr.series,k=>{pr.series=k;prRender();});
+    const s=pr.series, rounds=roundsWithResults(s);
+    if(rounds.length<2){box.innerHTML='<div class="empty">Needs at least two rounds of results.</div>';return;}
+    const m={};
+    rounds.forEach((r,i)=>(D.results[rkey(r,s)]||[]).forEach(x=>{
+      const k=canon(s,x.name), o=m[k]||(m[k]={name:x.name,team:x.team,v:rounds.map(()=>0)}); o.v[i]+=+x.pts||0; o.team=x.team||o.team;
+    }));
+    const list=Object.values(m).map(o=>{let a=0; o.cum=o.v.map(v=>a+=v); o.tot=a; return o;}).sort((a,b)=>b.tot-a.tot).slice(0,8);
+    const used=new Set(); list.forEach((o,i)=>{const c=conFor(s,o.team); let col=c&&c.color; if(!col||used.has(col)) col=PAL.find(p=>!used.has(p))||PAL[i]; used.add(col); o.col=col;});
+    const W=900,H=420,L=46,R=120,T=16,B=34, max=Math.max(...list.map(o=>o.tot))||1, n=rounds.length;
+    const X=i=>L+i*(W-L-R)/(n-1), Y=v=>T+(1-v/max)*(H-T-B);
+    const grid=[0,.25,.5,.75,1].map(f=>{const y=Y(max*f); return `<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#262626"/><text x="${L-8}" y="${y+4}" text-anchor="end">${Math.round(max*f)}</text>`;}).join('');
+    const xs=rounds.map((r,i)=>`<text x="${X(i)}" y="${H-12}" text-anchor="middle">R${esc(r.rnd)}</text>`).join('');
+    let last=-99; const ends=list.map((o,i)=>({o,y:Y(o.tot)})).sort((a,b)=>a.y-b.y).map(e=>{e.ly=Math.max(e.y,last+14); last=e.ly; return e;});
+    const ly=new Map(ends.map(e=>[e.o,e.ly]));
+    const lines=list.map(o=>`<g class="ln" data-name="${esc(o.name)}"><path class="l" pathLength="1" stroke="${o.col}" d="${o.cum.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)).join(' ')}"/>${
+      o.cum.map((v,i)=>`<circle cx="${X(i)}" cy="${Y(v)}" r="3.2" fill="${o.col}"><title>${esc(o.name)} · ${esc(rounds[i].name)} · ${v} pts</title></circle>`).join('')
+    }<text class="nm" x="${W-R+10}" y="${ly.get(o)+4}" fill="${o.col}" style="fill:${o.col}">${esc(o.name)} ${o.tot}</text></g>`).join('');
+    box.innerHTML=`<div class="pr-wrap"><svg class="pr-svg" viewBox="0 0 ${W} ${H}">${grid}${xs}${lines}</svg></div>`;
+    const svg=box.querySelector('svg');
+    svg.onmouseover=e=>{const g=e.target.closest('.ln'); svg.classList.toggle('hl',!!g); svg.querySelectorAll('.ln').forEach(x=>x.classList.toggle('on',x===g));};
+    svg.onmouseleave=()=>{svg.classList.remove('hl');};
+    svg.onclick=e=>{const g=e.target.closest('.ln'); if(g) openDriver(s,g.dataset.name);};
+  }
+  if(sub&&anchor&&!document.querySelector('.st-pane[data-p="pace"]')){
+    sub.insertAdjacentHTML('beforeend','<button type="button" data-p="pace">Points Race</button>');
+    anchor.insertAdjacentHTML('afterend','<div class="st-pane" data-p="pace"><section id="pacechart"><div class="section-head"><div><div class="title">Points <span class="yellow">Race</span></div><div class="line"></div></div><span class="sub">Cumulative points · top 8 · hover a line</span></div><div class="tabs" id="prSeries"></div><div id="prBoard"></div></section></div>');
+    const _sp=stPane; stPane=function(p){_sp.apply(this,arguments); if(p==='pace') prRender();};
+    if(stp.p==='pace') prRender();
+  }
+
+  /* ───── Podium share card (Results → Share podium → PNG) ───── */
+  function podiumCard(){
+    const s=rs.series, race=real.find(r=>r.rnd===rs.rnd), rows=race&&D.results[rkey(race,s)]; if(!rows) return;
+    const W=1080,H=1350,c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d');
+    const bg=x.createLinearGradient(0,0,W,H); bg.addColorStop(0,'#0b0b0f'); bg.addColorStop(1,'#1a0a14'); x.fillStyle=bg; x.fillRect(0,0,W,H);
+    const g=x.createLinearGradient(0,0,W,0); g.addColorStop(0,'#e8186d'); g.addColorStop(1,'#ff6b00'); x.fillStyle=g; x.fillRect(0,0,W,14);
+    x.fillStyle='#fff'; x.font='900 44px Arial'; x.fillText(FULL[s]+' · ROUND '+race.rnd,60,100);
+    x.font='900 76px Arial'; x.fillText((race.flag&&race.flag.length<6?race.flag+' ':'')+race.name.toUpperCase().slice(0,22),60,190);
+    x.fillStyle='#999'; x.font='600 30px Arial'; x.fillText(race.circuit+' · '+dates(race),60,240);
+    const top=rows.slice(0,3), hs=[330,250,190], order=[1,0,2], bx=[70,390,710];
+    order.forEach((ri,k)=>{const r=top[ri]; if(!r) return; const h=hs[ri], y=620-h+130, col=['#ffd34e','#c9d1d9','#ff9a3d'][ri];
+      const cc=conFor(s,r.team), tc=(cc&&cc.color)||'#e8186d';
+      x.fillStyle='#16161c'; x.fillRect(bx[k],y,300,h); x.fillStyle=tc; x.fillRect(bx[k],y,300,8);
+      x.fillStyle=col; x.font='900 96px Arial'; x.fillText('P'+r.pos,bx[k]+22,y+110);
+      x.fillStyle='#fff'; x.font='800 38px Arial'; x.fillText(String(r.name).slice(0,14),bx[k]+22,y-20-(ri===0?0:0));
+      x.fillStyle='#888'; x.font='600 22px Arial'; x.fillText(String(r.team||'').slice(0,24),bx[k]+22,y-52);
+      x.fillStyle='#fff'; x.font='700 26px Arial'; x.fillText(r.pts+' pts'+(r.pole?' · POLE':'')+(r.fl?' · FL':''),bx[k]+22,y+h-22);});
+    x.font='700 30px Arial'; rows.slice(3,10).forEach((r,i)=>{const y=800+i*66; x.fillStyle=i%2?'#111116':'#15151b'; x.fillRect(60,y,960,58);
+      x.fillStyle='#e8186d'; x.fillText('P'+r.pos,84,y+40); x.fillStyle='#fff'; x.fillText(String(r.name).slice(0,18),170,y+40);
+      x.fillStyle='#888'; x.font='600 24px Arial'; x.fillText(String(r.team||'').slice(0,26),520,y+39); x.fillStyle='#fff'; x.font='800 30px Arial'; x.textAlign='right'; x.fillText(r.pts+'',990,y+40); x.textAlign='left'; x.font='700 30px Arial';});
+    x.fillStyle=g; x.fillRect(60,H-110,960,4); x.fillStyle='#fff'; x.font='900 34px Arial'; x.fillText('VMS RACING LEAGUE',60,H-55); x.fillStyle='#888'; x.font='600 24px Arial'; x.fillText('Season 2026',60,H-22);
+    c.toBlob(b=>{const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='VMS-'+s.toUpperCase()+'-R'+race.rnd+'-podium.png'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);});
+    confetti();
+  }
+  const _rr=renderResults;
+  renderResults=function(){ _rr.apply(this,arguments);
+    const meta=$('resMeta'); if(!meta||!meta.innerHTML||meta.querySelector('.vx-share')) return;
+    const b=document.createElement('button'); b.type='button'; b.className='vx-share'; b.textContent='⬇ Share podium'; b.onclick=podiumCard; meta.appendChild(b); };
+
+  /* ───── 3D tilt + glow on cards ───── */
+  const tcss=document.createElement('style'); tcss.textContent='.vx-tilt{transition:transform .15s ease-out,box-shadow .2s;will-change:transform}.vx-tilt:hover{box-shadow:0 14px 40px rgba(232,24,109,.25)}';
+  document.head.appendChild(tcss);
+  const TS='.champ,.tf-card,.series-card,.round.link,.round.next';
+  document.addEventListener('mousemove',e=>{
+    const el=e.target.closest&&e.target.closest(TS); if(!el) return;
+    const r=el.getBoundingClientRect(), px=(e.clientX-r.left)/r.width-.5, py=(e.clientY-r.top)/r.height-.5;
+    el.classList.add('vx-tilt'); el.style.transform=`perspective(700px) rotateX(${(-py*9).toFixed(2)}deg) rotateY(${(px*11).toFixed(2)}deg) translateZ(6px)`;
+  },{passive:true});
+  document.addEventListener('mouseout',e=>{const el=e.target.closest&&e.target.closest(TS); if(el&&!el.contains(e.relatedTarget)) el.style.transform='';});
+
+  /* ───── Lights Out: F1 start reaction game ───── */
+  const lcss=document.createElement('style'); lcss.textContent=
+   '#lo-btn{position:fixed;left:16px;bottom:16px;z-index:9990;background:#111;border:1px solid #e8186d;color:#fff;padding:10px 14px;font:800 12px Arial,sans-serif;letter-spacing:1px;cursor:pointer}#lo-btn:hover{background:#e8186d}'+
+   '#lo{position:fixed;inset:0;background:rgba(5,5,8,.96);z-index:99990;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;user-select:none;cursor:pointer}#lo.open{display:flex}'+
+   '#lo .ls{display:flex;gap:2.2vmin;background:#0d0d10;padding:3vmin 4vmin;border:2px solid #222;border-radius:14px}#lo .l{width:11vmin;height:11vmin;border-radius:50%;background:#1a1a1a;border:3px solid #2a2a2a;transition:background .05s,box-shadow .05s}#lo .l.on{background:#ff1a1a;box-shadow:0 0 5vmin #ff1a1a}'+
+   '#lo .t{font:900 9vmin Arial;margin-top:5vmin;letter-spacing:2px;min-height:10vmin}#lo .m{color:#999;font:700 2.4vmin Arial;margin-top:1.5vmin;letter-spacing:2px;text-transform:uppercase}#lo .x{position:absolute;top:18px;right:22px;font:900 30px Arial;color:#888}';
+  document.head.appendChild(lcss);
+  const lo=document.createElement('div'); lo.id='lo';
+  lo.innerHTML='<span class="x">×</span><div class="ls">'+'<div class="l"></div>'.repeat(5)+'</div><div class="t" id="loT">READY?</div><div class="m" id="loM">Click / tap / space when the lights go out</div>';
+  document.body.appendChild(lo);
+  const lb=document.createElement('button'); lb.id='lo-btn'; lb.type='button'; lb.textContent='🚦 LIGHTS OUT'; document.body.appendChild(lb);
+  let ls='idle', t0=0, timers=[]; const L=()=>[...lo.querySelectorAll('.l')];
+  const best=()=>{try{return +localStorage.getItem('vms-lo-best')||0;}catch(e){return 0;}};
+  const clr=()=>{timers.forEach(clearTimeout); timers=[];};
+  function lStart(){
+    clr(); ls='lights'; L().forEach(l=>l.classList.remove('on')); $('loT').textContent='...'; $('loM').textContent=best()?'Best: '+best()+' ms':'Wait for it';
+    L().forEach((l,i)=>timers.push(setTimeout(()=>l.classList.add('on'),600*(i+1))));
+    timers.push(setTimeout(()=>{ls='armed'; timers.push(setTimeout(()=>{L().forEach(l=>l.classList.remove('on')); ls='go'; t0=performance.now(); $('loT').textContent='GO!';},500+Math.random()*2500));},3000));
+  }
+  function lHit(){
+    if(ls==='idle'||ls==='done'){ lStart(); return; }
+    if(ls==='lights'||ls==='armed'){ clr(); ls='done'; $('loT').textContent='JUMP START!'; $('loM').textContent='+5s penalty · click to retry'; return; }
+    if(ls==='go'){
+      const ms=Math.round(performance.now()-t0); ls='done'; let b=best(), nb=!b||ms<b; if(nb){try{localStorage.setItem('vms-lo-best',ms);}catch(e){} b=ms; confetti();}
+      $('loT').textContent=ms+' ms'; $('loM').textContent=(nb?'New personal best! ':'Best: '+b+' ms · ')+(ms<200?'Verstappen-level':ms<260?'Podium reflexes':ms<350?'Midfield':'Backmarker')+' · click to retry';
+    }
+  }
+  const lClose=()=>{clr(); lo.classList.remove('open'); ls='idle';};
+  lb.onclick=()=>{lo.classList.add('open'); ls='idle'; L().forEach(l=>l.classList.remove('on')); $('loT').textContent='READY?'; $('loM').textContent=best()?'Best: '+best()+' ms · click to start':'Click to start';};
+  lo.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) lClose(); else lHit(); });
+  document.addEventListener('keydown',e=>{ if(!lo.classList.contains('open')) return; if(e.key==='Escape') lClose(); else if(e.key===' '){e.preventDefault();lHit();} });
+  renderResults();
+})();
