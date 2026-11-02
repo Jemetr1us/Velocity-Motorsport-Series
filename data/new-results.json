@@ -597,6 +597,7 @@
         "name": "Nick",
         "team": "Scuderia Ferrari",
         "pts": 25,
+        "pole": true,
         "gap": "Leader"
       },
       {
@@ -611,6 +612,7 @@
         "name": "Juantoes",
         "team": "Richard Mille LM Motorsport F1",
         "pts": 15,
+        "fl": true,
         "gap": "+29.232"
       },
       {
