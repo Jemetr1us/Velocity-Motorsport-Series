@@ -5,7 +5,7 @@
         "pos": 1,
         "name": "Nick",
         "team": "Scuderia Ferrari",
-        "pts": 327
+        "pts": 352
       },
       {
         "pos": 2,
@@ -23,73 +23,73 @@
         "pos": 4,
         "name": "yokesecapo",
         "team": "Scuderia Ferrari",
-        "pts": 51
+        "pts": 55
       },
       {
         "pos": 5,
-        "name": "GKF",
-        "team": "Vodafone McLaren",
-        "pts": 49
+        "name": "Rox",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 51
       },
       {
         "pos": 6,
-        "name": "Ageftyg2",
-        "team": "Scuderia Ferrari",
-        "pts": 41
+        "name": "GKF",
+        "team": "Vodafone McLaren",
+        "pts": 51
       },
       {
         "pos": 7,
+        "name": "Ageftyg2",
+        "team": "Scuderia Ferrari",
+        "pts": 51
+      },
+      {
+        "pos": 8,
+        "name": "ShadowRex",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 42
+      },
+      {
+        "pos": 9,
         "name": "Joshua",
         "team": "Aero Apex Racing",
         "pts": 40
       },
       {
-        "pos": 8,
+        "pos": 10,
         "name": "Unironically",
         "team": "Mercedes-AMG",
         "pts": 40
       },
       {
-        "pos": 9,
+        "pos": 11,
         "name": "Arin",
         "team": "Aero Apex Racing",
         "pts": 34
       },
       {
-        "pos": 10,
-        "name": "Rox",
-        "team": "Renault Sport Formula 1 Team",
-        "pts": 33
-      },
-      {
-        "pos": 11,
-        "name": "ShadowRex",
-        "team": "Tarigy's Motorsport Team F1",
-        "pts": 30
-      },
-      {
         "pos": 12,
+        "name": "Peters",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 29
+      },
+      {
+        "pos": 13,
         "name": "Vitality",
         "team": "Scuderia Ferrari",
         "pts": 24
       },
       {
-        "pos": 13,
+        "pos": 14,
         "name": "Daih_V",
         "team": "Vanguard Sabre Motorsport",
         "pts": 24
       },
       {
-        "pos": 14,
+        "pos": 15,
         "name": "Sun_rise",
         "team": "Hertz Porsche",
         "pts": 22
-      },
-      {
-        "pos": 15,
-        "name": "Peters",
-        "team": "Richard Mille LM Motorsport F1",
-        "pts": 21
       },
       {
         "pos": 16,
@@ -111,63 +111,75 @@
       },
       {
         "pos": 19,
+        "name": "Juantoes",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 16
+      },
+      {
+        "pos": 20,
         "name": "Skirmis",
         "team": "Richard Mille LM Motorsport F1",
         "pts": 15
       },
       {
-        "pos": 20,
+        "pos": 21,
+        "name": "Diego",
+        "team": "Sahara Force India F1 Team",
+        "pts": 14
+      },
+      {
+        "pos": 22,
         "name": "Amin",
         "team": "Renault Sport Formula 1 Team",
         "pts": 12
       },
       {
-        "pos": 21,
+        "pos": 23,
         "name": "Syxe",
         "team": "GlitchGP F1 Team",
         "pts": 10
       },
       {
-        "pos": 22,
-        "name": "Diego",
-        "team": "Sahara Force India F1 Team",
-        "pts": 10
-      },
-      {
-        "pos": 23,
+        "pos": 24,
         "name": "Infinity",
         "team": "Aero Apex Racing",
         "pts": 8
       },
       {
-        "pos": 24,
+        "pos": 25,
+        "name": "Batwert",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 8
+      },
+      {
+        "pos": 26,
         "name": "Maldonado",
         "team": "Tarigy's Motorsport Team F1",
         "pts": 6
       },
       {
-        "pos": 25,
+        "pos": 27,
         "name": "Nath",
         "team": "Vanguard Sabre Motorsport",
         "pts": 4
       },
       {
-        "pos": 26,
+        "pos": 28,
         "name": "Emirovic",
         "team": "Mercedes-AMG",
         "pts": 3
       },
       {
-        "pos": 27,
+        "pos": 29,
         "name": "Yuki",
         "team": "GlitchGP F1 Team",
         "pts": 2
       },
       {
-        "pos": 28,
-        "name": "Batwert",
+        "pos": 30,
+        "name": "Gamrin",
         "team": "Renault Sport Formula 1 Team",
-        "pts": 2
+        "pts": 1
       }
     ],
     "driversFull": true,
@@ -175,22 +187,22 @@
       {
         "pos": 1,
         "name": "Scuderia Ferrari",
-        "pts": 406
+        "pts": 435
       },
       {
         "pos": 2,
         "name": "Richard Mille LM Motorsport F1",
-        "pts": 381
+        "pts": 397
       },
       {
         "pos": 3,
         "name": "Renault Sport Formula 1 Team",
-        "pts": 199
+        "pts": 224
       },
       {
         "pos": 4,
         "name": "Mercedes-AMG",
-        "pts": 144
+        "pts": 154
       },
       {
         "pos": 5,
@@ -205,17 +217,17 @@
       {
         "pos": 7,
         "name": "Vodafone McLaren",
-        "pts": 84
+        "pts": 86
       },
       {
         "pos": 8,
-        "name": "Sahara Force India F1 Team",
-        "pts": 80
+        "name": "Tarigy's Motorsport Team F1",
+        "pts": 86
       },
       {
         "pos": 9,
-        "name": "Tarigy's Motorsport Team F1",
-        "pts": 66
+        "name": "Sahara Force India F1 Team",
+        "pts": 84
       },
       {
         "pos": 10,
