@@ -503,13 +503,13 @@
         "pos": 2,
         "name": "Jeffz",
         "team": "LMP",
-        "pts": 205
+        "pts": 231
       },
       {
         "pos": 3,
         "name": "Ukkiett",
         "team": "Carti Racing Association",
-        "pts": 171
+        "pts": 189
       },
       {
         "pos": 4,
@@ -521,19 +521,19 @@
         "pos": 5,
         "name": "Dark Shadow",
         "team": "Pola Sabre Motorsports",
-        "pts": 112
+        "pts": 118
       },
       {
         "pos": 6,
         "name": "Lancelot",
         "team": "Tarigy’s Motorsport Team F3",
-        "pts": 76
+        "pts": 86
       },
       {
         "pos": 7,
         "name": "Fabián",
         "team": "Tarigy’s Motorsport Team F3",
-        "pts": 73
+        "pts": 74
       },
       {
         "pos": 8,
@@ -545,55 +545,55 @@
         "pos": 9,
         "name": "Syxe",
         "team": "GlitchGP F3",
-        "pts": 27
+        "pts": 37
       },
       {
         "pos": 10,
+        "name": "SCKIBLES",
+        "team": "GlitchGP F3",
+        "pts": 34
+      },
+      {
+        "pos": 11,
         "name": "YellowRice",
         "team": "Renault Sport Formula 3 Team",
         "pts": 25
       },
       {
-        "pos": 11,
-        "name": "SCKIBLES",
-        "team": "GlitchGP F3",
-        "pts": 22
+        "pos": 12,
+        "name": "Maslo",
+        "team": "Aston Martin Racing F3",
+        "pts": 23
       },
       {
-        "pos": 12,
+        "pos": 13,
         "name": "Maldonado",
         "team": "Tarigy’s Motorsport Team F3",
         "pts": 21
       },
       {
-        "pos": 13,
+        "pos": 14,
         "name": "Ellie",
         "team": "Kogun Technologies F3 Team",
         "pts": 14
       },
       {
-        "pos": 14,
+        "pos": 15,
         "name": "Piti",
         "team": "Anonymous Juniors",
         "pts": 10
       },
       {
-        "pos": 15,
+        "pos": 16,
         "name": "Wibz",
         "team": "Carti Racing Association",
         "pts": 10
       },
       {
-        "pos": 16,
+        "pos": 17,
         "name": "Kriekel",
         "team": "LMP",
         "pts": 10
-      },
-      {
-        "pos": 17,
-        "name": "Maslo",
-        "team": "Aston Martin Racing F3",
-        "pts": 8
       },
       {
         "pos": 18,
@@ -615,24 +615,36 @@
       },
       {
         "pos": 21,
+        "name": "d1MA",
+        "team": "Carti Racing Association F3",
+        "pts": 4
+      },
+      {
+        "pos": 22,
         "name": "Lance",
         "team": "Aston Martin Racing F3",
         "pts": 2
       },
       {
-        "pos": 22,
+        "pos": 23,
         "name": "Bence",
         "team": "GlitchGP F3",
         "pts": 2
       },
       {
-        "pos": 23,
+        "pos": 24,
+        "name": "Gui",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 2
+      },
+      {
+        "pos": 25,
         "name": "Chicken_Bake",
         "team": "GlitchGP F3",
         "pts": 1
       },
       {
-        "pos": 24,
+        "pos": 26,
         "name": "Elias",
         "team": "BMW Sauber F3 Team",
         "pts": 1
@@ -643,37 +655,37 @@
       {
         "pos": 1,
         "name": "LMP",
-        "pts": 569
+        "pts": 595
       },
       {
         "pos": 2,
         "name": "Tarigy’s Motorsport Team F3",
-        "pts": 269
+        "pts": 280
       },
       {
         "pos": 3,
         "name": "Pola Sabre Motorsports",
-        "pts": 224
+        "pts": 234
       },
       {
         "pos": 4,
         "name": "Carti Racing Association",
-        "pts": 195
+        "pts": 217
       },
       {
         "pos": 5,
         "name": "Renault Sport Formula 3 Team",
-        "pts": 115
+        "pts": 117
       },
       {
         "pos": 6,
         "name": "Aston Martin Racing F3",
-        "pts": 79
+        "pts": 94
       },
       {
         "pos": 7,
         "name": "GlitchGP F3",
-        "pts": 54
+        "pts": 66
       },
       {
         "pos": 8,
@@ -682,21 +694,16 @@
       },
       {
         "pos": 9,
-        "name": "Carti Racing Association F3",
-        "pts": 25
-      },
-      {
-        "pos": 10,
         "name": "Kogun Technologies F3 Team",
         "pts": 24
       },
       {
-        "pos": 11,
+        "pos": 10,
         "name": "BMW Sauber F3 Team",
-        "pts": 14
+        "pts": 24
       },
       {
-        "pos": 12,
+        "pos": 11,
         "name": "Anonymous Juniors",
         "pts": 13
       }
