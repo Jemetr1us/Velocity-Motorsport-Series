@@ -1958,7 +1958,7 @@ async function loadNews(force){
 
 })();
 
-/* ═════════ VMS EXTRAS: Points Race · Podium share card · confetti · Lights Out game · 3D tilt cards ═════════ */
+/* ═════════ VMS EXTRAS: Points Race · Podium share card · confetti · 3D tilt cards ═════════ */
 (function(){
   const $=id=>document.getElementById(id);
   const css=document.createElement('style'); css.id='vx-extra-css'; css.textContent=
@@ -2062,53 +2062,49 @@ async function loadNews(force){
   },{passive:true});
   document.addEventListener('mouseout',e=>{const el=e.target.closest&&e.target.closest(TS); if(el&&!el.contains(e.relatedTarget)) el.style.transform='';});
 
-  /* ───── Lights Out: F1 start reaction game ───── */
-  const lcss=document.createElement('style'); lcss.textContent=
-   '#lo-btn{position:fixed;left:16px;bottom:16px;z-index:9990;background:#111;border:1px solid #e8186d;color:#fff;padding:10px 14px;font:800 12px Arial,sans-serif;letter-spacing:1px;cursor:pointer}#lo-btn:hover{background:#e8186d}'+
-   '#lo{position:fixed;inset:0;background:rgba(5,5,8,.96);z-index:99990;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:Arial,sans-serif;user-select:none;cursor:pointer}#lo.open{display:flex}'+
-   '#lo .ls{display:flex;gap:2.2vmin;background:#0d0d10;padding:3vmin 4vmin;border:2px solid #222;border-radius:14px}#lo .l{width:11vmin;height:11vmin;border-radius:50%;background:#1a1a1a;border:3px solid #2a2a2a;transition:background .05s,box-shadow .05s}#lo .l.on{background:#ff1a1a;box-shadow:0 0 5vmin #ff1a1a}'+
-   '#lo .t{font:900 9vmin Arial;margin-top:5vmin;letter-spacing:2px;min-height:10vmin}#lo .m{color:#999;font:700 2.4vmin Arial;margin-top:1.5vmin;letter-spacing:2px;text-transform:uppercase}#lo .x{position:absolute;top:18px;right:22px;font:900 30px Arial;color:#888}';
-  document.head.appendChild(lcss);
-  const lo=document.createElement('div'); lo.id='lo';
-  lo.innerHTML='<span class="x">×</span><div class="ls">'+'<div class="l"></div>'.repeat(5)+'</div><div class="t" id="loT">READY?</div><div class="m" id="loM">Click / tap / space when the lights go out</div>';
-  document.body.appendChild(lo);
-  const lb=document.createElement('button'); lb.id='lo-btn'; lb.type='button'; lb.textContent='🚦 LIGHTS OUT'; document.body.appendChild(lb);
-  let ls='idle', t0=0, timers=[]; const L=()=>[...lo.querySelectorAll('.l')];
-  const best=()=>{try{return +localStorage.getItem('vms-lo-best')||0;}catch(e){return 0;}};
-  const clr=()=>{timers.forEach(clearTimeout); timers=[];};
-  function lStart(){
-    clr(); ls='lights'; L().forEach(l=>l.classList.remove('on')); $('loT').textContent='...'; $('loM').textContent=best()?'Best: '+best()+' ms':'Wait for it';
-    L().forEach((l,i)=>timers.push(setTimeout(()=>l.classList.add('on'),600*(i+1))));
-    timers.push(setTimeout(()=>{ls='armed'; timers.push(setTimeout(()=>{L().forEach(l=>l.classList.remove('on')); ls='go'; t0=performance.now(); $('loT').textContent='GO!';},500+Math.random()*2500));},3000));
-  }
-  function lHit(){
-    if(ls==='idle'||ls==='done'){ lStart(); return; }
-    if(ls==='lights'||ls==='armed'){ clr(); ls='done'; $('loT').textContent='JUMP START!'; $('loM').textContent='+5s penalty · click to retry'; return; }
-    if(ls==='go'){
-      const ms=Math.round(performance.now()-t0); ls='done'; let b=best(), nb=!b||ms<b; if(nb){try{localStorage.setItem('vms-lo-best',ms);}catch(e){} b=ms; confetti();}
-      $('loT').textContent=ms+' ms'; $('loM').textContent=(nb?'New personal best! ':'Best: '+b+' ms · ')+(ms<200?'Verstappen-level':ms<260?'Podium reflexes':ms<350?'Midfield':'Backmarker')+' · click to retry';
-    }
-  }
-  const lClose=()=>{clr(); lo.classList.remove('open'); ls='idle';};
-  lb.onclick=()=>{lo.classList.add('open'); ls='idle'; L().forEach(l=>l.classList.remove('on')); $('loT').textContent='READY?'; $('loM').textContent=best()?'Best: '+best()+' ms · click to start':'Click to start';};
-  lo.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) lClose(); else lHit(); });
-  document.addEventListener('keydown',e=>{ if(!lo.classList.contains('open')) return; if(e.key==='Escape') lClose(); else if(e.key===' '){e.preventDefault();lHit();} });
   renderResults();
 })();
 
-/* ═════════ VMS EXTRAS 2: Race Replay · Season Story · Race Control ticker · Lights Out sound · count-up numbers ═════════ */
+/* ═════════ VMS EXTRAS 2: Race Report · Season Story · Race Control ticker · count-up numbers ═════════ */
 (function(){
   const $=id=>document.getElementById(id);
   const css=document.createElement('style'); css.textContent=
    '#vx-tick{overflow:hidden;white-space:nowrap;background:#0b0b0f;border-bottom:1px solid #222;font:800 12px Arial,sans-serif;letter-spacing:1px;color:#ddd;padding:7px 0}'+
    '#vx-tick .tk{display:inline-block;padding-left:100%;animation:vxtk 70s linear infinite}#vx-tick:hover .tk{animation-play-state:paused}#vx-tick em{color:#e8186d;font-style:normal;margin:0 14px}@keyframes vxtk{to{transform:translateX(-100%)}}'+
-   '#rp-ov,#st-ov{position:fixed;inset:0;background:rgba(5,5,8,.96);z-index:99991;display:none;flex-direction:column;justify-content:center;align-items:center;color:#fff;font-family:Arial,sans-serif;cursor:pointer;user-select:none}#rp-ov.open,#st-ov.open{display:flex}'+
-   '#rp-ov .x,#st-ov .x{position:absolute;top:18px;right:22px;font:900 30px Arial;color:#888}#rp-ov h3{font:900 24px Arial;letter-spacing:2px;text-transform:uppercase;margin:0 0 18px}#rp-ov .m{color:#777;font:700 12px Arial;letter-spacing:2px;margin-top:16px;text-transform:uppercase}'+
-   '#rp-ov .trk{width:min(900px,92vw)}.cr{display:flex;align-items:center;gap:10px;margin:5px 0}.cr .p{width:34px;font:900 14px Arial;color:#ffd34e}.rd{flex:1;height:30px;background:#14141a;position:relative}'+
-   '.rd i{display:block;height:100%;width:0;transition-property:width;transition-timing-function:cubic-bezier(.3,.1,.2,1);text-align:right}.rd b{font:800 13px/30px Arial;padding-right:14px;white-space:nowrap;overflow:hidden;display:block}'+
-   '.rd:after{content:"";position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(#fff 0 25%,#000 0 50%) 0 0/10px 10px}'+
-   '#st-ov .bars{position:absolute;top:14px;left:5vw;right:5vw;display:flex;gap:6px}#st-ov .bars i{flex:1;height:4px;background:#333}#st-ov .bars i.on{background:#e8186d}'+
-   '#st-ov .k{font:800 14px Arial;letter-spacing:4px;color:#e8186d;text-transform:uppercase}#st-ov .b{font:900 14vmin/1.05 Arial;margin:2vmin 6vw;text-align:center;max-width:90vw}#st-ov .s{font:700 3vmin Arial;color:#bbb;text-align:center}';
+   /* ── Race Report ── */
+   '#rr-ov{position:fixed;inset:0;background:radial-gradient(circle at 50% 0,#1c1022,#050508 70%);z-index:99991;display:none;flex-direction:column;align-items:center;color:#fff;font-family:Arial,sans-serif;overflow:auto;padding:28px 4vw 40px;cursor:default}#rr-ov.open{display:flex}'+
+   '#rr-ov .x{position:fixed;top:14px;right:22px;font:900 30px Arial;color:#888;cursor:pointer;z-index:2}#rr-ov .x:hover{color:#fff}'+
+   '#rr-ov .k{font:800 12px Arial;letter-spacing:4px;color:#e8186d;text-transform:uppercase}#rr-ov h3{font:900 clamp(22px,4.4vw,44px) Arial;letter-spacing:1px;text-transform:uppercase;margin:6px 0 4px;text-align:center}#rr-ov .sb{color:#888;font:700 12px Arial;letter-spacing:2px;text-transform:uppercase;margin-bottom:22px}'+
+   '.rr-pod{display:flex;align-items:flex-end;justify-content:center;gap:10px;height:250px;width:min(620px,94vw);margin-bottom:22px}.rr-col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;height:100%}'+
+   '.rr-col .nm{font:900 clamp(13px,2.4vw,18px) Arial;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;animation:rrfade .5s ease forwards}.rr-col .tm{font:700 10px Arial;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;animation:rrfade .5s ease forwards}'+
+   '.rr-blk{width:100%;transform-origin:bottom;transform:scaleY(0);animation:rrrise .8s cubic-bezier(.2,.9,.2,1) forwards;display:flex;align-items:flex-start;justify-content:center;font:900 clamp(30px,6vw,52px) Arial;color:rgba(255,255,255,.92);padding-top:8px;border-radius:6px 6px 0 0;position:relative;overflow:hidden}'+
+   '.rr-blk:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.28) 50%,transparent 60%);transform:translateX(-120%);animation:rrshine 1.2s ease 1.3s forwards}'+
+   '@keyframes rrrise{to{transform:scaleY(1)}}@keyframes rrfade{to{opacity:1}}@keyframes rrshine{to{transform:translateX(120%)}}'+
+   '.rr-chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:min(760px,94vw);margin-bottom:24px}.rr-chip{background:#101015;border:1px solid #23232c;border-top:2px solid #e8186d;padding:10px 16px;min-width:130px;text-align:center;opacity:0;transform:translateY(10px);animation:rrup .5s ease forwards}'+
+   '.rr-chip b{display:block;font:900 20px Arial;margin-bottom:3px}.rr-chip span{font:700 10px Arial;color:#888;letter-spacing:2px;text-transform:uppercase}@keyframes rrup{to{opacity:1;transform:none}}'+
+   '.rr-gaps{width:min(760px,94vw)}.rr-gaps h4{font:800 11px Arial;letter-spacing:3px;color:#888;text-transform:uppercase;margin:0 0 10px}.rr-g{display:flex;align-items:center;gap:10px;margin:4px 0}.rr-g .p{width:32px;font:900 12px Arial;color:#ffd34e}.rr-g .n{width:min(120px,26vw);font:700 12px Arial;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'+
+   '.rr-g .t{flex:1;height:14px;background:#12121a;position:relative}.rr-g .t i{position:absolute;left:0;top:0;bottom:0;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}.rr-g .v{width:64px;font:700 11px Arial;color:#aaa;text-align:right}'+
+   /* ── Season Story ── */
+   '#st-ov{position:fixed;inset:0;z-index:99991;display:none;flex-direction:column;justify-content:center;align-items:center;color:#fff;font-family:Arial,sans-serif;cursor:pointer;user-select:none;overflow:hidden;--tc:#e8186d;background:#050508}#st-ov.open{display:flex}'+
+   '#st-ov .bg{position:absolute;inset:-20%;background:radial-gradient(circle at 30% 20%,var(--tc),transparent 45%),radial-gradient(circle at 80% 85%,#1a56c4,transparent 40%);opacity:.38;filter:blur(30px);animation:stbg 12s ease-in-out infinite alternate}'+
+   '#st-ov:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 38px,rgba(255,255,255,.025) 38px 40px);pointer-events:none}'+
+   '@keyframes stbg{to{transform:translate(6%,4%) scale(1.15) rotate(8deg)}}'+
+   '#st-ov .x{position:absolute;top:26px;right:22px;font:900 30px Arial;color:#888;z-index:3}#st-ov .x:hover{color:#fff}'+
+   '#st-ov .bars{position:absolute;top:14px;left:5vw;right:5vw;display:flex;gap:6px;z-index:3}#st-ov .bars i{flex:1;height:4px;background:rgba(255,255,255,.18);overflow:hidden;border-radius:2px}#st-ov .bars i u{display:block;height:100%;width:0;background:#fff;text-decoration:none}#st-ov .bars i.done u{width:100%}#st-ov .bars i.cur u{animation:stfill var(--d,5s) linear forwards}@keyframes stfill{to{width:100%}}'+
+   '#st-ov .in{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:0 6vw;text-align:center}'+
+   '#st-ov .in>*{opacity:0;animation:stin .7s cubic-bezier(.2,.8,.2,1) forwards}#st-ov .in>:nth-child(2){animation-delay:.15s}#st-ov .in>:nth-child(3){animation-delay:.35s}#st-ov .in>:nth-child(4){animation-delay:.55s}#st-ov .in>:nth-child(5){animation-delay:.75s}'+
+   '@keyframes stin{from{opacity:0;transform:translateY(34px) scale(.96)}to{opacity:1;transform:none}}'+
+   '#st-ov .k{font:800 clamp(12px,2vmin,16px) Arial;letter-spacing:6px;color:var(--tc);text-transform:uppercase;filter:brightness(1.5)}'+
+   '#st-ov .b{font:900 clamp(60px,20vmin,200px)/1 Arial;margin:2vmin 0;letter-spacing:-2px;background:linear-gradient(180deg,#fff 30%,var(--tc));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:none;max-width:92vw;word-break:break-word}'+
+   '#st-ov .b.nm{font-size:clamp(44px,13vmin,130px)}#st-ov .s{font:700 clamp(14px,3vmin,26px) Arial;color:#cfcfd8;max-width:80vw}'+
+   '#st-ov .row{display:flex;gap:6vw;align-items:flex-start;justify-content:center;flex-wrap:wrap}#st-ov .row .b{font-size:clamp(54px,16vmin,150px)}#st-ov .row .s{font-size:clamp(11px,2vmin,16px);letter-spacing:3px;text-transform:uppercase;color:#999}'+
+   '#st-ov .tr{font-size:clamp(28px,7vmin,60px);letter-spacing:6px;max-width:90vw;margin:2vmin 0}#st-ov .tr span{display:inline-block;animation:sttr .6s cubic-bezier(.3,1.6,.5,1) backwards}@keyframes sttr{from{opacity:0;transform:translateY(-80px) rotate(-30deg)}}'+
+   '#st-ov .ch{width:min(760px,90vw);height:auto;margin:3vmin 0}#st-ov .ch path.ln{fill:none;stroke:var(--tc);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:stdraw 2.2s ease .5s forwards;filter:drop-shadow(0 0 8px var(--tc))}@keyframes stdraw{to{stroke-dashoffset:0}}'+
+   '#st-ov .ch circle{fill:#fff;opacity:0;animation:stpop .4s ease forwards}#st-ov .ch circle.dn{fill:#ff3b3b}#st-ov .ch text{font:800 13px Arial;fill:#ddd;text-anchor:middle;opacity:0;animation:stpop .4s ease forwards}#st-ov .ch .ax{stroke:rgba(255,255,255,.12);stroke-dasharray:3 6}@keyframes stpop{to{opacity:1}}'+
+   '#st-ov .pb{display:inline-block;font:900 clamp(70px,22vmin,220px)/1 Arial;font-style:italic;padding:0 4vmin;border:.6vmin solid var(--tc);transform:skewX(-8deg);box-shadow:0 0 6vmin var(--tc),inset 0 0 4vmin rgba(255,255,255,.08);margin:2vmin 0}'+
+   '#st-ov .ar{display:inline-block;font:900 clamp(30px,8vmin,80px)/1.05 Arial;text-transform:uppercase;margin:2vmin 0;padding:1.5vmin 3vmin;background:var(--tc);color:#fff;transform:rotate(-3deg);box-shadow:8px 8px 0 rgba(255,255,255,.9)}'+
+   '#st-ov .hint{position:absolute;bottom:18px;left:0;right:0;text-align:center;font:700 11px Arial;letter-spacing:3px;color:#666;text-transform:uppercase;z-index:3;animation:none!important;opacity:1!important}'+
+   '@media (prefers-reduced-motion:reduce){#st-ov .bg,#st-ov .in>*,#st-ov .tr span,#st-ov .ch path.ln,#st-ov .ch circle,#st-ov .ch text{animation-duration:.01s!important;animation-delay:0s!important}}';
   document.head.appendChild(css);
 
   /* ───── Race Control ticker ───── */
@@ -2117,46 +2113,98 @@ async function loadNews(force){
   const nx=nextRace(); if(nx) parts.push('NEXT UP: '+esc(nx.name)+' · '+esc(dates(nx)));
   if(parts.length){ const t=document.createElement('div'); t.id='vx-tick'; t.innerHTML='<div class="tk">'+parts.join('<em>◆</em>')+'</div>'; document.body.insertBefore(t,document.body.firstChild); }
 
-  /* ───── Race Replay: results page → ▶ Replay finish ───── */
-  const rp=document.createElement('div'); rp.id='rp-ov'; document.body.appendChild(rp);
-  function replay(){
-    const s=rs.series, race=real.find(r=>r.rnd===rs.rnd), rows=race&&D.results[rkey(race,s)]; if(!rows) return;
-    rp.innerHTML='<span class="x">×</span><h3>'+esc(race.name)+' · '+esc(FULL[s])+'</h3><div class="trk">'+rows.slice(0,12).map((r,i)=>{const cc=conFor(s,r.team), col=(cc&&cc.color)||'#e8186d';
-      return '<div class="cr"><span class="p">P'+esc(r.pos)+'</span><div class="rd"><i style="background:'+col+';transition-duration:'+(3+i*.22)+'s"><b>'+esc(r.name)+'</b></i></div></div>';}).join('')+'</div><div class="m">Click to replay · Esc to close</div>';
-    rp.classList.add('open');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>rp.querySelectorAll('.rd i').forEach(i=>i.style.width='100%')));
+  /* ───── Race Report: results page → 🏆 Race report (animated podium + gap-to-winner) ───── */
+  const rr=document.createElement('div'); rr.id='rr-ov'; document.body.appendChild(rr);
+  const isDnf=h=>typeof DNFRE!=='undefined'&&DNFRE.test(h.note||'');
+  function report(){
+    const s=rs.series, race=real.find(r=>r.rnd===rs.rnd), rows=race&&D.results[rkey(race,s)]; if(!rows||!rows.length) return;
+    const col=r=>{const cc=conFor(s,r.team); return (cc&&cc.color)||'#e8186d';};
+    const by=p=>rows.find(r=>+r.pos===p);
+    const pod=[[2,150,.5],[1,230,.15],[3,105,.85]].map(([p,h,d])=>{const r=by(p); if(!r) return '<div class="rr-col"></div>';
+      return '<div class="rr-col"><div class="nm" style="animation-delay:'+(d+.5)+'s">'+esc(r.name)+'</div><div class="tm" style="animation-delay:'+(d+.5)+'s">'+esc(r.team||'')+'</div><div class="rr-blk" style="height:'+h+'px;background:linear-gradient(180deg,'+col(r)+',#0c0c10);animation-delay:'+d+'s">'+p+'</div></div>';}).join('');
+    const poleR=rows.find(r=>r.pole), flR=rows.find(r=>r.fl), dnfs=rows.filter(isDnf).length, tot=rows.reduce((a,r)=>a+(+r.pts||0),0);
+    const p2=by(2), margin=p2&&p2.gap&&p2.gap!=='Leader'?p2.gap.replace(/^\+/,'')+(/^\+?[\d.]+$/.test(p2.gap)?'s':''):'—';
+    const chips=[[margin,'Winning margin'],[poleR?poleR.name:'—','Pole position'],[flR?flR.name:'—','Fastest lap'],[rows.length-dnfs+' / '+rows.length,'Classified'],[tot,'Points handed out']].filter(c=>c[0]!=='')
+      .map((c,i)=>'<div class="rr-chip" style="animation-delay:'+(1.1+i*.12)+'s"><b>'+esc(c[0])+'</b><span>'+esc(c[1])+'</span></div>').join('');
+    const nums=rows.slice(0,10).map(r=>/^\+?\d+(\.\d+)?$/.test(String(r.gap||'').trim())?parseFloat(r.gap):(r.gap==='Leader'?0:null));
+    const mx=Math.max(1,...nums.filter(n=>n!=null));
+    const gaps=rows.slice(0,10).map((r,i)=>'<div class="rr-g"><span class="p">P'+esc(r.pos)+'</span><span class="n">'+esc(r.name)+'</span><div class="t"><i data-w="'+(nums[i]==null?100:Math.max(3,nums[i]/mx*100))+'" style="background:'+col(r)+(nums[i]==null?';opacity:.35':'')+';transition-delay:'+(1.6+i*.07)+'s"></i></div><span class="v">'+esc(r.gap||'')+'</span></div>').join('');
+    rr.innerHTML='<span class="x">×</span><div class="k">'+esc(FULL[s])+' · Round '+esc(race.rnd)+'</div><h3>'+esc(race.flag||'')+' '+esc(race.name)+'</h3><div class="sb">Race report</div><div class="rr-pod">'+pod+'</div><div class="rr-chips">'+chips+'</div><div class="rr-gaps"><h4>Gap to winner</h4>'+gaps+'</div>';
+    rr.scrollTop=0; rr.classList.add('open');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>rr.querySelectorAll('.rr-g i').forEach(i=>i.style.width=i.dataset.w+'%')));
   }
-  rp.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) rp.classList.remove('open'); else replay(); });
+  rr.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) rr.classList.remove('open'); });
   const _rr=renderResults;
   renderResults=function(){ _rr.apply(this,arguments);
     const meta=$('resMeta'); if(!meta||!meta.innerHTML||meta.querySelector('[data-rp]')) return;
-    const b=document.createElement('button'); b.type='button'; b.className='vx-share'; b.dataset.rp='1'; b.textContent='▶ Replay finish'; b.onclick=replay; meta.appendChild(b); };
+    const b=document.createElement('button'); b.type='button'; b.className='vx-share'; b.dataset.rp='1'; b.textContent='🏆 Race report'; b.onclick=report; meta.appendChild(b); };
 
-  /* ───── Season Story: driver profile → 🎬 Season story ───── */
+  /* ───── Season Story: driver profile → 🎬 Season story (auto-playing, tap to skip) ───── */
   const so=document.createElement('div'); so.id='st-ov'; document.body.appendChild(so);
-  let slides=[], si=0;
-  function countUp(el,n){ const t0=performance.now(); (function f(now){ const p=Math.min(1,(now-t0)/900); el.textContent=Math.round(n*(1-Math.pow(1-p,3))); if(p<1&&so.classList.contains('open')) requestAnimationFrame(f); })(t0); }
+  let slides=[], si=0, stT=null, DUR=5200;
+  function countUp(el,n){ const t0=performance.now(); (function f(now){ const p=Math.min(1,(now-t0)/1100); el.textContent=Math.round(n*(1-Math.pow(1-p,3))); if(p<1&&so.classList.contains('open')) requestAnimationFrame(f); })(t0); }
+  const stClose=()=>{ clearTimeout(stT); so.classList.remove('open'); };
   function slide(){
-    const [k,b,sub,hue]=slides[si];
-    so.style.background='radial-gradient(circle at 50% 40%,hsl('+hue+',70%,18%),#050508 70%)';
-    so.innerHTML='<span class="x">×</span><div class="bars">'+slides.map((_,i)=>'<i'+(i<=si?' class="on"':'')+'></i>').join('')+'</div><div class="k">'+esc(k)+'</div><div class="b">'+esc(b)+'</div><div class="s">'+esc(sub)+'</div>';
-    if(typeof b==='number') countUp(so.querySelector('.b'),b);
+    clearTimeout(stT);
+    const sl=slides[si];
+    so.innerHTML='<div class="bg"></div><span class="x">×</span><div class="bars">'+slides.map((_,i)=>'<i class="'+(i<si?'done':i===si?'cur':'')+'" style="--d:'+DUR+'ms"><u></u></i>').join('')+'</div><div class="in">'+sl+'</div><div class="hint">tap to continue · ← → keys</div>';
+    so.querySelectorAll('[data-n]').forEach(el=>countUp(el,+el.dataset.n));
+    stT=setTimeout(()=>{ if(si<slides.length-1){ si++; slide(); } else stClose(); },DUR);
   }
   function story(s,name){
     const c=canon(s,name), se=D.standings[s].drivers.find(d=>canon(s,d.name)===c), rows=[];
     real.forEach(r=>{ const l=D.results[rkey(r,s)], h=l&&l.find(x=>canon(s,x.name)===c); if(h) rows.push({r,h}); });
-    const dnf=h=>typeof DNFRE!=='undefined'&&DNFRE.test(h.note||''), fin=rows.filter(x=>!dnf(x.h)&&+x.h.pos>0);
-    const best=fin.reduce((a,x)=>(!a||x.h.pos<a.h.pos)?x:a,null), wins=fin.filter(x=>x.h.pos===1).length, pods=fin.filter(x=>x.h.pos<=3).length;
-    const pos=se?D.standings[s].drivers.filter(d=>!d.hidden).sort((a,b)=>b.pts-a.pts).findIndex(d=>d===se)+1:0;
-    slides=[['2026 · '+FULL[s],se?se.name:name,se?se.team:'',330],['you raced',rows.length,'rounds this season',200],['you scored',se?se.pts:0,pos?'points · P'+pos+' in the championship':'points',20],
-      ['best finish',best?'P'+best.h.pos:'—',best?best.r.name:'no classified finish yet',140],['podiums',pods,wins+' win'+(wins===1?'':'s'),50],
-      ['bonus hunting',rows.filter(x=>x.h.pole).length+' / '+rows.filter(x=>x.h.fl).length,'poles / fastest laps',280],['retirements',rows.length-fin.length,'DNFs · it happens',0],['see you on track','🏁','VMS Racing League',330]];
+    const dnf=h=>isDnf(h)||!(+h.pos>0), fin=rows.filter(x=>!dnf(x.h)), dns=rows.length-fin.length;
+    const best=fin.reduce((a,x)=>(!a||+x.h.pos<+a.h.pos)?x:a,null), wins=fin.filter(x=>+x.h.pos===1).length, pods=fin.filter(x=>+x.h.pos<=3).length;
+    const poles=rows.filter(x=>x.h.pole).length, fls=rows.filter(x=>x.h.fl).length;
+    const all=D.standings[s].drivers.filter(d=>!d.hidden).sort((a,b)=>b.pts-a.pts), pos=se?all.findIndex(d=>d===se)+1:0;
+    const avg=fin.length?fin.reduce((a,x)=>a+ +x.h.pos,0)/fin.length:0;
+    const cc=se&&conFor(s,se.team); so.style.setProperty('--tc',(cc&&cc.color)||'#e8186d');
+    const ord=n=>n+(['th','st','nd','rd'][(n%100>>3^1&&n%10<4)?n%10:0]||'th');
+    /* archetype */
+    let arch,why;
+    if(wins>=2){arch='The Winner';why='Wins are a habit.';}
+    else if(poles>=2){arch='Pole Hunter';why='One lap. Everything. Every time.';}
+    else if(pods>=3){arch='Podium Regular';why='Always on the champagne list.';}
+    else if(rows.length>=3&&dns>=Math.ceil(rows.length/3)){arch='Chaos Agent';why='Maximum attack. Minimum survival.';}
+    else if(fls>=1){arch='Speed Demon';why='Quickest lap on track, at least once.';}
+    else if(rows.length>=4&&dns===0){arch='Mr. Consistent';why='Never missed a chequered flag.';}
+    else if(wins===1){arch='Race Winner';why='One win is all it takes.';}
+    else if(rows.length<=2){arch='Fresh Rookie';why='The story has only just started.';}
+    else {arch='The Grinder';why='Showing up and putting in the laps.';}
+    /* finish-trace chart */
+    let chart='';
+    if(rows.length>=2){
+      const W=700,H=230,px=50,py=30,maxP=Math.max(10,...fin.map(x=>+x.h.pos)), X=i=>px+(W-2*px)*(rows.length===1?.5:i/(rows.length-1)), Y=p=>py+(H-2*py)*((p-1)/(maxP-1));
+      const pts=rows.map((x,i)=>[X(i),dnf(x.h)?H-py+8:Y(+x.h.pos),dnf(x.h)]);
+      chart='<svg class="ch" viewBox="0 0 '+W+' '+H+'"><line class="ax" x1="'+px+'" x2="'+(W-px)+'" y1="'+py+'" y2="'+py+'"/><line class="ax" x1="'+px+'" x2="'+(W-px)+'" y1="'+(py+(H-2*py)*(2/(maxP-1)))+'" y2="'+(py+(H-2*py)*(2/(maxP-1)))+'"/>'+
+        '<path class="ln" pathLength="1" d="M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L')+'"/>'+
+        pts.map((p,i)=>'<circle class="'+(p[2]?'dn':'')+'" cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="7" style="animation-delay:'+(.5+2.2*i/Math.max(1,pts.length-1))+'s"/><text x="'+p[0].toFixed(1)+'" y="'+(p[1]-14).toFixed(1)+'" style="animation-delay:'+(.6+2.2*i/Math.max(1,pts.length-1))+'s">'+(p[2]?'DNF':'P'+esc(rows[i].h.pos))+'</text>').join('')+'</svg>';
+    }
+    const nm=se?se.name:name;
+    slides=[
+      '<div class="k">2026 · '+esc(FULL[s])+' · your season</div><div class="b nm">'+esc(nm)+'</div><div class="s">'+esc(se?se.team:'')+'</div>',
+      '<div class="k">you showed up for</div><div class="b" data-n="'+rows.length+'">0</div><div class="s">race'+(rows.length===1?'':'s')+' this season</div>',
+      '<div class="k">you banked</div><div class="b" data-n="'+(se?se.pts:0)+'">0</div><div class="s">'+(pos?'points · '+ord(pos)+' of '+all.length+' in the championship':'points')+'</div>'
+    ];
+    if(chart) slides.push('<div class="k">your season, race by race</div>'+chart+'<div class="s">'+(fin.length?'average finish · P'+avg.toFixed(1):'no classified finishes yet')+'</div>');
+    slides.push('<div class="k">best day at the office</div>'+(best?'<div class="pb">P'+esc(best.h.pos)+'</div><div class="s">'+esc(best.r.flag||'')+' '+esc(best.r.name)+'</div>':'<div class="b">—</div><div class="s">no classified finish yet</div>'));
+    slides.push('<div class="k">podiums</div>'+(pods?'<div class="tr">'+Array.from({length:Math.min(pods,10)},(_,i)=>'<span style="animation-delay:'+(.3+i*.12)+'s">🏆</span>').join('')+'</div>':'')+'<div class="b" data-n="'+pods+'">0</div><div class="s">'+wins+' win'+(wins===1?'':'s')+(pods?' · champagne optional':' · the first one is coming')+'</div>');
+    slides.push('<div class="k">the extras</div><div class="row"><div><div class="b" data-n="'+poles+'">0</div><div class="s">poles</div></div><div><div class="b" data-n="'+fls+'">0</div><div class="s">fastest laps</div></div></div>');
+    slides.push('<div class="k">retirements</div><div class="b" data-n="'+dns+'">0</div><div class="s">'+(dns?'DNF'+(dns===1?'':'s')+' · that’s racing':'zero DNFs · clean as it gets')+'</div>');
+    slides.push('<div class="k">your racer type</div><div class="ar">'+esc(arch)+'</div><div class="s">'+esc(why)+'</div>');
+    slides.push('<div class="k">see you on track</div><div class="b">🏁</div><div class="s">VMS Racing League</div>');
     si=0; so.classList.add('open'); slide();
   }
-  so.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')||si>=slides.length-1) so.classList.remove('open'); else { si++; slide(); } });
+  so.addEventListener('mousedown',e=>{
+    if(e.target.classList.contains('x')){ stClose(); return; }
+    const left=e.clientX<innerWidth*.3;
+    if(left){ if(si>0){ si--; slide(); } }
+    else if(si<slides.length-1){ si++; slide(); } else stClose();
+  });
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'){ rp.classList.remove('open'); so.classList.remove('open'); }
-    if(so.classList.contains('open')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(si<slides.length-1){si++;slide();} else so.classList.remove('open'); } else if(e.key==='ArrowLeft'&&si>0){ si--; slide(); } }
+    if(e.key==='Escape'){ rr.classList.remove('open'); stClose(); }
+    if(so.classList.contains('open')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(si<slides.length-1){si++;slide();} else stClose(); } else if(e.key==='ArrowLeft'&&si>0){ si--; slide(); } }
   });
 
   /* ───── count-up numbers (hero + driver profile stats) ───── */
@@ -2169,10 +2217,4 @@ async function loadNews(force){
     mb.querySelectorAll('.m-stats strong').forEach(cu);
     const bar=mb.querySelector('.vx-bar')||mb.appendChild(Object.assign(document.createElement('div'),{className:'vx-bar'}));
     const b=document.createElement('button'); b.type='button'; b.className='vx-btn'; b.textContent='🎬 Season story'; b.onclick=()=>{ closeModal(); story(s,name); }; bar.appendChild(b); };
-
-  /* ───── Lights Out: sound (WebAudio, starts on your first click) ───── */
-  let ac=null; const beep=(f,d)=>{ try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); const o=ac.createOscillator(), g=ac.createGain(); o.type='square'; o.frequency.value=f; g.gain.value=.06; o.connect(g); g.connect(ac.destination); o.start(); g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d); o.stop(ac.currentTime+d); }catch(e){} };
-  const lo=$('lo'), loT=$('loT');
-  if(lo){ new MutationObserver(ms=>ms.forEach(m=>{ if(m.target.classList&&m.target.classList.contains('l')&&m.target.classList.contains('on')&&!(m.oldValue||'').includes('on')) beep(520,.18); })).observe(lo,{attributes:true,attributeOldValue:true,attributeFilter:['class'],subtree:true}); }
-  if(loT) new MutationObserver(()=>{ const t=loT.textContent; if(t==='GO!') beep(980,.35); else if(/JUMP/.test(t)) beep(140,.5); }).observe(loT,{childList:true,characterData:true,subtree:true});
 })();
