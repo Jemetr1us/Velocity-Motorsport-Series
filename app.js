@@ -1958,622 +1958,6 @@ async function loadNews(force){
 
 })();
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   FANTASY VMS
-   Pick 3 drivers + 2 teams under a budget, name a captain (2× points).
-   Scores come straight from the real race results, counted from the round you lock in.
-   Prices follow championship points unless overridden in data/fantasy-prices.json
-   (edit them with edit-fantasy-prices.html). Teams live in the visitor's browser;
-   friends compare by swapping share codes.
-   ═══════════════════════════════════════════════════════════════════════════ */
-(function(){
-  const $=id=>document.getElementById(id);
-  const KEY='vms-fantasy-v2', NDRV=3, NTEAM=2;
-  let BUDGET=100;
-  /* built-in price list (from fantasy-prices.json); data/fantasy-prices.json still overrides it when present.
-     drivers keyed by canonical (lowercase) name, teams by team name */
-  const DEFAULT_PR={
-    "drivers": {
-      "f1": {
-        "nick": 40,
-        "lory": 35,
-        "sly": 20,
-        "gkf": 14,
-        "ageftyg2": 10,
-        "joshua": 5,
-        "unironically": 12,
-        "arin": 7,
-        "shadowrex": 11,
-        "daih_v": 4,
-        "vitality": 5,
-        "yokesecapo": 25,
-        "sun_rise": 4,
-        "sckibles": 5,
-        "lewis": 4,
-        "rox": 37.5,
-        "skirmis": 4,
-        "peters": 17.5,
-        "amin": 5,
-        "diego": 22.5,
-        "syxe": 6,
-        "bence": 4,
-        "infinity": 3,
-        "maldonado": 4,
-        "nath": 12.5,
-        "emirovic": 5,
-        "batwert": 7.5,
-        "yuki": 3
-      },
-      "f2": {
-        "skirmis": 38,
-        "gamrin": 36,
-        "crocs": 38,
-        "juan": 40,
-        "alien": 20,
-        "zaphira": 7,
-        "style": 4,
-        "gui": 17.5,
-        "bence": 4,
-        "zayn": 10,
-        "ao": 15,
-        "kyo": 22.5,
-        "maldonado": 4,
-        "wavee": 5,
-        "messi": 17.5
-      },
-      "f3": {
-        "piko": 40,
-        "jeffz": 40,
-        "ukkiett": 35,
-        "bartos": 30,
-        "dark shadow": 27.5,
-        "fabian": 22.5,
-        "lancelot": 20,
-        "syxe": 15,
-        "sckibles": 12.5,
-        "kriekel": 15,
-        "piti": 12.5,
-        "wibz": 10,
-        "maslo": 12.5,
-        "bleh": 10,
-        "halo": 2.5,
-        "bence": 5,
-        "lance": 7.5,
-        "chicken_bake": 7.5,
-        "dante": 7.5,
-        "elias": 15
-      }
-    },
-    "teams": {
-      "f1": {
-        "Scuderia Ferrari": 45,
-        "Richard Mille LM Motorsport F1": 45,
-        "Renault Sport Formula 1 Team": 40,
-        "Mercedes-AMG": 20,
-        "Aero Apex Racing": 18,
-        "GlitchGP F1 Team": 25,
-        "Vodafone McLaren": 23,
-        "BMW Sauber F1 Team": 30,
-        "Tarigy's Motorsport Team F1": 25,
-        "Vanguard Sabre Motorsport": 20,
-        "Hertz Porsche": 15
-      },
-      "f2": {
-        "LM Performance F2": 45,
-        "Carti Racing Association": 50,
-        "Renault Sport Formula 2 Team": 43,
-        "Nissan Nissmo (Night Reapers X)": 35,
-        "Tarigy’s Motorsport Team F2": 25,
-        "Aero Apex Racing F2": 38,
-        "AF Corsa": 20,
-        "GlitchGP F2 Team": 30,
-        "BWL Sim Racing Team": 20,
-        "Vanguard Sabre Racing": 25,
-        "BMW Sauber F2 Team (OKX HP Crimson GP)": 25
-      },
-      "f3": {
-        "LMP": 55,
-        "Tarigy’s Motorsport Team F3": 45,
-        "Pola Sabre Motorsports": 45,
-        "Renault Sport Formula 3 Team": 40,
-        "Aston Martin Racing F3": 25,
-        "GlitchGP F3": 30,
-        "Aero Apex Racing F3": 15,
-        "Carti Racing Association": 43,
-        "Kogun Technologies F3 Team": 20,
-        "Anonymous Juniors": 20,
-        "BMW Sauber F3 Team": 28
-      }
-    }
-  };
-  let PR=DEFAULT_PR;
-
-  let store={name:'',teams:{},league:[]};
-  try{ const r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&typeof r==='object') store=Object.assign(store,r); }catch(e){}
-  if(!store.teams||typeof store.teams!=='object') store.teams={};
-  if(!Array.isArray(store.league)) store.league=[];
-  const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(store)); }catch(e){} };
-
-  const fs={series:'f1',mode:'drivers',q:'',draft:{},msg:'',msgOk:false};
-  const num=v=>{ const n=+v; return (v!==''&&v!=null&&isFinite(n)&&n>=0)?Math.round(n*100)/100:null; };
-
-  /* ───────── prices & pools ───────── */
-  function pool(s,raw){
-    const ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
-    const maxP=Math.max(1,...ds.map(d=>+d.pts||0)), ov=(!raw&&PR.drivers&&PR.drivers[s])||{};
-    return ds.map(d=>{
-      const def=Math.max(4,Math.round(4+26*Math.pow((+d.pts||0)/maxP,0.8))), o=num(ov[canon(s,d.name)]);
-      return {name:d.name,key:canon(s,d.name),team:d.team||'',pts:+d.pts||0,def,price:o==null?def:o,custom:o!=null};
-    }).sort((a,b)=>b.price-a.price||b.pts-a.pts||a.name.localeCompare(b.name));
-  }
-  function teamPool(s,raw){
-    const cs=D.standings[s].constructors, maxP=Math.max(1,...cs.map(c=>+c.pts||0)), ov=(!raw&&PR.teams&&PR.teams[s])||{};
-    const ovByNorm={}; Object.keys(ov).forEach(k=>{ ovByNorm[normTeam(k)]=ov[k]; });   /* so "Renault Sport Formula 2 Team" also matches "Renault Sport Formula 2 Team (Isreal)" */
-    return cs.map(c=>{
-      const def=Math.max(5,Math.round(5+25*Math.pow((+c.pts||0)/maxP,0.8))), o=num(ov[c.name]!=null?ov[c.name]:ovByNorm[normTeam(c.name)]);
-      return {name:c.name,key:c.name,color:c.color,pts:+c.pts||0,def,price:o==null?def:o,custom:o!=null};
-    }).sort((a,b)=>b.price-a.price||b.pts-a.pts);
-  }
-  /* the price editor (edit-fantasy-prices.html) reads this */
-  window.VMS_FANTASY={pool:(s)=>pool(s,true),teamPool:(s)=>teamPool(s,true),get budget(){return BUDGET;}};
-
-  const validSnap=x=>x&&typeof x.from==='number'&&Array.isArray(x.d)&&x.d.length===NDRV&&Array.isArray(x.t)&&x.t.length===NTEAM&&typeof x.c==='string';
-  const hist=s=>((store.teams[s]&&store.teams[s].h)||[]).filter(validSnap);
-
-  /* ───────── scoring ───────── */
-  function scoreHist(s,h){
-    const out=[]; let total=0;
-    roundsWithResults(s).forEach(r=>{
-      const rn=parseInt(r.rnd,10); let snap=null; h.forEach(x=>{ if(x.from<=rn) snap=x; });
-      if(!snap) return;
-      const rows=D.results[rkey(r,s)]||[];
-      const drv=snap.d.map(n=>{
-        const hit=rows.find(x=>canon(s,x.name)===canon(s,n)), p=hit?(+hit.pts||0):0, cap=snap.c===n;
-        return {name:n,pts:p,cap,val:cap?p*2:p};
-      });
-      const tms=snap.t.map(tn=>{ const keys=teamKeys(s,tn); return {name:tn,pts:rows.filter(x=>keys.has(teamKey(s,x.team))).reduce((n,x)=>n+(+x.pts||0),0)}; });
-      const t=drv.reduce((n,x)=>n+x.val,0)+tms.reduce((n,x)=>n+x.pts,0); total+=t; out.push({r,drv,tms,total:t});
-    });
-    return {rounds:out,total};
-  }
-
-  /* ───────── share codes ───────── */
-  const encode=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o))));
-  function decode(str){
-    let o; try{ o=JSON.parse(decodeURIComponent(escape(atob(String(str).trim())))); }catch(e){ return null; }
-    if(!o||o.v!==2||!SERIES.includes(o.s)||!Array.isArray(o.h)||!o.h.length||o.h.length>30) return null;
-    const str1=x=>typeof x==='string'&&x.length>0&&x.length<=60;
-    const h=[]; for(const x of o.h){
-      if(!x||typeof x.from!=='number'||!Array.isArray(x.d)||x.d.length!==NDRV||!x.d.every(str1)||!str1(x.c)||!Array.isArray(x.t)||x.t.length!==NTEAM||!x.t.every(str1)||!x.d.includes(x.c)) return null;
-      h.push({from:Math.floor(x.from),d:x.d.slice(),c:x.c,t:x.t.slice()});
-    }
-    h.sort((a,b)=>a.from-b.from);
-    return {n:String(o.n||'Manager').slice(0,24),s:o.s,h};
-  }
-
-  /* ───────── edit window ───────── */
-  function windowInfo(){
-    const nx=nextRace();
-    if(!nx) return {open:false,nx:null,why:'The season is over — fantasy is closed.'};
-    if(isLive(nx)) return {open:false,nx,why:'Round '+nx.rnd+' is live — transfers reopen once the race weekend ends.'};
-    return {open:true,nx,why:''};
-  }
-
-  /* ───────── draft ───────── */
-  const blank=()=>({d:[],c:'',t:[]});
-  const fromSnap=x=>({d:x.d.slice(),c:x.c,t:x.t.slice()});
-  function draftFor(s){
-    if(!fs.draft[s]){ const h=hist(s); fs.draft[s]=h.length?fromSnap(h[h.length-1]):blank(); }
-    return fs.draft[s];
-  }
-  function spend(s,dr){
-    const P=pool(s), T=teamPool(s);
-    const dp=n=>{ const p=P.find(x=>canon(s,x.name)===canon(s,n)); return p?p.price:0; };
-    const tp=n=>{ const t=T.find(x=>x.name===n); return t?t.price:0; };
-    return dr.d.reduce((n,x)=>n+dp(x),0)+dr.t.reduce((n,x)=>n+tp(x),0);
-  }
-  function problems(s,dr){
-    const p=[], md=NDRV-dr.d.length, mt=NTEAM-dr.t.length;
-    if(md>0) p.push('pick '+md+' more driver'+(md>1?'s':''));
-    if(mt>0) p.push('pick '+mt+' more team'+(mt>1?'s':''));
-    if(dr.d.length&&!dr.c) p.push('choose a captain (C)');
-    const sp=spend(s,dr); if(sp>BUDGET) p.push('you are $'+(sp-BUDGET)+'M over budget');
-    return p;
-  }
-
-  /* ───────── view ───────── */
-  const view=document.createElement('div'); view.className='view'; view.id='view-fantasy';
-  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Fantasy <span class="yellow">VMS</span></div><div class="line"></div></div><span class="sub">Build your team · real race points</span></div></div>'+
-    '<section><div class="tabs" id="fnSeries"></div><div class="vx-bar" id="fnInfo"></div>'+
-    '<div class="fn-grid"><div class="panel fn-team" id="fnTeam"></div><div class="fn-poolwrap"><div class="tabs" id="fnMode"></div><input id="fnQ" class="fn-q" placeholder="Search…" autocomplete="off" spellcheck="false"><div class="panel scroll fn-pool" id="fnPool"></div></div></div>'+
-    '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Your <span class="yellow">Scores</span></div></div></div><div class="panel scroll" id="fnScores"></div>'+
-    '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Mini-<span class="yellow">League</span></div></div><span class="sub">Swap codes with friends</span></div><div id="fnLeague"></div>'+
-    '<details class="vx-how" id="fnRules"></details></section>';
-  const after=$('view-records')||$('view-teams');
-  if(after) after.after(view); else document.querySelector('main').appendChild(view);
-  VIEWS.splice(VIEWS.indexOf('records')>=0?VIEWS.indexOf('records')+1:VIEWS.length,0,'fantasy');
-  (function(){
-    const a=document.createElement('a'); a.href='#fantasy'; a.dataset.v='fantasy'; a.textContent='Fantasy';
-    const prev=document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]');
-    if(prev) prev.after(a);
-  })();
-
-  if(!$('vx-fan-css')){ const st=document.createElement('style'); st.id='vx-fan-css'; st.textContent=
-    '.fn-grid{display:grid;grid-template-columns:minmax(280px,380px) 1fr;gap:20px;align-items:start}'+
-    '@media(max-width:900px){.fn-grid{grid-template-columns:1fr}}'+
-    '.fn-team{padding:18px}.fn-team h3{margin:0 0 4px;font-size:18px}.fn-team .fn-h{font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;margin:14px 0 8px;display:block}'+
-    '.fn-name{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:9px 10px;font:600 13px Arial,sans-serif;margin-top:8px}'+
-    '.fn-slot{display:flex;align-items:center;gap:8px;padding:9px 10px;border:1px solid #2a2a2a;background:rgba(255,255,255,.03);margin-bottom:6px;font-size:13px}'+
-    '.fn-slot.empty{color:#666;border-style:dashed}.fn-slot .fn-who{flex:1;min-width:0}.fn-slot b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.fn-slot small{color:#888;font-size:11px}'+
-    '.fn-slot button{background:transparent;border:1px solid #444;color:#ccc;width:28px;height:28px;cursor:pointer;font:800 12px Arial,sans-serif}.fn-slot button:hover{border-color:#e8186d;color:#fff}'+
-    '.fn-slot button.on{background:#e8186d;border-color:#e8186d;color:#fff}'+
-    '.fn-bud{margin:14px 0 4px;font:800 12px Arial,sans-serif;letter-spacing:1px;display:flex;justify-content:space-between;color:#ddd}.fn-bud.over{color:#ff5a5f}'+
-    '.fn-bar{height:6px;background:#222;margin-bottom:12px}.fn-bar i{display:block;height:100%;background:linear-gradient(90deg,#e8186d,#ff6b00)}.fn-bud.over+.fn-bar i{background:#ff5a5f}'+
-    '.fn-acts{display:flex;gap:8px;flex-wrap:wrap}.fn-acts .vx-btn[disabled]{opacity:.35;cursor:not-allowed}'+
-    '.fn-msg{margin-top:10px;font-size:12px;color:#ff9a9a;line-height:1.5}.fn-msg.ok{color:#7be3a2}'+
-    '.fn-q{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:10px 12px;font:600 13px Arial,sans-serif;margin:0 0 10px}'+
-    '.fn-pool{max-height:560px;overflow:auto}.fn-add{background:transparent;border:1px solid #444;color:#ddd;padding:5px 10px;font:800 10px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}'+
-    '.fn-add:hover:not([disabled]){border-color:#e8186d;color:#fff}.fn-add[disabled]{opacity:.35;cursor:not-allowed}'+
-    '.fn-chip{display:inline-block;margin:2px 8px 2px 0;font-size:12px;color:#ccc}.fn-chip b{color:#fff}.fn-chip i{color:#e8186d;font-style:normal;font-weight:900}'+
-    '.fn-ta{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#ccc;padding:10px;font:12px monospace;min-height:64px;resize:vertical}'+
-    '.fn-lg{display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:900px){.fn-lg{grid-template-columns:1fr}}';
-    document.head.appendChild(st); }
-
-  /* ───────── render ───────── */
-  const money=n=>'$'+(Math.round(n*100)/100)+'M';
-  function render(){
-    if(!$('fnSeries')) return;
-    const s=fs.series, wi=windowInfo();
-    tabs($('fnSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ fs.series=k; fs.q=''; fs.msg=''; if($('fnQ')) $('fnQ').value=''; render(); });
-    tabs($('fnMode'),[['drivers','Drivers'],['teams','Teams']],fs.mode,k=>{ fs.mode=k; render(); });
-    $('fnInfo').innerHTML=wi.open?'<span>🔓 Transfers open until <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> starts · your team scores from that round</span>':'<span>🔒 '+esc(wi.why)+'</span>';
-    $('fnRules').innerHTML='<summary>How Fantasy VMS works</summary><p>Pick <b>'+NDRV+' drivers</b> and <b>'+NTEAM+' teams</b> for the series you want, staying inside the <b>$'+BUDGET+'M</b> budget. Choose a <b>captain</b> — their points count double. Your score is the <b>real race points</b> your drivers earn (pole and fastest-lap bonuses included) plus <b>all points each of your teams scores</b> that round.</p><p>Your team counts from the next race onwards, so it can\'t be built with hindsight. You can change it until the next race weekend starts. Teams are saved in <b>this browser only</b> — use your share code to compare with friends.</p>';
-    renderTeam(); renderPool(); renderScores(); renderLeague();
-  }
-  function renderTeam(){
-    const s=fs.series, dr=draftFor(s), wi=windowInfo(), P=pool(s), T=teamPool(s);
-    const info=n=>P.find(x=>canon(s,x.name)===canon(s,n))||{team:'',price:0};
-    const spent=spend(s,dr), pr=problems(s,dr);
-    const slots=[]; for(let i=0;i<NDRV;i++){
-      const n=dr.d[i];
-      slots.push(n?'<div class="fn-slot"><div class="fn-who"><b>'+esc(n)+'</b><small>'+esc(info(n).team)+' · '+money(info(n).price)+'</small></div><button type="button" class="'+(dr.c===n?'on':'')+'" data-act="cap" data-i="'+i+'" title="Captain — double points">C</button><button type="button" data-act="rm-d" data-i="'+i+'" title="Remove">×</button></div>':'<div class="fn-slot empty">Driver '+(i+1)+'</div>');
-    }
-    const tslots=[]; for(let i=0;i<NTEAM;i++){
-      const t=dr.t[i]?T.find(x=>x.name===dr.t[i]):null;
-      tslots.push(t?'<div class="fn-slot"><div class="fn-who"><b>'+esc(t.name)+'</b><small>'+money(t.price)+'</small></div><button type="button" data-act="rm-t" data-i="'+i+'" title="Remove">×</button></div>':'<div class="fn-slot empty">Team '+(i+1)+'</div>');
-    }
-    const saved=hist(s).length;
-    $('fnTeam').innerHTML='<h3>'+esc(FULL[s])+' · Your Team</h3><input class="fn-name" id="fnNm" maxlength="24" placeholder="Manager name" value="'+esc(store.name)+'">'+
-      '<span class="fn-h">Drivers</span>'+slots.join('')+'<span class="fn-h">Teams</span>'+tslots.join('')+
-      '<div class="fn-bud'+(spent>BUDGET?' over':'')+'"><span>'+money(spent)+' / '+money(BUDGET)+'</span><span>'+(spent>BUDGET?'over by '+money(spent-BUDGET):money(BUDGET-spent)+' left')+'</span></div><div class="fn-bar"><i style="width:'+Math.min(100,spent/BUDGET*100)+'%"></i></div>'+
-      '<div class="fn-acts"><button type="button" class="vx-btn" data-act="save"'+(wi.open&&!pr.length?'':' disabled')+'>'+(saved?'Update team':'Lock in team')+'</button><button type="button" class="vx-btn ghost" data-act="reset">Reset</button></div>'+
-      '<div class="fn-msg'+(fs.msgOk?' ok':'')+'" id="fnMsg">'+(fs.msg?esc(fs.msg):(wi.open&&pr.length?'To lock in: '+esc(pr.join(', '))+'.':!wi.open?esc(wi.why):''))+'</div>';
-    $('fnNm').onchange=e=>{ store.name=e.target.value.slice(0,24); persist(); renderLeague(); };
-  }
-  function renderPool(){
-    const s=fs.series, dr=draftFor(s), q=fs.q.trim().toLowerCase();
-    if(fs.mode==='drivers'){
-      const full=dr.d.length>=NDRV, rows=pool(s).filter(x=>!q||(x.name+' '+x.team).toLowerCase().includes(q));
-      $('fnPool').innerHTML='<table><thead><tr><th>Driver</th><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
-        const on=dr.d.some(n=>canon(s,n)===x.key);
-        return '<tr><td><b>'+esc(x.name)+'</b></td><td class="muted">'+esc(x.team)+'</td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-d" data-name="'+esc(x.name)+'"'+(on||full?' disabled':'')+'>'+(on?'Added':full?'Full':'Add')+'</button></td></tr>';
-      }).join('')+'</tbody></table>';
-    }else{
-      const full=dr.t.length>=NTEAM, rows=teamPool(s).filter(x=>!q||x.name.toLowerCase().includes(q));
-      $('fnPool').innerHTML='<table><thead><tr><th>Team</th><th>Pts</th><th>Price</th><th></th></tr></thead><tbody>'+rows.map(x=>{
-        const on=dr.t.includes(x.name);
-        return '<tr><td><span class="dot" style="background:'+esc(x.color)+'"></span><b>'+esc(x.name)+'</b></td><td>'+x.pts+'</td><td class="points">'+money(x.price)+'</td><td><button type="button" class="fn-add" data-act="add-t" data-name="'+esc(x.name)+'"'+(on||full?' disabled':'')+'>'+(on?'Picked':full?'Full':'Pick')+'</button></td></tr>';
-      }).join('')+'</tbody></table>';
-    }
-  }
-  function renderScores(){
-    const s=fs.series, h=hist(s), box=$('fnScores');
-    if(!h.length){ box.innerHTML='<div class="empty">Lock in a team to start scoring.</div>'; return; }
-    const sc=scoreHist(s,h);
-    if(!sc.rounds.length){ box.innerHTML='<div class="empty">Your team counts from Round '+h[0].from+' — scores appear once that race is in the results.</div>'; return; }
-    box.innerHTML='<table><thead><tr><th>Round</th><th>Drivers</th><th>Teams</th><th>Total</th></tr></thead><tbody>'+sc.rounds.map(x=>
-      '<tr><td class="pos">R'+esc(x.r.rnd)+' <span class="muted">'+esc(x.r.name)+'</span></td><td>'+x.drv.map(d=>'<span class="fn-chip"><b>'+esc(d.name)+'</b> '+d.pts+(d.cap?' <i>×2</i>':'')+'</span>').join('')+'</td><td>'+x.tms.map(t=>'<span class="fn-chip"><b>'+esc(t.name)+'</b> '+t.pts+'</span>').join('')+'</td><td class="points">'+x.total+'</td></tr>').join('')+
-      '<tr class="lead"><td colspan="3"><b>Season total</b></td><td class="points">'+sc.total+'</td></tr></tbody></table>';
-  }
-  function renderLeague(){
-    const s=fs.series, box=$('fnLeague'), mine=hist(s);
-    const me=store.name||'You';
-    const rows=[]; if(mine.length) rows.push({n:me+' (you)',h:mine,you:true});
-    store.league.forEach((e,i)=>{ if(e.s===s) rows.push({n:e.n,h:e.h,i}); });
-    rows.forEach(r=>{ const sc=scoreHist(s,r.h); r.total=sc.total; const last=r.h[r.h.length-1]; r.cap=last.c; r.team=last.t.join(' + '); });
-    rows.sort((a,b)=>b.total-a.total);
-    const code=mine.length?encode({v:2,n:me,s,h:mine}):'';
-    const lab='font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px';
-    box.innerHTML='<div class="fn-lg"><div class="panel scroll">'+(rows.length?'<table><thead><tr><th>#</th><th>Manager</th><th>Captain</th><th>Teams</th><th>Pts</th><th></th></tr></thead><tbody>'+rows.map((r,i)=>
-      '<tr'+(r.you?' class="lead"':'')+'><td class="'+(i<3?'pos':'')+'">'+(i+1)+'</td><td><b>'+esc(r.n)+'</b></td><td class="muted">'+esc(r.cap)+'</td><td class="muted">'+esc(r.team)+'</td><td class="points">'+r.total+'</td><td>'+(r.you?'':'<button type="button" class="fn-add" data-act="rm-lg" data-i="'+r.i+'">Remove</button>')+'</td></tr>').join('')+'</tbody></table>':'<div class="empty">Lock in a team, then add friends\' codes to build a league for '+esc(FULL[s])+'.</div>')+'</div>'+
-      '<div><span style="'+lab+'">Your share code ('+esc(FULL[s])+')</span>'+
-      (code?'<textarea class="fn-ta" id="fnCode" readonly>'+esc(code)+'</textarea><div class="fn-acts" style="margin:8px 0 18px"><button type="button" class="vx-btn" data-act="copy">Copy code</button></div>':'<div class="empty" style="margin-bottom:18px">Lock in a team to get a code.</div>')+
-      '<span style="'+lab+'">Add a friend\'s code</span><textarea class="fn-ta" id="fnImp" placeholder="Paste a code here"></textarea><div class="fn-acts" style="margin-top:8px"><button type="button" class="vx-btn ghost" data-act="import">Add to league</button></div><div class="fn-msg" id="fnLgMsg"></div></div></div>';
-  }
-
-  /* ───────── actions ───────── */
-  view.addEventListener('click',e=>{
-    const b=e.target.closest('[data-act]'); if(!b||b.disabled) return;
-    const s=fs.series, dr=draftFor(s), act=b.dataset.act; fs.msg=''; fs.msgOk=false;
-    if(act==='add-d'){ if(dr.d.length<NDRV&&!dr.d.some(n=>canon(s,n)===canon(s,b.dataset.name))){ dr.d.push(b.dataset.name); if(!dr.c) dr.c=b.dataset.name; } }
-    else if(act==='rm-d'){ const n=dr.d[+b.dataset.i]; dr.d.splice(+b.dataset.i,1); if(dr.c===n) dr.c=dr.d[0]||''; }
-    else if(act==='cap'){ dr.c=dr.d[+b.dataset.i]; }
-    else if(act==='add-t'){ if(dr.t.length<NTEAM&&!dr.t.includes(b.dataset.name)) dr.t.push(b.dataset.name); }
-    else if(act==='rm-t'){ dr.t.splice(+b.dataset.i,1); }
-    else if(act==='reset'){ const h=hist(s); fs.draft[s]=h.length?fromSnap(h[h.length-1]):blank(); }
-    else if(act==='save'){
-      const wi=windowInfo(), pr=problems(s,dr);
-      if(!wi.open||pr.length){ fs.msg=wi.open?'Can\'t lock in yet: '+pr.join(', ')+'.':wi.why; }
-      else{
-        const h=hist(s), snap={from:parseInt(wi.nx.rnd,10),d:dr.d.slice(),c:dr.c,t:dr.t.slice()};
-        if(h.length&&h[h.length-1].from===snap.from) h[h.length-1]=snap; else h.push(snap);
-        store.teams[s]={h}; persist(); fs.msg='Team locked in — scoring from Round '+wi.nx.rnd+'.'; fs.msgOk=true;
-      }
-    }
-    else if(act==='rm-lg'){ store.league.splice(+b.dataset.i,1); persist(); }
-    else if(act==='copy'){
-      const ta=$('fnCode'); if(!ta) return;
-      const done=()=>{ b.textContent='Copied ✓'; };
-      try{ navigator.clipboard.writeText(ta.value).then(done,()=>{ ta.select(); document.execCommand('copy'); done(); }); }catch(err){ ta.select(); try{ document.execCommand('copy'); done(); }catch(e2){} }
-      return;
-    }
-    else if(act==='import'){
-      const ta=$('fnImp'), msg=$('fnLgMsg'); if(!ta) return;
-      const o=decode(ta.value);
-      if(!o){ msg.textContent='That code doesn\'t look right — ask your friend to copy it again.'; return; }
-      const idx=store.league.findIndex(x=>x.n===o.n&&x.s===o.s);
-      if(idx>=0) store.league[idx]=o; else if(store.league.length>=30){ msg.textContent='League is full (30 managers).'; return; } else store.league.push(o);
-      persist(); render(); const m2=$('fnLgMsg'); if(m2){ m2.classList.add('ok'); m2.textContent=o.n+' added to the '+FULL[o.s]+' league.'; } return;
-    }
-    if(['add-d','rm-d','cap','add-t','rm-t','reset','save'].includes(act)){ renderTeam(); renderPool(); if(act==='save'){ renderScores(); renderLeague(); } }
-    else render();
-  });
-  view.addEventListener('input',e=>{ if(e.target.id==='fnQ'){ fs.q=e.target.value; renderPool(); } });
-
-  /* price overrides + budget from data/fantasy-prices.json (written by edit-fantasy-prices.html) */
-  fetch('data/fantasy-prices.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{
-    if(!j||typeof j!=='object') return;
-    /* merge per series over the built-in prices, so a missing/partial file never wipes them out */
-    const merged={drivers:{},teams:{}};
-    ['drivers','teams'].forEach(k=>{
-      const base=DEFAULT_PR[k]||{}, inc=(j[k]&&typeof j[k]==='object')?j[k]:{};
-      new Set([...Object.keys(base),...Object.keys(inc)]).forEach(s=>{ merged[k][s]=inc[s]?Object.assign({},inc[s]):Object.assign({},base[s]); });
-    });
-    PR=merged;
-    if(+j.budget>0) BUDGET=Math.round(+j.budget);
-    render();
-  }).catch(()=>{});
-
-  /* open the Fantasy view like the other pages */
-  const _go=go;
-  go=function(v){ _go.apply(this,arguments); if(v==='fantasy') render(); };
-  try{ if(location.hash==='#fantasy') go('fantasy'); }catch(e){}
-})();
-
-/* ───────── Betting ─────────
-   Play-money bets on the next race weekend (no real money, nothing leaves the browser).
-   Markets: Race Winner, Podium Finish, Winning Team. Odds come from the championship standings
-   (Plackett–Luce on points, limited to drivers who actually entered the last 3 rounds, plus a 12% house margin).
-   Bets are stored in localStorage; won / lost is worked out live from the posted race results, so nothing needs settling by hand. */
-(function(){
-  const $=id=>document.getElementById(id);
-  const KEY='vms-betting-v1', START=1000, MARGIN=1.12, MINBET=5;
-  const MKT=[['win','Race Winner'],['pod','Podium Finish'],['team','Winning Team']];
-  const MKT_LBL={win:'Winner',pod:'Podium',team:'Winning team'};
-  const bad=x=>/DNF|DSq|DSQ|DNS|Retired/i.test((x&&x.note)||'');
-
-  /* ───────── storage ───────── */
-  let store={bets:[]};
-  try{ const r=JSON.parse(localStorage.getItem(KEY)||'null'); if(r&&Array.isArray(r.bets)) store.bets=r.bets; }catch(e){}
-  store.bets=store.bets.filter(b=>b&&SERIES.includes(b.s)&&typeof b.rnd==='string'&&['win','pod','team'].includes(b.mkt)&&typeof b.key==='string'&&isFinite(b.stake)&&b.stake>0&&isFinite(b.odds)&&b.odds>1);
-  const persist=()=>{ try{ localStorage.setItem(KEY,JSON.stringify({bets:store.bets})); }catch(e){} };
-
-  const bs={series:'f1',mkt:'win',q:'',sel:null,stake:50,msg:'',ok:false,m:null};
-  const fmt=n=>(Math.round(n*100)/100).toLocaleString(undefined,{maximumFractionDigits:2});
-  const payout=b=>Math.round(b.stake*b.odds*100)/100;
-
-  /* ───────── odds model ───────── */
-  const od=p=>{ if(!(p>0)) return null; const o=1/Math.min(p*MARGIN,.95); return Math.max(1.05,Math.min(100,Math.round(o*100)/100)); };
-  function model(s){
-    const seen=new Set();
-    roundsWithResults(s).slice(-3).forEach(r=>(D.results[rkey(r,s)]||[]).forEach(x=>seen.add(canon(s,x.name))));
-    let ds=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—');
-    const act=ds.filter(d=>seen.has(canon(s,d.name))); if(act.length>=6) ds=act;
-    const w=ds.map(d=>Math.pow((+d.pts||0)+10,1.5)), W=w.reduce((a,b)=>a+b,0), n=ds.length, drivers=[];
-    for(let i=0;i<n;i++){
-      const p1=w[i]/W; let p2=0,p3=0;
-      for(let j=0;j<n;j++){ if(j===i) continue;
-        const aj=w[j]/W, d1=W-w[j]; p2+=aj*w[i]/d1;
-        for(let k=0;k<n;k++){ if(k===i||k===j) continue; p3+=aj*(w[k]/d1)*(w[i]/(d1-w[k])); }
-      }
-      drivers.push({name:ds[i].name,key:canon(s,ds[i].name),team:ds[i].team||'',pts:+ds[i].pts||0,pw:p1,ow:od(p1),op:od(Math.min(.97,p1+p2+p3))});
-    }
-    drivers.sort((a,b)=>a.ow-b.ow||b.pts-a.pts);
-    const teams=D.standings[s].constructors.map(c=>{
-      const keys=teamKeys(s,c.name); let p=0; drivers.forEach(d=>{ if(d.team&&keys.has(teamKey(s,d.team))) p+=d.pw; });
-      return {name:c.name,color:c.color,pts:+c.pts||0,p};
-    }).filter(c=>c.p>0);
-    const T=teams.reduce((a,c)=>a+c.p,0)||1; teams.forEach(c=>{ c.p/=T; c.o=od(c.p); });
-    teams.sort((a,b)=>a.o-b.o||b.pts-a.pts);
-    return {drivers,teams};
-  }
-  /* one market as plain rows: {key,label,sub,odds,pts,color} */
-  function rowsFor(m,mkt){
-    if(mkt==='team') return m.teams.map(t=>({key:t.name,label:t.name,sub:'',odds:t.o,pts:t.pts,color:t.color}));
-    return m.drivers.map(d=>({key:d.key,label:d.name,sub:d.team,odds:mkt==='win'?d.ow:d.op,pts:d.pts}));
-  }
-
-  /* ───────── settling (derived from the posted results, never stored) ───────── */
-  function outcome(b){
-    const r=real.find(x=>x.rnd===b.rnd); if(!r) return null;
-    const rows=D.results[rkey(r,b.s)]; if(!rows||!rows.length) return null;
-    const win=rows.find(x=>x.pos===1&&!bad(x));
-    if(b.mkt==='win') return win&&canon(b.s,win.name)===b.key?'won':'lost';
-    if(b.mkt==='pod') return rows.some(x=>x.pos<=3&&!bad(x)&&canon(b.s,x.name)===b.key)?'won':'lost';
-    return win&&teamKeys(b.s,b.key).has(teamKey(b.s,win.team))?'won':'lost';
-  }
-  function ledger(){
-    let bal=START, staked=0, profit=0, won=0, lost=0, open=0;
-    const rows=store.bets.map(b=>Object.assign({},b,{st:outcome(b)||'open'}));
-    rows.forEach(b=>{
-      bal-=b.stake; staked+=b.stake;
-      if(b.st==='won'){ bal+=payout(b); profit+=payout(b)-b.stake; won++; }
-      else if(b.st==='lost'){ profit-=b.stake; lost++; }
-      else open++;
-    });
-    return {bal:Math.round(bal*100)/100,staked,profit:Math.round(profit*100)/100,won,lost,open,rows};
-  }
-
-  /* ───────── betting window: same weekend logic as Fantasy ───────── */
-  function windowInfo(){
-    const nx=nextRace();
-    if(!nx) return {open:false,nx:null,why:'The season is over — betting is closed.'};
-    if(isLive(nx)) return {open:false,nx,why:'Round '+nx.rnd+' is live — bets are closed until the weekend is over and the next round opens.'};
-    return {open:true,nx,why:''};
-  }
-
-  /* ───────── view ───────── */
-  const view=document.createElement('div'); view.className='view'; view.id='view-betting';
-  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">VMS <span class="yellow">Betting</span></div><div class="line"></div></div><span class="sub">Play coins · no real money</span></div></div>'+
-    '<section><div class="tabs" id="btSeries"></div><div class="vx-bar" id="btInfo"></div>'+
-    '<div class="bt-grid"><div class="bt-main"><div class="tabs" id="btMkt"></div><input id="btQ" class="bt-q" placeholder="Search…" autocomplete="off" spellcheck="false"><div class="panel scroll bt-pool" id="btPool"></div></div><div class="panel bt-slip" id="btSlip"></div></div>'+
-    '<div class="section-head" style="margin-top:30px"><div><div class="title" style="font-size:22px">Your <span class="yellow">Bets</span></div></div></div><div class="panel scroll" id="btBets"></div>'+
-    '<details class="vx-how" id="btRules"></details></section>';
-  const after=$('view-fantasy')||$('view-records')||$('view-teams');
-  if(after) after.after(view); else document.querySelector('main').appendChild(view);
-  VIEWS.splice(VIEWS.indexOf('fantasy')>=0?VIEWS.indexOf('fantasy')+1:VIEWS.length,0,'betting');
-  (function(){
-    const a=document.createElement('a'); a.href='#betting'; a.dataset.v='betting'; a.textContent='Betting';
-    const prev=document.querySelector('header nav a[data-v="fantasy"]')||document.querySelector('header nav a[data-v="records"]')||document.querySelector('header nav a[data-v="teams"]');
-    if(prev) prev.after(a);
-  })();
-
-  if(!$('bt-css')){ const st=document.createElement('style'); st.id='bt-css'; st.textContent=
-    '.bt-grid{display:grid;grid-template-columns:1fr minmax(280px,360px);gap:20px;align-items:start}'+
-    '@media(max-width:900px){.bt-grid{grid-template-columns:1fr}.bt-slip{position:static!important}}'+
-    '.bt-slip{padding:18px;position:sticky;top:90px}.bt-slip h3{margin:0 0 12px;font-size:18px}'+
-    '.bt-q{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:10px 12px;font:600 13px Arial,sans-serif;margin:0 0 10px}'+
-    '.bt-pool{max-height:560px;overflow:auto}'+
-    '.bt-pick{background:transparent;border:1px solid #444;color:#ddd;padding:5px 12px;font:800 10px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer;min-width:76px}'+
-    '.bt-pick:hover:not([disabled]){border-color:#e8186d;color:#fff}.bt-pick.on{background:#e8186d;border-color:#e8186d;color:#fff}.bt-pick[disabled]{opacity:.35;cursor:not-allowed}'+
-    '.bt-sel{border:1px solid #2a2a2a;background:rgba(255,255,255,.03);padding:12px;margin-bottom:12px}.bt-sel small{display:block;color:#888;font-size:11px;margin-bottom:4px;letter-spacing:1px;text-transform:uppercase}'+
-    '.bt-sel b{font-size:15px}.bt-sel .bt-o{float:right;font:900 18px Arial,sans-serif;color:#e8186d}'+
-    '.bt-stake{width:100%;box-sizing:border-box;background:#111;border:1px solid #333;color:#fff;padding:10px 12px;font:700 15px Arial,sans-serif}'+
-    '.bt-chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 12px}.bt-chips button{background:transparent;border:1px solid #444;color:#ccc;padding:5px 10px;font:800 11px Arial,sans-serif;cursor:pointer}.bt-chips button:hover{border-color:#e8186d;color:#fff}'+
-    '.bt-ret{display:flex;justify-content:space-between;font:800 12px Arial,sans-serif;letter-spacing:1px;color:#ddd;margin-bottom:12px;text-transform:uppercase}.bt-ret b{color:#7be3a2}'+
-    '.bt-slip .vx-btn{width:100%}.bt-slip .vx-btn[disabled]{opacity:.35;cursor:not-allowed}'+
-    '.bt-msg{margin-top:10px;font-size:12px;color:#ff9a9a;line-height:1.5}.bt-msg.ok{color:#7be3a2}'+
-    '.bt-st{display:inline-block;padding:2px 8px;font:800 10px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;border:1px solid #444;color:#aaa}'+
-    '.bt-st.won{color:#7be3a2;border-color:#7be3a2}.bt-st.lost{color:#ff9a9a;border-color:#ff9a9a}.bt-pl.pos2{color:#7be3a2}.bt-pl.neg{color:#ff9a9a}'+
-    '.bt-reset{margin-top:14px;text-align:right}';
-    document.head.appendChild(st); }
-
-  /* ───────── render ───────── */
-  function render(){
-    if(!$('btSeries')) return;
-    const s=bs.series; bs.m=model(s);
-    tabs($('btSeries'),SERIES.map(k=>[k,FULL[k]]),s,k=>{ bs.series=k; bs.sel=null; bs.q=''; bs.msg=''; if($('btQ')) $('btQ').value=''; render(); });
-    tabs($('btMkt'),MKT,bs.mkt,k=>{ bs.mkt=k; bs.sel=null; bs.msg=''; render(); });
-    renderInfo(); renderPool(); renderSlip(); renderBets();
-    $('btRules').innerHTML='<summary>How betting works</summary><p>Everyone starts with <b>'+START.toLocaleString()+' coins</b> — it is play money, kept only in this browser. Pick a <b>Race Winner</b>, a <b>Podium Finish</b> (top 3) or the <b>Winning Team</b> for the next round, choose a stake (min '+MINBET+') and place the bet. Odds are decimal: a winning '+'bet pays <b>stake × odds</b>. Odds come from the championship points of drivers who have raced recently, plus a '+Math.round((MARGIN-1)*100)+'% margin, and are locked in when you place the bet. Bets close when the race weekend starts and are <b>settled automatically</b> from the posted results — a retired or disqualified driver does not count as a winner or podium finisher.</p>';
-  }
-  function renderInfo(){
-    const wi=windowInfo(), L=ledger();
-    $('btInfo').innerHTML=(wi.open?'<span>🔓 Betting open on <b>Round '+esc(wi.nx.rnd)+' · '+esc(wi.nx.name)+'</b> until the weekend starts</span>':'<span>🔒 '+esc(wi.why)+'</span>')+
-      '<span>🪙 Balance <b>'+fmt(L.bal)+'</b></span><span>Open <b>'+L.open+'</b></span><span>Net <b class="bt-pl '+(L.profit>0?'pos2':L.profit<0?'neg':'')+'">'+(L.profit>0?'+':'')+fmt(L.profit)+'</b></span>';
-  }
-  function renderPool(){
-    const wi=windowInfo(), q=bs.q.trim().toLowerCase(), rows=rowsFor(bs.m,bs.mkt).filter(x=>!q||(x.label+' '+x.sub).toLowerCase().includes(q));
-    const isT=bs.mkt==='team';
-    if(!rows.length){ $('btPool').innerHTML='<div class="empty">Nothing to bet on here yet.</div>'; return; }
-    $('btPool').innerHTML='<table><thead><tr><th>'+(isT?'Team':'Driver')+'</th>'+(isT?'':'<th>Team</th>')+'<th>Pts</th><th>Odds</th><th></th></tr></thead><tbody>'+rows.map(x=>{
-      const on=bs.sel&&bs.sel.mkt===bs.mkt&&bs.sel.key===x.key;
-      return '<tr><td>'+(isT?'<span class="dot" style="background:'+esc(x.color)+'"></span>':'')+'<b>'+esc(x.label)+'</b></td>'+(isT?'':'<td class="muted">'+esc(x.sub)+'</td>')+'<td>'+x.pts+'</td><td class="points">'+x.odds.toFixed(2)+'</td><td><button type="button" class="bt-pick'+(on?' on':'')+'" data-act="pick" data-key="'+esc(x.key)+'"'+(wi.open?'':' disabled')+'>'+(on?'Selected':'Bet')+'</button></td></tr>';
-    }).join('')+'</tbody></table>';
-  }
-  function slipTotals(){
-    const stake=Math.floor(+bs.stake)||0, odds=bs.sel?bs.sel.odds:0;
-    return {stake,ret:Math.round(stake*odds*100)/100};
-  }
-  function renderSlip(){
-    const wi=windowInfo(), L=ledger(), box=$('btSlip');
-    let h='<h3>Bet slip</h3>';
-    if(!bs.sel){
-      h+='<div class="empty" style="margin-bottom:6px">'+(wi.open?'Pick a driver or team from the list.':esc(wi.why))+'</div>';
-    }else{
-      const t=slipTotals();
-      h+='<div class="bt-sel"><span class="bt-o">'+bs.sel.odds.toFixed(2)+'</span><small>'+esc(FULL[bs.series])+' · '+esc(MKT_LBL[bs.sel.mkt])+'</small><b>'+esc(bs.sel.label)+'</b></div>'+
-        '<label style="font:900 10px Arial;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d;display:block;margin-bottom:8px">Stake (coins)</label>'+
-        '<input type="number" class="bt-stake" id="btStake" min="'+MINBET+'" step="1" value="'+esc(bs.stake)+'" inputmode="numeric">'+
-        '<div class="bt-chips">'+[10,50,100,250].map(v=>'<button type="button" data-act="chip" data-v="'+v+'">'+v+'</button>').join('')+'<button type="button" data-act="chip" data-v="max">Max</button></div>'+
-        '<div class="bt-ret"><span>Potential return</span><b id="btRet">'+fmt(t.ret)+'</b></div>'+
-        '<button type="button" class="vx-btn" id="btPlace" data-act="place"'+(wi.open?'':' disabled')+'>Place bet</button>';
-    }
-    h+='<div class="bt-msg'+(bs.ok?' ok':'')+'" id="btMsg">'+esc(bs.msg)+'</div>';
-    if(L.bal<MINBET&&!L.open) h+='<div class="bt-msg">You are out of coins.</div><div class="fn-acts" style="margin-top:8px"><button type="button" class="vx-btn" data-act="reset">Start again with '+START.toLocaleString()+'</button></div>';
-    box.innerHTML=h;
-  }
-  function renderBets(){
-    const L=ledger(), box=$('btBets');
-    if(!L.rows.length){ box.innerHTML='<div class="empty">No bets yet — pick something above.</div>'; return; }
-    box.innerHTML='<table><thead><tr><th>Round</th><th>Market</th><th>Pick</th><th>Odds</th><th>Stake</th><th>Result</th></tr></thead><tbody>'+L.rows.slice().reverse().map(b=>{
-      const res=b.st==='won'?'<span class="bt-st won">Won</span> <b class="bt-pl pos2">+'+fmt(payout(b)-b.stake)+'</b>':b.st==='lost'?'<span class="bt-st lost">Lost</span> <b class="bt-pl neg">−'+fmt(b.stake)+'</b>':'<span class="bt-st">Open</span> <span class="muted">→ '+fmt(payout(b))+'</span>';
-      return '<tr><td class="pos">R'+esc(b.rnd)+' <span class="muted">'+esc(b.rname||'')+' · '+esc(FULL[b.s])+'</span></td><td>'+esc(MKT_LBL[b.mkt])+'</td><td><b>'+esc(b.label)+'</b></td><td class="points">'+b.odds.toFixed(2)+'</td><td>'+fmt(b.stake)+'</td><td>'+res+'</td></tr>';
-    }).join('')+'</tbody></table>'+
-    '<div class="bt-reset"><button type="button" class="vx-btn ghost" data-act="reset">Reset bets &amp; balance</button></div>';
-  }
-
-  /* ───────── actions ───────── */
-  view.addEventListener('click',e=>{
-    const b=e.target.closest('[data-act]'); if(!b||b.disabled) return;
-    const act=b.dataset.act; bs.msg=''; bs.ok=false;
-    if(act==='pick'){
-      const x=rowsFor(bs.m,bs.mkt).find(r=>r.key===b.dataset.key); if(!x) return;
-      bs.sel={mkt:bs.mkt,key:x.key,label:x.label,odds:x.odds};
-      renderPool(); renderSlip();
-      try{ if(window.innerWidth<=900) $('btSlip').scrollIntoView({behavior:'smooth',block:'nearest'}); }catch(err){}
-      return;
-    }
-    if(act==='chip'){
-      const L=ledger(); bs.stake=b.dataset.v==='max'?Math.max(0,Math.floor(L.bal)):+b.dataset.v;
-      renderSlip(); return;
-    }
-    if(act==='place'){
-      const wi=windowInfo(), L=ledger(), stake=Math.floor(+bs.stake);
-      if(!wi.open) bs.msg=wi.why;
-      else if(!bs.sel) bs.msg='Pick a selection first.';
-      else if(!(stake>=MINBET)) bs.msg='Minimum stake is '+MINBET+' coins.';
-      else if(stake>L.bal) bs.msg='Not enough coins — you have '+fmt(L.bal)+'.';
-      else{
-        const fresh=rowsFor(model(bs.series),bs.sel.mkt).find(r=>r.key===bs.sel.key);
-        if(!fresh){ bs.msg='That selection is no longer available.'; bs.sel=null; }
-        else{
-          store.bets.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),s:bs.series,rnd:wi.nx.rnd,rname:wi.nx.name,mkt:bs.sel.mkt,key:fresh.key,label:fresh.label,odds:fresh.odds,stake,ts:Date.now()});
-          persist(); bs.msg='Bet placed: '+fresh.label+' @ '+fresh.odds.toFixed(2)+' for '+stake+' coins.'; bs.ok=true; bs.sel=null;
-        }
-      }
-    }
-    else if(act==='reset'){
-      let okay=true; try{ okay=confirm('Clear all your bets and start again with '+START.toLocaleString()+' coins?'); }catch(err){}
-      if(!okay) return;
-      store.bets=[]; persist(); bs.sel=null; bs.msg='Fresh start — '+START.toLocaleString()+' coins.'; bs.ok=true;
-    }
-    renderInfo(); renderPool(); renderSlip(); renderBets();
-  });
-  view.addEventListener('input',e=>{
-    if(e.target.id==='btQ'){ bs.q=e.target.value; renderPool(); }
-    else if(e.target.id==='btStake'){
-      bs.stake=e.target.value; const t=slipTotals(), r=$('btRet'); if(r) r.textContent=fmt(t.ret);
-    }
-  });
-
-  /* open the Betting view like the other pages (re-renders so odds / window are always current) */
-  const _go=go;
-  go=function(v){ _go.apply(this,arguments); if(v==='betting') render(); };
-  render();
-  try{ const h0=(typeof _h!=='undefined'?_h:location.hash.slice(1)); if(h0==='betting'||location.hash==='#betting') go('betting'); }catch(e){}
-})();
-
 /* ═════════ VMS EXTRAS: Points Race · Podium share card · confetti · Lights Out game · 3D tilt cards ═════════ */
 (function(){
   const $=id=>document.getElementById(id);
@@ -2710,4 +2094,85 @@ async function loadNews(force){
   lo.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) lClose(); else lHit(); });
   document.addEventListener('keydown',e=>{ if(!lo.classList.contains('open')) return; if(e.key==='Escape') lClose(); else if(e.key===' '){e.preventDefault();lHit();} });
   renderResults();
+})();
+
+/* ═════════ VMS EXTRAS 2: Race Replay · Season Story · Race Control ticker · Lights Out sound · count-up numbers ═════════ */
+(function(){
+  const $=id=>document.getElementById(id);
+  const css=document.createElement('style'); css.textContent=
+   '#vx-tick{overflow:hidden;white-space:nowrap;background:#0b0b0f;border-bottom:1px solid #222;font:800 12px Arial,sans-serif;letter-spacing:1px;color:#ddd;padding:7px 0}'+
+   '#vx-tick .tk{display:inline-block;padding-left:100%;animation:vxtk 70s linear infinite}#vx-tick:hover .tk{animation-play-state:paused}#vx-tick em{color:#e8186d;font-style:normal;margin:0 14px}@keyframes vxtk{to{transform:translateX(-100%)}}'+
+   '#rp-ov,#st-ov{position:fixed;inset:0;background:rgba(5,5,8,.96);z-index:99991;display:none;flex-direction:column;justify-content:center;align-items:center;color:#fff;font-family:Arial,sans-serif;cursor:pointer;user-select:none}#rp-ov.open,#st-ov.open{display:flex}'+
+   '#rp-ov .x,#st-ov .x{position:absolute;top:18px;right:22px;font:900 30px Arial;color:#888}#rp-ov h3{font:900 24px Arial;letter-spacing:2px;text-transform:uppercase;margin:0 0 18px}#rp-ov .m{color:#777;font:700 12px Arial;letter-spacing:2px;margin-top:16px;text-transform:uppercase}'+
+   '#rp-ov .trk{width:min(900px,92vw)}.cr{display:flex;align-items:center;gap:10px;margin:5px 0}.cr .p{width:34px;font:900 14px Arial;color:#ffd34e}.rd{flex:1;height:30px;background:#14141a;position:relative}'+
+   '.rd i{display:block;height:100%;width:0;transition-property:width;transition-timing-function:cubic-bezier(.3,.1,.2,1);text-align:right}.rd b{font:800 13px/30px Arial;padding-right:14px;white-space:nowrap;overflow:hidden;display:block}'+
+   '.rd:after{content:"";position:absolute;right:0;top:0;bottom:0;width:10px;background:repeating-conic-gradient(#fff 0 25%,#000 0 50%) 0 0/10px 10px}'+
+   '#st-ov .bars{position:absolute;top:14px;left:5vw;right:5vw;display:flex;gap:6px}#st-ov .bars i{flex:1;height:4px;background:#333}#st-ov .bars i.on{background:#e8186d}'+
+   '#st-ov .k{font:800 14px Arial;letter-spacing:4px;color:#e8186d;text-transform:uppercase}#st-ov .b{font:900 14vmin/1.05 Arial;margin:2vmin 6vw;text-align:center;max-width:90vw}#st-ov .s{font:700 3vmin Arial;color:#bbb;text-align:center}';
+  document.head.appendChild(css);
+
+  /* ───── Race Control ticker ───── */
+  const parts=SERIES.map(s=>{const r=roundsWithResults(s).pop(); if(!r) return ''; const t=D.results[rkey(r,s)].slice(0,3);
+    return esc(FULL[s])+' R'+esc(r.rnd)+' '+esc(r.name)+': '+t.map((x,i)=>['🥇','🥈','🥉'][i]+' '+esc(x.name)).join('  ');}).filter(Boolean);
+  const nx=nextRace(); if(nx) parts.push('NEXT UP: '+esc(nx.name)+' · '+esc(dates(nx)));
+  if(parts.length){ const t=document.createElement('div'); t.id='vx-tick'; t.innerHTML='<div class="tk">'+parts.join('<em>◆</em>')+'</div>'; document.body.insertBefore(t,document.body.firstChild); }
+
+  /* ───── Race Replay: results page → ▶ Replay finish ───── */
+  const rp=document.createElement('div'); rp.id='rp-ov'; document.body.appendChild(rp);
+  function replay(){
+    const s=rs.series, race=real.find(r=>r.rnd===rs.rnd), rows=race&&D.results[rkey(race,s)]; if(!rows) return;
+    rp.innerHTML='<span class="x">×</span><h3>'+esc(race.name)+' · '+esc(FULL[s])+'</h3><div class="trk">'+rows.slice(0,12).map((r,i)=>{const cc=conFor(s,r.team), col=(cc&&cc.color)||'#e8186d';
+      return '<div class="cr"><span class="p">P'+esc(r.pos)+'</span><div class="rd"><i style="background:'+col+';transition-duration:'+(3+i*.22)+'s"><b>'+esc(r.name)+'</b></i></div></div>';}).join('')+'</div><div class="m">Click to replay · Esc to close</div>';
+    rp.classList.add('open');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>rp.querySelectorAll('.rd i').forEach(i=>i.style.width='100%')));
+  }
+  rp.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')) rp.classList.remove('open'); else replay(); });
+  const _rr=renderResults;
+  renderResults=function(){ _rr.apply(this,arguments);
+    const meta=$('resMeta'); if(!meta||!meta.innerHTML||meta.querySelector('[data-rp]')) return;
+    const b=document.createElement('button'); b.type='button'; b.className='vx-share'; b.dataset.rp='1'; b.textContent='▶ Replay finish'; b.onclick=replay; meta.appendChild(b); };
+
+  /* ───── Season Story: driver profile → 🎬 Season story ───── */
+  const so=document.createElement('div'); so.id='st-ov'; document.body.appendChild(so);
+  let slides=[], si=0;
+  function countUp(el,n){ const t0=performance.now(); (function f(now){ const p=Math.min(1,(now-t0)/900); el.textContent=Math.round(n*(1-Math.pow(1-p,3))); if(p<1&&so.classList.contains('open')) requestAnimationFrame(f); })(t0); }
+  function slide(){
+    const [k,b,sub,hue]=slides[si];
+    so.style.background='radial-gradient(circle at 50% 40%,hsl('+hue+',70%,18%),#050508 70%)';
+    so.innerHTML='<span class="x">×</span><div class="bars">'+slides.map((_,i)=>'<i'+(i<=si?' class="on"':'')+'></i>').join('')+'</div><div class="k">'+esc(k)+'</div><div class="b">'+esc(b)+'</div><div class="s">'+esc(sub)+'</div>';
+    if(typeof b==='number') countUp(so.querySelector('.b'),b);
+  }
+  function story(s,name){
+    const c=canon(s,name), se=D.standings[s].drivers.find(d=>canon(s,d.name)===c), rows=[];
+    real.forEach(r=>{ const l=D.results[rkey(r,s)], h=l&&l.find(x=>canon(s,x.name)===c); if(h) rows.push({r,h}); });
+    const dnf=h=>typeof DNFRE!=='undefined'&&DNFRE.test(h.note||''), fin=rows.filter(x=>!dnf(x.h)&&+x.h.pos>0);
+    const best=fin.reduce((a,x)=>(!a||x.h.pos<a.h.pos)?x:a,null), wins=fin.filter(x=>x.h.pos===1).length, pods=fin.filter(x=>x.h.pos<=3).length;
+    const pos=se?D.standings[s].drivers.filter(d=>!d.hidden).sort((a,b)=>b.pts-a.pts).findIndex(d=>d===se)+1:0;
+    slides=[['2026 · '+FULL[s],se?se.name:name,se?se.team:'',330],['you raced',rows.length,'rounds this season',200],['you scored',se?se.pts:0,pos?'points · P'+pos+' in the championship':'points',20],
+      ['best finish',best?'P'+best.h.pos:'—',best?best.r.name:'no classified finish yet',140],['podiums',pods,wins+' win'+(wins===1?'':'s'),50],
+      ['bonus hunting',rows.filter(x=>x.h.pole).length+' / '+rows.filter(x=>x.h.fl).length,'poles / fastest laps',280],['retirements',rows.length-fin.length,'DNFs · it happens',0],['see you on track','🏁','VMS Racing League',330]];
+    si=0; so.classList.add('open'); slide();
+  }
+  so.addEventListener('mousedown',e=>{ if(e.target.classList.contains('x')||si>=slides.length-1) so.classList.remove('open'); else { si++; slide(); } });
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){ rp.classList.remove('open'); so.classList.remove('open'); }
+    if(so.classList.contains('open')){ if(e.key==='ArrowRight'||e.key===' '){ e.preventDefault(); if(si<slides.length-1){si++;slide();} else so.classList.remove('open'); } else if(e.key==='ArrowLeft'&&si>0){ si--; slide(); } }
+  });
+
+  /* ───── count-up numbers (hero + driver profile stats) ───── */
+  function cu(el){ const t=el.textContent.trim(); if(!/^\d+$/.test(t)) return; const n=+t, pad=t.length, t0=performance.now();
+    (function f(now){ const p=Math.min(1,(now-t0)/900); el.textContent=p<1?String(Math.round(n*(1-Math.pow(1-p,3)))).padStart(pad,'0'):t; if(p<1) requestAnimationFrame(f); })(t0); }
+  document.querySelectorAll('#heroStats strong').forEach(cu);
+  const _od2=openDriver;
+  openDriver=function(s,name){ _od2.apply(this,arguments);
+    const mb=$('modalBox'); if(!mb) return;
+    mb.querySelectorAll('.m-stats strong').forEach(cu);
+    const bar=mb.querySelector('.vx-bar')||mb.appendChild(Object.assign(document.createElement('div'),{className:'vx-bar'}));
+    const b=document.createElement('button'); b.type='button'; b.className='vx-btn'; b.textContent='🎬 Season story'; b.onclick=()=>{ closeModal(); story(s,name); }; bar.appendChild(b); };
+
+  /* ───── Lights Out: sound (WebAudio, starts on your first click) ───── */
+  let ac=null; const beep=(f,d)=>{ try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); const o=ac.createOscillator(), g=ac.createGain(); o.type='square'; o.frequency.value=f; g.gain.value=.06; o.connect(g); g.connect(ac.destination); o.start(); g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+d); o.stop(ac.currentTime+d); }catch(e){} };
+  const lo=$('lo'), loT=$('loT');
+  if(lo){ new MutationObserver(ms=>ms.forEach(m=>{ if(m.target.classList&&m.target.classList.contains('l')&&m.target.classList.contains('on')&&!(m.oldValue||'').includes('on')) beep(520,.18); })).observe(lo,{attributes:true,attributeOldValue:true,attributeFilter:['class'],subtree:true}); }
+  if(loT) new MutationObserver(()=>{ const t=loT.textContent; if(t==='GO!') beep(980,.35); else if(/JUMP/.test(t)) beep(140,.5); }).observe(loT,{childList:true,characterData:true,subtree:true});
 })();
