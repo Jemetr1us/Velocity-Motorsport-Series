@@ -724,6 +724,157 @@
     ]
   },
   {
+    "series": "f3",
+    "rnd": "17",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "Jeffz",
+        "team": "LMP",
+        "pts": 26,
+        "pole": true,
+        "gap": "Leader"
+      },
+      {
+        "pos": 2,
+        "name": "Ukkiett",
+        "team": "Carti Racing Association",
+        "pts": 18,
+        "gap": "+2.417"
+      },
+      {
+        "pos": 3,
+        "name": "Maslo",
+        "team": "Aston Martin Racing F3",
+        "pts": 15,
+        "gap": "+3.182"
+      },
+      {
+        "pos": 4,
+        "name": "SCKIBLES",
+        "team": "GlitchGP F3",
+        "pts": 12,
+        "gap": "+6.965"
+      },
+      {
+        "pos": 5,
+        "name": "Syxe",
+        "team": "BMW Sauber F3 Team",
+        "pts": 10,
+        "gap": "+7.216"
+      },
+      {
+        "pos": 6,
+        "name": "Lancelot",
+        "team": "Tarigy's Motorsport Team F3",
+        "pts": 10,
+        "fl": true,
+        "gap": "+7.965"
+      },
+      {
+        "pos": 7,
+        "name": "Dark Shadow",
+        "team": "Pola Sabre Motorsports",
+        "pts": 6,
+        "gap": "+8.248"
+      },
+      {
+        "pos": 8,
+        "name": "d1MA",
+        "team": "Carti Racing Association F3",
+        "pts": 4,
+        "gap": "+10.399"
+      },
+      {
+        "pos": 9,
+        "name": "Gui",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 2,
+        "gap": "+10.448"
+      },
+      {
+        "pos": 10,
+        "name": "Fabián",
+        "team": "Tarigy’s Motorsport Team F3",
+        "pts": 1,
+        "gap": "+11.082"
+      },
+      {
+        "pos": 11,
+        "name": "Chicken_Bake",
+        "team": "GlitchGP F3",
+        "pts": 0,
+        "gap": "+11.936"
+      },
+      {
+        "pos": 12,
+        "name": "Dante",
+        "team": "Tarigy's Motorsport Team F3",
+        "pts": 0,
+        "gap": "+14.181"
+      },
+      {
+        "pos": 13,
+        "name": "Bleh",
+        "team": "Kogun Technologies F3 Team",
+        "pts": 0,
+        "gap": "+16.071"
+      },
+      {
+        "pos": 14,
+        "name": "Hakeman",
+        "team": "GlitchGP F3",
+        "pts": 0,
+        "gap": "+21.881"
+      },
+      {
+        "pos": 15,
+        "name": "SharlesLeChair",
+        "team": "Pola Sabre Motorsports",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 16,
+        "name": "Its3abood",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 17,
+        "name": "Wibz",
+        "team": "Carti Racing Association",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 18,
+        "name": "Aarnav",
+        "team": "Renault Sport Formula 3 Team",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 19,
+        "name": "Cross",
+        "team": "BMW Sauber F3 Team",
+        "pts": 0,
+        "gap": "DNS",
+        "status": "DNS",
+        "note": "DNS"
+      }
+    ]
+  },
+  {
     "series": "f2",
     "rnd": "18",
     "rows": [
