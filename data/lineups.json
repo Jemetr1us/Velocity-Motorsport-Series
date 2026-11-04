@@ -585,7 +585,7 @@
     },
     {
       "name": "Carti Racing Association",
-      "engine": "CEO: Tiyu | Carti CEO · Director: Zak",
+      "engine": "CEO: Tiyu | (?) · Director: Zak",
       "color": "#555555",
       "drivers": [
         {
@@ -796,7 +796,7 @@
     },
     {
       "name": "Carti Racing Association F3",
-      "engine": "CEO: Tiyu | Carti CEO · Director: Zak",
+      "engine": "CEO: Crocs | 26 · Director: Zak",
       "color": "#ec4899",
       "drivers": [
         {
@@ -808,9 +808,9 @@
           "pods": 0
         },
         {
-          "num": "77",
+          "num": "—",
           "code": "MD2",
-          "name": "Wibz",
+          "name": "Tiyu",
           "pts": 0,
           "wins": 0,
           "pods": 0
