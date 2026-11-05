@@ -2223,7 +2223,12 @@ async function loadNews(force){
    DOTD: fans vote for the latest race's Driver of the Day, one vote each, live tally.
    Paste your Firebase web config below. Leave apiKey empty = demo mode (vote saved on this device only). */
 (function(){
-  const FB_CONFIG={apiKey:'',authDomain:'',projectId:'',appId:''};
+  const FB_CONFIG = {
+    apiKey: 'AIzaSyCSfKhopUZwM4rKBq5wtnBU9nyQMVE27_E',
+    authDomain: 'vms-dotd.firebaseapp.com',
+    projectId: 'vms-dotd',
+    appId: '1:94091726900:web:ee3cef2c1d9b56655a3a61'
+  };
   const FB_ON=!!FB_CONFIG.apiKey;
   const $=id=>document.getElementById(id);
   const css=document.createElement('style'); css.textContent=
