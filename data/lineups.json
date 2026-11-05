@@ -152,14 +152,6 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
-        },
-        {
-          "num": "7",
-          "code": "RD2",
-          "name": "Tommy",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
         }
       ]
     },
@@ -816,9 +808,9 @@
           "pods": 0
         },
         {
-          "num": "0",
+          "num": "79",
           "code": "MD3",
-          "name": "d1MA",
+          "name": "D1MA",
           "pts": 0,
           "wins": 0,
           "pods": 0
