@@ -2218,3 +2218,65 @@ async function loadNews(force){
     const bar=mb.querySelector('.vx-bar')||mb.appendChild(Object.assign(document.createElement('div'),{className:'vx-bar'}));
     const b=document.createElement('button'); b.type='button'; b.className='vx-btn'; b.textContent='🎬 Season story'; b.onclick=()=>{ closeModal(); story(s,name); }; bar.appendChild(b); };
 })();
+
+/* ═════════ VMS EXTRAS 3: ⭐ Driver of the Day (Firebase) ═════════
+   DOTD: fans vote for the latest race's Driver of the Day, one vote each, live tally.
+   Paste your Firebase web config below. Leave apiKey empty = demo mode (vote saved on this device only). */
+(function(){
+  const FB_CONFIG={apiKey:'',authDomain:'',projectId:'',appId:''};
+  const FB_ON=!!FB_CONFIG.apiKey;
+  const $=id=>document.getElementById(id);
+  const css=document.createElement('style'); css.textContent=
+   '#vx-fab{position:fixed;left:14px;bottom:14px;z-index:9000;display:flex;gap:8px;flex-wrap:wrap}#vx-fab button{background:#0b0b0f;border:1px solid #e8186d;color:#fff;padding:10px 14px;font:800 11px Arial,sans-serif;letter-spacing:1px;text-transform:uppercase;cursor:pointer}#vx-fab button:hover{background:#e8186d}'+
+   '.vx3{position:fixed;inset:0;z-index:99992;background:rgba(5,5,8,.97);display:none;overflow:auto;padding:30px 4vw 60px;color:#fff;font-family:Arial,sans-serif}.vx3.open{display:block}.vx3 .w{max-width:780px;margin:0 auto}'+
+   '.vx3 .x{position:fixed;top:12px;right:22px;font:900 30px Arial;color:#888;cursor:pointer}.vx3 .x:hover{color:#fff}.vx3 .k{font:800 12px Arial;letter-spacing:4px;color:#e8186d;text-transform:uppercase}.vx3 h3{font:900 clamp(24px,5vw,42px) Arial;text-transform:uppercase;margin:6px 0 16px}'+
+   '.vx3 .tab{background:transparent;border:1px solid #444;color:#ddd;padding:8px 14px;font:800 11px Arial;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin:0 6px 8px 0}.vx3 .tab.on{background:#e8186d;border-color:#e8186d;color:#fff}'+
+   '.vx3 .ban{margin:10px 0 18px;padding:16px 18px;background:linear-gradient(90deg,#e8186d,#ff6b00);font:900 clamp(15px,3vw,22px) Arial}.vx3 .ban.n{background:#14141b;border:1px solid #2a2a35;font-weight:700;font-size:14px;color:#ccc}'+
+   '.vr{display:flex;align-items:center;gap:10px;margin:6px 0;font:700 13px Arial;position:relative}.vr .p{width:34px;color:#ffd34e;font-weight:900}.vr .n{width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vr .t{flex:1;height:18px;background:#12121a;position:relative;overflow:hidden}'+
+   '.vr .t i{position:absolute;left:0;top:0;bottom:0;background:#e8186d}.vr .t u{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,#ff6b0066 0 5px,transparent 5px 10px)}.vr .v{width:150px;text-align:right;color:#aaa;font-size:11px}.vr.out{opacity:.4}.vr.out .t i{background:#555}'+
+   '.dd-b{display:flex;width:100%;align-items:center;gap:10px;margin:6px 0;padding:0;background:#101015;border:1px solid #23232c;color:#fff;font:700 14px Arial;cursor:pointer;position:relative;overflow:hidden;text-align:left}.dd-b:disabled{cursor:default}.dd-b:not(:disabled):hover{border-color:#e8186d}'+
+   '.dd-b i{position:absolute;left:0;top:0;bottom:0;background:#e8186d44;transition:width .6s}.dd-b span{position:relative;padding:13px 14px}.dd-b .c{margin-left:auto;color:#aaa;font-size:12px}.dd-b.me{border-color:#ffd34e}.dd-b.me .n:after{content:" · your vote";color:#ffd34e;font-size:11px}.dd-note{color:#888;font:700 12px Arial;margin:8px 0 14px}';
+  document.head.appendChild(css);
+  function mk(id,sub,title){ const o=document.createElement('div'); o.className='vx3'; o.id=id;
+    o.innerHTML='<span class="x">×</span><div class="w"><div class="k">'+sub+'</div><h3>'+title+'</h3><div id="'+id+'-t"></div><div id="'+id+'-b"></div></div>';
+    o.querySelector('.x').onclick=()=>o.classList.remove('open'); document.body.appendChild(o); return o; }
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.querySelectorAll('.vx3.open').forEach(o=>o.classList.remove('open')); });
+  const fab=document.createElement('div'); fab.id='vx-fab'; document.body.appendChild(fab);
+  const add=(txt,fn)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=txt; b.onclick=fn; fab.appendChild(b); };
+
+  /* ───── ⭐ Driver of the Day ───── */
+  const dd={s:'f1',rk:null,votes:{},my:null,unsub:null,err:false}, ddO=mk('dd-ov','Fan vote','Driver of the Day');
+  let db=null,uid=null,ready=null;
+  function fbInit(){ if(ready) return ready;
+    ready=(async()=>{ const L=u=>new Promise((ok,no)=>{const e=document.createElement('script'); e.src=u; e.onload=ok; e.onerror=no; document.head.appendChild(e);});
+      const v='https://www.gstatic.com/firebasejs/10.14.1/firebase-'; await L(v+'app-compat.js'); await Promise.all([L(v+'auth-compat.js'),L(v+'firestore-compat.js')]);
+      firebase.initializeApp(FB_CONFIG); uid=(await firebase.auth().signInAnonymously()).user.uid; db=firebase.firestore(); })();
+    return ready; }
+  const ddClosed=s=>{ const nx=real.find(r=>(r.series||[]).includes(s)&&!D.results[rkey(r,s)]), t=nx&&raceStart(nx); return !!(t&&Date.now()>=t); };
+  function ddPaint(){
+    const s=dd.s, r=roundsWithResults(s).pop(), rows=r&&D.results[rkey(r,s)], b=$('dd-ov-b'); if(!b||!rows) return;
+    const tot=Object.values(dd.votes).reduce((a,n)=>a+n,0), closed=ddClosed(s), max=Math.max(0,...Object.values(dd.votes));
+    const list=[...rows].sort((a,c)=>(dd.votes[c.name]||0)-(dd.votes[a.name]||0)||a.pos-c.pos);
+    b.innerHTML='<div class="dd-note">'+esc(r.flag||'')+' '+esc(r.name)+' · '+tot+' vote'+(tot===1?'':'s')+' · '+(closed?'voting closed':dd.my?'thanks for voting':'tap a driver to vote (one vote each)')+(FB_ON?'':' · demo mode: votes stay on this device')+(dd.err?' · could not reach Firebase':'')+'</div>'+
+      list.map(x=>{ const n=dd.votes[x.name]||0, pc=tot?Math.round(n/tot*100):0;
+        return '<button class="dd-b'+(dd.my===x.name?' me':'')+'" data-n="'+esc(x.name)+'"'+(dd.my||closed?' disabled':'')+'><i style="width:'+pc+'%"></i><span class="n">'+(closed&&n&&n===max?'👑 ':'')+esc(x.name)+'</span><span class="c">P'+esc(x.pos)+' · '+esc(x.team||'')+'</span><span class="c" style="margin-left:0">'+(tot?pc+'%':'')+'</span></button>'; }).join('');
+    b.querySelectorAll('.dd-b').forEach(el=>el.onclick=()=>ddVote(el.dataset.n));
+  }
+  function ddView(){
+    tabs($('dd-ov-t'),SERIES.map(s=>[s,FULL[s]]),dd.s,k=>{dd.s=k;dd.rk=null;ddView();});
+    const s=dd.s, r=roundsWithResults(s).pop(); if(!r){ $('dd-ov-b').innerHTML='<div class="dd-note">No race finished yet.</div>'; return; }
+    const rk=rkey(r,s); if(dd.rk!==rk){ if(dd.unsub){dd.unsub();dd.unsub=null;} dd.rk=rk; dd.votes={}; dd.err=false;
+      let mine=null; try{ mine=localStorage.getItem('vx-dotd-'+rk); }catch(e){} dd.my=mine;
+      if(FB_ON) fbInit().then(()=>{ dd.unsub=db.collection('dotd_votes').where('rk','==',rk).onSnapshot(sn=>{ const v={}; let me=null; sn.forEach(d=>{ const x=d.data(); v[x.driver]=(v[x.driver]||0)+1; if(x.uid===uid) me=x.driver; }); dd.votes=v; if(me) dd.my=me; ddPaint(); },()=>{dd.err=true; ddPaint();}); }).catch(()=>{dd.err=true; ddPaint();});
+      else if(mine) dd.votes[mine]=1; }
+    ddPaint();
+  }
+  async function ddVote(name){
+    const rk=dd.rk, r=roundsWithResults(dd.s).pop(); if(!rk||dd.my||ddClosed(dd.s)) return;
+    try{ if(FB_ON){ await fbInit(); await db.collection('dotd_votes').doc(rk+'_'+uid).set({rk,s:dd.s,rnd:r.rnd,driver:name,uid,t:firebase.firestore.FieldValue.serverTimestamp()}); }
+      else { dd.votes[name]=(dd.votes[name]||0)+1; dd.my=name; ddPaint(); }
+      try{ localStorage.setItem('vx-dotd-'+rk,name); }catch(e){}
+    }catch(e){ dd.err=true; ddPaint(); }
+  }
+  add('⭐ Driver of the day',()=>{ ddView(); ddO.classList.add('open'); });
+})();
