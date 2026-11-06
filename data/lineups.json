@@ -577,7 +577,7 @@
     },
     {
       "name": "Carti Racing Association",
-      "engine": "CEO: Tiyu | (?) · Director: Zak",
+      "engine": "CEO: Tiyu | 7 · Director: Zak",
       "color": "#555555",
       "drivers": [
         {
@@ -800,7 +800,7 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "7",
           "code": "MD2",
           "name": "Tiyu",
           "pts": 0,
