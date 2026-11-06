@@ -2285,3 +2285,56 @@ async function loadNews(force){
   }
   add('⭐ Driver of the day',()=>{ ddView(); ddO.classList.add('open'); });
 })();
+
+/* ═════════ VMS EXTRAS 4: 📡 Live Timing ═════════
+   Shows what race-control.html publishes to your Firebase Realtime Database.
+   LIVE_DB = the SAME database URL you typed into race-control.html (URL only, never the secret). */
+(function(){
+  const LIVE_DB='https://vms-dotd-default-rtdb.europe-west1.firebasedatabase.app';
+  const $=id=>document.getElementById(id);
+  const css=document.createElement('style'); css.textContent=
+   '#lvBanner{display:flex;flex-wrap:wrap;align-items:center;gap:14px;padding:16px 20px;margin-bottom:12px;font:900 clamp(16px,3.2vw,26px) Arial,sans-serif;letter-spacing:2px;text-transform:uppercase;color:#fff}'+
+   '.lv-green{background:#0a7d34}.lv-yellow,.lv-vsc{background:#e8c500;color:#000!important}.lv-sc{background:#e8c500;color:#000!important;animation:lvb 1s infinite}.lv-red{background:#c4141c}.lv-none{background:#14141b;color:#999!important}'+
+   '.lv-chequered{background:repeating-conic-gradient(#fff 0 25%,#000 0 50%) 0 0/28px 28px;text-shadow:0 0 6px #000,0 0 6px #000}@keyframes lvb{50%{opacity:.55}}'+
+   '#lvBanner .lap{margin-left:auto;font-variant-numeric:tabular-nums}#lvBanner small{font:700 11px Arial;letter-spacing:1px;opacity:.8}'+
+   '.lv-out{opacity:.45}.lv-ty{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;border:3px solid;font:900 10px Arial}'+
+   '.tag.lv-pit{border-color:#4aa8ff;color:#4aa8ff}.tag.lv-pen{border-color:#e5484d;color:#e5484d}.tag.lv-w{border-color:#ffd34e;color:#ffd34e}.lv-best{color:#c98bff}'+
+   '.lv-msg{padding:9px 12px;margin:6px 0;background:#101015;border-left:4px solid #e8186d;font:700 13px Arial}.lv-msg b{color:#888;margin-right:10px;font-variant-numeric:tabular-nums}'+
+   'header nav a.lv-on::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#e5484d;margin-left:6px;vertical-align:middle;animation:lvb 1s infinite}';
+  document.head.appendChild(css);
+  const view=document.createElement('div'); view.className='view'; view.id='view-live';
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Live <span class="yellow">Timing</span></div><div class="line"></div></div><span class="sub" id="lvSub">Race control feed</span></div></div>'+
+    '<section><div id="lvBanner"></div><div class="meta-row" id="lvMeta"></div><div class="panel scroll" id="lvBoard"></div><div style="margin-top:22px"><div class="sub" style="margin-bottom:8px">Race control messages</div><div id="lvMsgs"></div></div></section>';
+  $('view-results').after(view);
+  VIEWS.splice(VIEWS.indexOf('results')+1,0,'live');
+  const a=document.createElement('a'); a.href='#live'; a.dataset.v='live'; a.textContent='Live';
+  document.querySelector('header nav a[data-v="results"]').after(a);
+
+  const FLAG={green:'Green flag',yellow:'Yellow flag',sc:'Safety car',vsc:'Virtual safety car',red:'Red flag',chequered:'Chequered flag'};
+  const TY={S:'#ff2b2b',M:'#ffd12e',H:'#fff',I:'#1fd45a',W:'#2f7bff'};
+  let data=null, err=false, last=0;
+  const arr=x=>Array.isArray(x)?x:(x&&typeof x==='object'?Object.values(x):[]);
+  function paint(){
+    const s=(data&&data.session)||{}, live=s.status==='live'||s.status==='finished', age=Date.now()-(+s.updated||0), stale=live&&age>120000;
+    a.classList.toggle('lv-on',s.status==='live'&&!stale);
+    const ban=$('lvBanner'), meta=$('lvMeta'), board=$('lvBoard'), msgs=$('lvMsgs'); if(!ban) return;
+    if(!live){
+      ban.className='lv-none'; ban.innerHTML=err&&!data?'Can\u2019t reach the live feed':'No live session right now';
+      meta.innerHTML=''; msgs.innerHTML='';
+      board.innerHTML='<div class="empty">Live timing switches on when race control goes live on race day. Check the <a href="#calendar">calendar</a> for the next session.</div>'; return; }
+    const f=s.flag||'none';
+    ban.className='lv-'+f; ban.innerHTML='<span>'+esc(stale?'Feed delayed':(FLAG[f]||'Session live'))+'</span>'+(stale?'<small>last update '+Math.round(age/1000)+'s ago</small>':'')+(s.totalLaps||s.lap?'<span class="lap">Lap '+esc(s.lap||0)+(s.totalLaps?' / '+esc(s.totalLaps):'')+'</span>':'');
+    meta.innerHTML='<span><b>'+esc(s.name||'')+'</b></span><span>'+esc(s.circuit||'')+'</span><span>'+esc((FULL[s.series]||'')+' · '+(s.type||''))+(s.status==='finished'?' · Finished':'')+'</span>';
+    const ds=arr(data.drivers), has=k=>ds.some(r=>r[k]);
+    board.innerHTML=ds.length?'<table><thead><tr><th>Pos</th><th>Driver</th><th>Team</th><th>Gap</th>'+(has('int')?'<th>Int</th>':'')+(has('last')?'<th>Last</th>':'')+(has('best')?'<th>Best</th>':'')+(has('tyre')?'<th>Tyre</th>':'')+(has('pits')?'<th>Pits</th>':'')+'</tr></thead><tbody>'+
+      ds.map(r=>{ const dnf=/DNF/.test(r.status||''), pos=+r.pos||0;
+        return '<tr class="'+(dnf?'lv-out':'')+'"><td class="'+(pos<=3&&!dnf?'pos':'')+'">P'+esc(pos)+'</td><td><b>'+esc(r.name)+'</b>'+(r.fl?'<span class="tag fl">FL</span>':'')+(r.status==='PIT'?'<span class="tag lv-pit">PIT</span>':'')+(r.pen?'<span class="tag lv-pen">'+esc(r.pen)+'</span>':'')+(+r.warns?'<span class="tag lv-w">\u26A0 '+(+r.warns)+'</span>':'')+'</td><td class="muted">'+esc(r.team||'')+'</td><td class="muted">'+(dnf?'DNF':esc(r.gap||''))+'</td>'+
+          (has('int')?'<td class="muted">'+(dnf?'':esc(r.int||''))+'</td>':'')+(has('last')?'<td class="muted">'+esc(r.last||'')+'</td>':'')+(has('best')?'<td class="muted'+(r.fl?' lv-best':'')+'">'+esc(r.best||'')+'</td>':'')+
+          (has('tyre')?'<td>'+(r.tyre?'<span class="lv-ty" style="border-color:'+(TY[r.tyre]||'#888')+'">'+esc(r.tyre)+'</span>':'')+'</td>':'')+(has('pits')?'<td class="muted">'+esc(r.pits||0)+'</td>':'')+'</tr>'; }).join('')+'</tbody></table>':'<div class="empty">Waiting for the grid\u2026</div>';
+    msgs.innerHTML=arr(data.messages).map(m=>'<div class="lv-msg"><b>'+esc(m.t||'')+'</b>'+esc(m.text||'')+'</div>').join('')||'<div class="muted" style="font-size:13px">No messages yet.</div>';
+  }
+  async function pull(){ last=Date.now(); try{ const r=await fetch(LIVE_DB.replace(/\/+$/,'')+'/live.json',{cache:'no-store'}); if(!r.ok) throw new Error(r.status); data=await r.json(); err=false; }catch(e){ err=true; } paint(); }
+  setInterval(()=>{ if(document.hidden) return; if(Date.now()-last>(view.classList.contains('on')?3000:30000)) pull(); },1000);
+  pull();
+  if(location.hash==='#live') go('live');
+})();
