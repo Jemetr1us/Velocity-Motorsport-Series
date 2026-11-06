@@ -3,7 +3,7 @@
 <title>VMS Race Control</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,Helvetica,sans-serif;background:#050505;color:#fff;padding:18px;max-width:1100px;margin:auto}
+body{font-family:Arial,Helvetica,sans-serif;background:#050505;color:#fff;padding:18px;max-width:1300px;margin:auto}
 h1{font-size:22px;letter-spacing:1px;text-transform:uppercase}h1 span{color:#e8186d}
 h2{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#e8186d;margin-bottom:10px}
 .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
@@ -18,7 +18,7 @@ button.on{outline:2px solid #fff}
 .flags button{flex:1;min-width:90px;padding:14px 8px}
 .f-green{background:#0f3d1f}.f-yellow{background:#4a3d00}.f-sc{background:#4a2c00}.f-vsc{background:#3a2c00}.f-red{background:#4a0d10}.f-chequered{background:#222}
 .lap{font-size:30px;font-weight:900;min-width:90px;text-align:center;font-variant-numeric:tabular-nums}
-#drivers{overflow-x:auto}.lbt{width:100%;border-collapse:collapse;min-width:1080px}.lbt th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#777;text-align:left;padding:0 4px 6px}
+#drivers{overflow-x:auto}.lbt{width:100%;border-collapse:collapse;min-width:1200px}.lbt th{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#777;text-align:left;padding:0 4px 6px}
 .lbt td{padding:4px;border-bottom:1px solid #161616;vertical-align:middle}.lbt input,.lbt select{padding:6px 7px;font-size:13px}.lbt input.pn{width:52px}.lbt input[type=checkbox]{width:18px;height:18px}
 .lbt b{font-size:14px}.lbt small{display:block;color:#777;font-size:11px}.drv.dnf{opacity:.45}.drv.hasp td:first-child{box-shadow:inset 3px 0 #e5484d}
 .lbt button{padding:6px 8px;font-size:11px}.pit{white-space:nowrap}.pit span{display:inline-block;min-width:22px;text-align:center;font-weight:900}.mv{white-space:nowrap}
@@ -26,6 +26,7 @@ button.on{outline:2px solid #fff}
 .ppos{font-weight:900;font-size:15px;white-space:nowrap}.ppos.pos{color:#ffd34e}.lbt tbody tr:hover td{background:#0f0f0f}
 .tag{display:inline-block;margin-left:6px;padding:1px 6px;font-size:9px;font-weight:900;letter-spacing:1px;text-transform:uppercase;border:1px solid #444;color:#bbb}.tag.fl{border-color:#b04bff;color:#c98bff}.tag.tp{border-color:#4aa8ff;color:#4aa8ff}.tag.pen{border-color:#e5484d;color:#e5484d}
 .drv.inpit td{background:#0a1626}.sbtn{min-width:48px}.sbtn.on{background:#1a56c4;border-color:#1a56c4}.sbtn.dn.on{background:#4a0d10;border-color:#e5484d}
+.lbt input.pin{color:#e8186d;font-weight:900;text-align:center;background:#000}.lbt td input[data-k=name]{min-width:140px}.lbt td input[data-k=team]{min-width:130px}
 .chips button{font-size:11px;padding:7px 10px}
 .msg{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid #161616;font-size:13px}
 #st{font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase}
@@ -59,11 +60,11 @@ pre{background:#111;border:1px solid #222;padding:8px;font-size:11px;color:#aaa;
 <div class="row"><button id="arShare">1 · Share game window</button><button id="arStart" class="pri">2 · Start auto-read</button><button id="arStop">Pause</button><button id="arClear">Clear box</button><span id="arState" class="mute" style="font-size:12px">Not started</span></div>
 <div class="vidwrap" id="vw"><video id="vid" autoplay muted playsinline></video><canvas id="ov"></canvas></div>
 <details style="margin-top:8px"><summary class="mute" style="font-size:12px;cursor:pointer">What the reader sees</summary><canvas id="seen" style="max-width:100%;margin-top:8px"></canvas><pre id="dbg"></pre></details></div>
-<div class="card"><h2>4 · Grid &amp; order</h2>
-<div class="row"><label style="flex:2 1 300px">Paste grid — one per line, optional “ - Team”<textarea id="paste" placeholder="Skirmis - LM Performance&#10;Crocs - Carti Racing&#10;Alien - Nissan Nissmo"></textarea></label><button id="load">Load grid</button><button id="clear">Clear</button></div>
-<div class="row" style="margin-top:12px"><label style="flex:3 1 300px">Quick order — type names or codes in the order they are running (space or comma separated)<input id="qo" placeholder="Skirmis Crocs Alien"></label><button id="qoGo">Apply order</button></div>
-<p class="mute" style="font-size:12px;margin-top:10px">Drag the ⠿ handle to reorder (like the results page), or use ▲ ▼, or type the order above.</p>
-<div id="drivers" style="margin-top:8px"></div></div>
+<div class="card"><h2>4 · Leaderboard</h2>
+<details style="margin-bottom:12px"><summary class="mute" style="cursor:pointer;font-size:12px;font-weight:900;letter-spacing:1px;text-transform:uppercase">⚡ Quick paste (one driver per line, in running order, optional “ - Team”)</summary>
+<div class="row" style="margin-top:8px"><textarea id="paste" style="flex:1" placeholder="Skirmis - LM Performance&#10;Crocs - Carti Racing&#10;Alien - Nissan Nissmo"></textarea><button id="load">Fill table</button></div></details>
+<div id="drivers"></div>
+<div class="row" style="margin-top:12px"><button id="addD">+ Add driver</button><button id="clear">Clear table</button><span class="mute" style="font-size:12px">Reorder by dragging ⠿, typing a number in P, or with ↑ ↓.</span></div></div>
 
 <div class="card"><h2>5 · Race control messages</h2>
 <div class="row"><input id="msgIn" placeholder="e.g. Yellow flag, sector 2 — car stopped on track" style="flex:1"><button id="msgSend">Send</button></div>
@@ -87,14 +88,15 @@ function status(t,c){ $('st').textContent=t; $('st').className=c; }
 const TYRES=['','S','M','H','I','W'], PENS=['','+5s','+10s','+15s','DT','SG','DSQ'];
 const PEN={'+5s':'5 SECOND TIME PENALTY','+10s':'10 SECOND TIME PENALTY','+15s':'15 SECOND TIME PENALTY','DT':'DRIVE THROUGH PENALTY','SG':'10 SECOND STOP-GO PENALTY','DSQ':'DISQUALIFIED'};
 const mkD=(n,t,code)=>({code:code||'',name:n,team:t||'',status:'RUN',gap:'',int:'',last:'',best:'',tyre:'M',pits:0,pen:'',warns:0,fl:false});
+const blankRows=n=>Array.from({length:n},()=>mkD('',''));
 function fixLeader(){ const l=S.drivers[0]; if(l){ l.gap=''; l.int=''; } }
 function say(text){ const n=new Date(); S.messages.unshift({t:n.toTimeString().slice(0,8),text}); S.messages=S.messages.slice(0,30); }
 const gnum=(d,i)=>{ if(i===0) return 0; const m=/^\+?\s*(\d+(?:\.\d+)?)\s*s?$/i.exec((d.gap||'').trim()); return m?parseFloat(m[1]):null; };
 const autoInt=i=>{ if(!i) return ''; const a=gnum(S.drivers[i],i), b=gnum(S.drivers[i-1],i-1); return (a!=null&&b!=null&&a>=b)?'+'+(a-b).toFixed(3):''; };
 function refreshInts(){ document.querySelectorAll('#drivers .drv').forEach(tr=>{ const i=+tr.dataset.i, el=tr.querySelector('[data-k=int]'); if(el&&i) el.placeholder=autoInt(i)||'+0.000'; }); }
 function snapshot(){
-  const live=S.status==='live', ds=S.drivers.map((d,i)=>({pos:i+1,code:d.code||'',name:d.name,team:d.team||'',status:d.status||'RUN',
-    gap:i===0?((d.gap&&d.gap!=='Leader')?d.gap:'Leader'):(d.gap||''),last:d.last||'',int:i?(d.int||autoInt(i)):'',best:d.best||'',tyre:d.tyre||'',pits:+d.pits||0,pen:d.pen||'',warns:+d.warns||0,fl:!!d.fl}));
+  const live=S.status==='live', ds=S.drivers.map((d,ri)=>[d,ri]).filter(x=>(x[0].name||'').trim()).map(([d,ri],i)=>({pos:i+1,code:d.code||'',name:d.name,team:d.team||'',status:d.status||'RUN',
+    gap:i===0?((d.gap&&d.gap!=='Leader')?d.gap:'Leader'):(d.gap||''),last:d.last||'',int:i?(d.int||autoInt(ri)):'',best:d.best||'',tyre:d.tyre||'',pits:+d.pits||0,pen:d.pen||'',warns:+d.warns||0,fl:!!d.fl}));
   return {session:{series:S.series,type:S.type,name:S.name,circuit:S.circuit,status:S.status,flag:S.flag,lap:S.lap,totalLaps:+S.total||0,updated:Date.now()},
     drivers:ds, messages:S.messages};
 }
@@ -113,11 +115,11 @@ function render(){
   $('flags').innerHTML=FLAGS.map(([k,l])=>`<button class="f-${k}${S.flag===k?' on':''}" data-f="${k}">${l}</button>`).join('');
   $('lapN').textContent=S.lap+($('total').value?' / '+$('total').value:'');
   const opt=(arr,v,lab)=>arr.map(x=>`<option value="${x}"${x===(v||'')?' selected':''}>${x||lab}</option>`).join('');
-  $('drivers').innerHTML=S.drivers.length?`<table class="lbt"><thead><tr><th></th><th>Pos</th><th>Driver</th><th>Team</th><th>Gap</th><th>Int</th><th>Last</th><th>Best</th><th>Tyre</th><th>Pits</th><th>Penalty</th><th>Warn</th><th>Status</th><th>FL</th><th></th></tr></thead><tbody>`+S.drivers.map((d,i)=>`<tr class="drv${/DNF/.test(d.status)?' dnf':''}${d.pen?' hasp':''}${d.status==='PIT'?' inpit':''}" data-i="${i}">
+  $('drivers').innerHTML=S.drivers.length?`<table class="lbt"><thead><tr><th></th><th>P</th><th>Driver</th><th>Team</th><th>Gap</th><th>Int</th><th>Last</th><th>Best</th><th>Tyre</th><th>Pits</th><th>Penalty</th><th>Warn</th><th>Status</th><th>FL</th><th></th></tr></thead><tbody>`+S.drivers.map((d,i)=>`<tr class="drv${/DNF/.test(d.status)?' dnf':''}${d.pen?' hasp':''}${d.status==='PIT'?' inpit':''}" data-i="${i}">
     <td class="hnd" title="Drag to reorder">⠿</td>
-    <td class="ppos${i<3?' pos':''}">P${i+1}</td>
-    <td><b>${esc(d.name)}</b>${d.fl?'<span class="tag fl">FL</span>':''}${d.status==='PIT'?'<span class="tag tp">PIT</span>':''}${d.pen?'<span class="tag pen">'+esc(d.pen)+'</span>':''}</td>
-    <td class="mute">${esc(d.team||'')}</td>
+    <td><input class="pn pin" type="number" min="1" max="${S.drivers.length}" value="${i+1}" data-k="_pos"></td>
+    <td><input data-k="name" placeholder="Driver" value="${esc(d.name)}"></td>
+    <td><input data-k="team" placeholder="Team" value="${esc(d.team||'')}"></td>
     <td><input data-k="gap" placeholder="${i?'+1.234':'Leader'}" value="${esc(i?d.gap:'')}" ${i?'':'disabled'}></td>
     <td><input data-k="int" placeholder="${esc(autoInt(i)||(i?'+0.000':''))}" value="${esc(i?d.int||'':'')}" ${i?'':'disabled'}></td>
     <td><input data-k="last" placeholder="1:23.456" value="${esc(d.last||'')}"></td>
@@ -128,7 +130,7 @@ function render(){
     <td><button data-a="warn">⚠ ${+d.warns||0}</button></td>
     <td class="mv"><button class="sbtn${d.status==='PIT'?' on':''}" data-a="pitbtn" title="In the pits / back out">${d.status==='PIT'?'OUT':'PIT'}</button> <button class="sbtn dn${d.status==='DNF'?' on':''}" data-a="dnfbtn" title="Retire / restore">${d.status==='DNF'?'↺':'DNF'}</button></td>
     <td><input type="checkbox" data-k="fl" title="Fastest lap" ${d.fl?'checked':''}></td>
-    <td class="mv"><button data-a="up">▲</button> <button data-a="dn">▼</button> <button data-a="rm">✕</button></td></tr>`).join('')+'</tbody></table>':'<div class="mute" style="font-size:13px">No drivers yet — paste the grid above.</div>';
+    <td class="mv"><button data-a="up">↑</button> <button data-a="dn">↓</button> <button data-a="rm">✕</button></td></tr>`).join('')+'</tbody></table>':'<div class="mute" style="font-size:13px">No drivers yet — paste the grid above.</div>';
   $('msgs').innerHTML=S.messages.map((m,i)=>`<div class="msg"><span><span class="mute">${esc(m.t)}</span> &nbsp;${esc(m.text)}</span><button data-m="${i}">✕</button></div>`).join('');
 }
 $('flags').onclick=e=>{const b=e.target.closest('[data-f]'); if(!b) return; S.flag=b.dataset.f; render(); push();};
@@ -138,14 +140,15 @@ $('total').oninput=()=>{render(); push();};
 $('goLive').onclick=()=>setStatus('live'); $('finish').onclick=()=>{S.flag='chequered'; render(); setStatus('finished');}; $('goOff').onclick=()=>setStatus('offline');
 $('load').onclick=()=>{ const ls=$('paste').value.split('\n').map(x=>x.trim()).filter(Boolean);
   if(!ls.length) return; S.drivers=ls.map(l=>{const [n,...t]=l.split(/\s+-\s+/); return mkD(n.trim(),t.join(' - ').trim());}); S.lap=0; render(); push(); };
-$('clear').onclick=()=>{ if(confirm('Clear the grid and messages?')){ S.drivers=[]; S.messages=[]; S.lap=0; render(); push(); } };
+$('clear').onclick=()=>{ if(confirm('Clear the table and messages?')){ S.drivers=blankRows(10); S.messages=[]; S.lap=0; render(); push(); } };
+$('addD').onclick=()=>{ S.drivers.push(mkD('','')); render(); push(); };
 $('drivers').onclick=e=>{const b=e.target.closest('[data-a]'); if(!b) return; const i=+b.closest('.drv').dataset.i, a=b.dataset.a, D=S.drivers, d=D[i];
   if(a==='up'&&i>0) [D[i-1],D[i]]=[D[i],D[i-1]]; if(a==='dn'&&i<D.length-1) [D[i+1],D[i]]=[D[i],D[i+1]];
   if(a==='rm') D.splice(i,1);
   if(a==='pit+') d.pits=(+d.pits||0)+1; if(a==='pit-') d.pits=Math.max(0,(+d.pits||0)-1);
   if(a==='warn'){ d.warns=((+d.warns||0)+1)%4; if(d.warns) say('TRACK LIMITS - WARNING '+d.warns+'/3 - '+d.name.toUpperCase()); }
   if(a==='pitbtn'){ if(d.status==='PIT') d.status='RUN'; else { d.status='PIT'; d.pits=(+d.pits||0)+1; } }
-  if(a==='dnfbtn'){ if(d.status==='DNF') d.status='RUN'; else { d.status='DNF'; D.splice(i,1); D.push(d); say(d.name.toUpperCase()+' - RETIRED'); } }
+  if(a==='dnfbtn'){ if(d.status==='DNF') d.status='RUN'; else { d.status='DNF'; D.splice(i,1); let k=D.length; while(k>0&&!(D[k-1].name||'').trim()) k--; D.splice(k,0,d); say(d.name.toUpperCase()+' - RETIRED'); } }
   fixLeader(); render(); push(); };
 $('drivers').oninput=e=>{const el=e.target, row=el.closest('.drv'), k=el.dataset.k; if(!row||!k||['_pos','penpick','fl','tyre','status'].includes(k)) return;
   S.drivers[+row.dataset.i][k]=el.value; if(k==='gap') refreshInts(); push(); };
@@ -163,10 +166,6 @@ $('drivers').addEventListener('dragstart',e=>{ const r=e.target.closest&&e.targe
 $('drivers').addEventListener('dragover',e=>{ if(dragI==null) return; e.preventDefault(); document.querySelectorAll('#drivers .over').forEach(x=>x.classList.remove('over')); const r=e.target.closest('.drv'); if(r) r.classList.add('over'); });
 $('drivers').addEventListener('drop',e=>{ if(dragI==null) return; e.preventDefault(); const r=e.target.closest('.drv'); if(r){ const D=S.drivers, [x]=D.splice(dragI,1); D.splice(+r.dataset.i,0,x); fixLeader(); } dragI=null; render(); push(); });
 $('drivers').addEventListener('dragend',()=>{ dragI=null; render(); });
-$('qoGo').onclick=()=>{ const raw=$('qo').value.trim(); if(!raw) return; const D=S.drivers, out=[];
-  raw.toLowerCase().split(raw.includes(',')?/\s*,\s*/:/\s+/).filter(Boolean).forEach(w=>{ const free=d=>!out.includes(d);
-    const m=D.find(d=>free(d)&&((d.code||'').toLowerCase()===w||d.name.toLowerCase()===w))||D.find(d=>free(d)&&d.name.toLowerCase().startsWith(w)); if(m) out.push(m); });
-  S.drivers=[...out,...D.filter(d=>!out.includes(d))]; $('qo').value=''; fixLeader(); render(); push(); };
 const CHIPS=[['🟡 Yellow S1','YELLOW FLAG - SECTOR 1','yellow'],['🟡 Yellow S2','YELLOW FLAG - SECTOR 2','yellow'],['🟡 Yellow S3','YELLOW FLAG - SECTOR 3','yellow'],['✅ Track clear','TRACK CLEAR','green'],
   ['🚗 SC in this lap','SAFETY CAR IN THIS LAP'],['Pit lane open','PIT LANE OPEN'],['Pit lane closed','PIT LANE CLOSED'],['Track limits…','TRACK LIMITS - LAP TIME DELETED - CAR '],['Investigation…','UNDER INVESTIGATION - CAR ']];
 $('chips').innerHTML=CHIPS.map((c,i)=>`<button data-c="${i}">${c[0]}</button>`).join('');
@@ -235,5 +234,6 @@ $('arStart').onclick=async()=>{ if(auto) return; if(!stream){ arState('Share the
   catch(e){ arState('Couldn’t load the text reader — check your internet connection'); } };
 $('arStop').onclick=()=>{ auto=false; arState('Paused — you can edit by hand'); };
 
+if(!S.drivers.length) S.drivers=blankRows(10);
 render(); if(S.status==='live'){ S.status='offline'; } /* never silently resume a stale session after reload */
 </script></body></html>
