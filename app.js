@@ -2423,7 +2423,7 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=M
 function hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 const gum=r=>-Math.log(-Math.log(Math.min(1-1e-12,Math.max(1e-12,r()))));
 
-const TAB=[25,18,15,12,10,8,6,4,2,1];
+const TAB=[40,22,14,9,6,4,2.5,1.5,.8,.4];   /* steeper than league points: winning should count far more than a P2 */
 const tkey=t=>typeof normTeam==='function'?normTeam(t):String(t||'').toLowerCase().trim();
 /* who is on the grid: published lineup + anyone who actually raced recently (so e.g. Juantoes is never missing) */
 function pool(s){
@@ -2449,7 +2449,7 @@ function dStats(s,c){
   rounds.forEach((r,i)=>{
     const row=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===c); if(!row) return;
     n++; const dnf=DNF_RE.test(row.note||''); if(dnf) dnfs++;
-    const p=!dnf&&+row.pos>0?+row.pos:0, fp=p&&p<=10?TAB[p-1]:0, wt=Math.pow(.8,N-1-i);
+    const p=!dnf&&+row.pos>0?+row.pos:0, fp=p&&p<=10?TAB[p-1]:0, wt=Math.pow(.86,N-1-i);
     w+=wt; sum+=wt*fp; tot+=fp; if(row.pole) poles++; if(row.fl) fls++;
   });
   const perf=n?.6*(sum/w)+.4*(tot/n):0;
@@ -2462,7 +2462,7 @@ function board(s,race){
   if(memo[rk]&&memo[rk].key===key) return memo[rk];
   const drv=pool(s); drv.forEach(d=>Object.assign(d,dStats(s,d.c),{tk:tkey(d.team)}));
   const tp={}; drv.forEach(d=>{ if(d.n){ const o=tp[d.tk]=tp[d.tk]||{a:0,k:0}; o.a+=d.perf; o.k++; } });
-  drv.forEach(d=>{ const o=tp[d.tk], team=o?o.a/o.k:5; d.rating=Math.max(.8,.9*d.base+.1*team); d.lw=1.7*Math.log(d.rating);
+  drv.forEach(d=>{ const o=tp[d.tk], team=o?o.a/o.k:5; d.rating=Math.max(.8,.9*d.base+.1*team); d.lw=2.0*Math.log(d.rating);
     d.lwf=.8*d.lw+Math.log(1+4*d.flr); d.lwp=1.1*d.lw+Math.log(1+4*d.polr); });
   const N=drv.length, B={key,rk,s,race,drv,markets:[]};
   memo[rk]=B; if(N<4) return B;
