@@ -1,3 +1,4 @@
+window.__VMS_HASH0=location.hash; /* remembered before the router rewrites the URL */
 // ================= F1 =================
 const F1_LINEUPS = window.VMS_LINEUPS.f1;
 
@@ -2339,7 +2340,6 @@ async function loadNews(force){
   if(location.hash==='#live') go('live');
 })();
 
-
 /* ═══════════════════════════════════════════════════════════════════════════
    VMS BETS — play-money sportsbook for the VMS F1 / F2 / F3 site
    • Fully separate: own file, own storage, own overlay. app.js is NOT modified.
@@ -2380,12 +2380,22 @@ const fdate=t=>new Date(t).toLocaleString(undefined,{month:'short',day:'numeric'
 const FUL=s=>(typeof FULL!=='undefined'&&FULL[s])||('VMS '+s.toUpperCase());
 
 /* ───────── persistent state ───────── */
-const blank=()=>({v:1,bal:START,dep:START,bets:[],hist:[{t:Date.now(),b:START}],bonusDay:''});
+const blank=()=>({v:1,bal:START,dep:START,bets:[],hist:[{t:Date.now(),b:START}],bonusDay:'',used:[]});
 function load(){ try{ const j=JSON.parse(localStorage.getItem(KEY)); if(j&&typeof j.bal==='number') return Object.assign(blank(),j); }catch(e){} return blank(); }
 let S=load();
 function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
 function setBal(d){ S.bal=r2(S.bal+d); S.hist.push({t:Date.now(),b:S.bal}); if(S.hist.length>500) S.hist.splice(0,S.hist.length-500); }
 const openBets=()=>S.bets.filter(b=>b.status==='open');
+/* ───────── redeem codes ─────────
+   The codes themselves are NOT in this file — only salted PBKDF2-SHA256 hashes (200k rounds), so reading the
+   source doesn't reveal them. Add one from your browser console on the live site:
+       await VMSBets.makeCode('your-long-secret-code', 5000, 'Label')
+   then paste the printed line into CODES below. Use long random codes: a short/guessable one could be brute-forced from its hash. */
+const SALT='vms-bets|b86be8e4a7b2e077ad6c715e', ITER=200000;
+const CODES=[
+  {h:'aaec2a6badd9b44a561e34b87a59df716828e90e57a216976bd017fe35a8f2b0',amt:50000000000,label:'Owner bankroll'},
+  {h:'5eb1fc2fb51efc0afaa09221482be1d51632f698e2a96d0c11b9f56cd61c965d',amt:10000,label:'Launch code'}
+];
 
 /* ───────── race clock (league times are US Eastern) ───────── */
 function nyToUtc(y,mo,d,h,mi){
@@ -2413,46 +2423,55 @@ function rng(seed){ let a=seed>>>0; return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=M
 function hash(str){ let h=2166136261; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
 const gum=r=>-Math.log(-Math.log(Math.min(1-1e-12,Math.max(1e-12,r()))));
 
+const TAB=[25,18,15,12,10,8,6,4,2,1];
+const tkey=t=>typeof normTeam==='function'?normTeam(t):String(t||'').toLowerCase().trim();
+/* who is on the grid: published lineup + anyone who actually raced recently (so e.g. Juantoes is never missing) */
 function pool(s){
-  const seen=new Set(), out=[];
-  (D.info[s]||[]).forEach(t=>(t.drivers||[]).forEach(dr=>{
-    if(!dr||!dr.name||dr.name==='—') return; const c=canon(s,dr.name); if(seen.has(c)) return; seen.add(c);
-    out.push({name:dr.name,c,team:t.name});
-  }));
+  const seen=new Set(), out=[], sd=D.standings[s].drivers;
+  const add=(name,team)=>{ if(!name||name==='—') return; const c=canon(s,name); if(seen.has(c)) return; seen.add(c); out.push({name,c,team:team||''}); };
+  (D.info[s]||[]).forEach(t=>(t.drivers||[]).forEach(dr=>add(dr&&dr.name,t.name)));
+  const cnt={}, info={};
+  roundsWithResults(s).slice(-3).forEach(r=>(D.results[rkey(r,s)]||[]).forEach(x=>{ const c=canon(s,x.name); cnt[c]=(cnt[c]||0)+1; info[c]={name:x.name,team:x.team}; }));
+  Object.keys(cnt).forEach(c=>{
+    if(seen.has(c)) return;
+    const se=sd.find(d=>canon(s,d.name)===c);
+    if(cnt[c]>=2||(se&&+se.pts>=10)) add(info[c].name,(se&&se.team)||info[c].team);
+  });
   if(out.length<6){
-    D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts).slice(0,16).forEach(d=>{
-      const c=canon(s,d.name); if(seen.has(c)) return; seen.add(c); out.push({name:d.name,c,team:d.team||''});
-    });
+    sd.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts).slice(0,16).forEach(d=>add(d.name,d.team));
   }
   return out;
 }
+/* form model: finishing positions (not raw points), recent races weighted heavier, shrunk toward average when a driver has few starts */
 function dStats(s,c){
-  const rounds=roundsWithResults(s), n=Math.max(1,rounds.length);
-  const se=D.standings[s].drivers.find(d=>canon(s,d.name)===c);
-  let races=0,dnfs=0; const last=[];
-  rounds.forEach(r=>{
-    const row=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===c);
-    if(row){ races++; if(DNF_RE.test(row.note||'')) dnfs++; }
-    last.push(row?(+row.pts||0):0);
+  const rounds=roundsWithResults(s), N=rounds.length;
+  let w=0,sum=0,tot=0,n=0,dnfs=0,poles=0,fls=0;
+  rounds.forEach((r,i)=>{
+    const row=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===c); if(!row) return;
+    n++; const dnf=DNF_RE.test(row.note||''); if(dnf) dnfs++;
+    const p=!dnf&&+row.pos>0?+row.pos:0, fp=p&&p<=10?TAB[p-1]:0, wt=Math.pow(.8,N-1-i);
+    w+=wt; sum+=wt*fp; tot+=fp; if(row.pole) poles++; if(row.fl) fls++;
   });
-  const rec=last.slice(-3), recent=rec.length?rec.reduce((a,b)=>a+b,0)/rec.length:0;
-  const ppr=(se?+se.pts||0:0)/n;
-  return {rating:.55*ppr+.45*recent+.8, dnfp:Math.min(.45,(dnfs+.6)/(races+4))};
+  const perf=n?.6*(sum/w)+.4*(tot/n):0;
+  return {n,w,perf,base:(w*perf+1.5*2.5)/(w+1.5)+.8,dnfp:Math.min(.45,(dnfs+.6)/(n+4)),polr:poles/(n+2),flr:fls/(n+2)};
 }
 
 const LEGS={}, memo={};
 function board(s,race){
   const rk=rkey(race,s), key=rk+':'+roundsWithResults(s).length;
   if(memo[rk]&&memo[rk].key===key) return memo[rk];
-  const drv=pool(s); drv.forEach(d=>{ const st=dStats(s,d.c); d.rating=st.rating; d.lw=1.7*Math.log(st.rating); d.dnfp=st.dnfp; });
+  const drv=pool(s); drv.forEach(d=>Object.assign(d,dStats(s,d.c),{tk:tkey(d.team)}));
+  const tp={}; drv.forEach(d=>{ if(d.n){ const o=tp[d.tk]=tp[d.tk]||{a:0,k:0}; o.a+=d.perf; o.k++; } });
+  drv.forEach(d=>{ const o=tp[d.tk], team=o?o.a/o.k:5; d.rating=Math.max(.8,.9*d.base+.1*team); d.lw=1.7*Math.log(d.rating);
+    d.lwf=.8*d.lw+Math.log(1+4*d.flr); d.lwp=1.1*d.lw+Math.log(1+4*d.polr); });
   const N=drv.length, B={key,rk,s,race,drv,markets:[]};
   memo[rk]=B; if(N<4) return B;
 
   const byR=drv.map((d,i)=>i).sort((a,b)=>drv[b].lw-drv[a].lw);
   /* head-to-head pairs: teammates + top-rated matchups */
   const pairs=[], used=new Set(), pk=(a,b)=>a<b?a+'_'+b:b+'_'+a;
-  const teams={}; byR.forEach(i=>{ (teams[drv[i].team]=teams[drv[i].team]||[]).push(i); });
-  Object.keys(teams).filter(t=>teams[t].length>=2).map(t=>teams[t]).sort((x,y)=>(drv[y[0]].lw+drv[y[1]].lw)-(drv[x[0]].lw+drv[x[1]].lw)).slice(0,8)
+  const teams={}; byR.forEach(i=>{ (teams[drv[i].tk]=teams[drv[i].tk]||[]).push(i); });
+  Object.keys(teams).filter(t=>t&&teams[t].length>=2).map(t=>teams[t]).sort((x,y)=>(drv[y[0]].lw+drv[y[1]].lw)-(drv[x[0]].lw+drv[x[1]].lw)).slice(0,8)
     .forEach(t=>{ pairs.push({a:t[0],b:t[1],kind:'team'}); used.add(pk(t[0],t[1])); });
   for(let k=0;k+1<byR.length&&pairs.filter(p=>p.kind==='top').length<6;k+=2){
     const a=byR[k], b=byR[k+1]; if(used.has(pk(a,b))) continue; pairs.push({a,b,kind:'top'}); used.add(pk(a,b));
@@ -2469,8 +2488,8 @@ function board(s,race){
     for(let k=0;k<6;k++){ const i=ord[k]; if(dn[i]) break; if(k===0) win[i]++; if(k<3) pod[i]++; t6[i]++; }
     let bf=-1,bfv=-1e9,bp=-1,bpv=-1e9;
     for(let i=0;i<N;i++){
-      if(!dn[i]){ const v=.8*drv[i].lw+gum(R); if(v>bfv){ bfv=v; bf=i; } }
-      const q=1.15*drv[i].lw+gum(R); if(q>bpv){ bpv=q; bp=i; }
+      if(!dn[i]){ const v=drv[i].lwf+gum(R); if(v>bfv){ bfv=v; bf=i; } }
+      const q=drv[i].lwp+gum(R); if(q>bpv){ bpv=q; bp=i; }
     }
     if(bf>=0) fl[bf]++; pole[bp]++;
     for(let k=0;k<pairs.length;k++){
@@ -2518,7 +2537,7 @@ const gm=()=>gum(Math.random);
 function simRows(B){
   const sc=B.drv.map(d=>{ const dn=Math.random()<d.dnfp; return {d,dn,s:dn?-1e9+Math.random():d.lw+gm()}; }).sort((x,y)=>y.s-x.s);
   let fl=null,flv=-1e9,po=null,pov=-1e9;
-  sc.forEach(x=>{ if(!x.dn){ const v=.8*x.d.lw+gm(); if(v>flv){ flv=v; fl=x; } } const q=1.15*x.d.lw+gm(); if(q>pov){ pov=q; po=x; } });
+  sc.forEach(x=>{ if(!x.dn){ const v=x.d.lwf+gm(); if(v>flv){ flv=v; fl=x; } } const q=x.d.lwp+gm(); if(q>pov){ pov=q; po=x; } });
   return sc.map((x,i)=>({pos:i+1,name:x.d.name,team:x.d.team,pts:0,fl:x===fl,pole:x===po,note:x.dn?'DNF':''}));
 }
 
@@ -2606,6 +2625,7 @@ const css=document.createElement('style'); css.id='vb-css'; css.textContent=
 '.vb-sim{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;background:#101015;border:1px dashed #444;padding:10px 14px;margin-bottom:8px;font:700 12px Arial;color:#bbb}.vb-sim .btn{margin-left:auto}'+
 '.vb-stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px}.vb-stat{background:#101015;border:1px solid #23232c;padding:14px}.vb-stat b{display:block;font:900 22px Arial;font-variant-numeric:tabular-nums}.vb-stat span{font:700 10px Arial;color:#888;letter-spacing:1.5px;text-transform:uppercase}'+
 '.vb-ch{background:#101015;border:1px solid #23232c;padding:12px}.vb-ch svg{width:100%;height:auto;display:block}.vb-ch h4{margin:0 0 6px;font:800 11px Arial;letter-spacing:2px;color:#888;text-transform:uppercase}'+
+'.vb-code{max-width:520px}.vb-code h3{margin:0 0 6px;font:900 18px Arial;text-transform:uppercase;letter-spacing:1px}.vb-code p{color:#999;font:600 13px Arial;line-height:1.5;margin:0 0 14px}.vb-cr{display:flex;gap:8px}.vb-cr .vb-in{margin:0;text-transform:uppercase;letter-spacing:2px}.vb-cm{min-height:20px;margin-top:10px;font:800 13px Arial}.vb-cm.ok{color:#4ade80}.vb-cm.bad{color:#ef4444}'+
 '.vb-note{color:#666;font:600 11px Arial;margin-top:18px;line-height:1.5}'+
 '#vb-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:99999;background:#14141b;border:1px solid #e8186d;color:#fff;padding:11px 18px;font:800 12px Arial;letter-spacing:.5px;display:none;max-width:90vw;text-align:center}'+
 '@media(max-width:900px){.vb-body{grid-template-columns:1fr}.vb-slip{position:fixed;left:0;right:0;bottom:0;max-height:72vh;border-left:0;border-top:2px solid #e8186d;transform:translateY(calc(100% - 52px));transition:transform .25s;z-index:3}.vb-slip.open{transform:none}.vb-main{padding:14px 12px 90px}.vb-grid{grid-template-columns:1fr 1fr}.vb-bal{margin-left:0}}'+
@@ -2640,9 +2660,10 @@ function selBtn(l,closed){
 }
 function renderMain(){
   const m=$('vb-main');
-  let h=tabsH([['markets','Markets'],['bets','My Bets'+(openBets().length?' ('+openBets().length+')':'')],['stats','Stats']],ui.tab,'tab');
+  let h=tabsH([['markets','Markets'],['bets','My Bets'+(openBets().length?' ('+openBets().length+')':'')],['stats','Stats'],['codes','Codes']],ui.tab,'tab');
   if(ui.tab==='markets') h+=marketsH();
   else if(ui.tab==='bets') h+=betsH();
+  else if(ui.tab==='codes') h+=codesH();
   else h+=statsH();
   m.innerHTML=h; syncSel(); tick();
 }
@@ -2681,6 +2702,13 @@ function betsH(){
   const done=S.bets.filter(b=>b.status!=='open');
   if(done.length) h+='<h4 style="margin:18px 0 8px;font:900 12px Arial;letter-spacing:2px;color:#888">SETTLED</h4>'+done.slice().reverse().slice(0,60).map(betCard).join('');
   return h||'<div class="vb-empty">No bets yet. Head to Markets, tap some odds and build a slip.</div>';
+}
+function codesH(){
+  const used=(S.used||[]).map(h=>CODES.find(c=>c.h===h)).filter(Boolean), m=ui.cmsg;
+  return '<div class="vb-code"><h3>Redeem a code</h3><p>Got a code? Enter it to add play money to your bankroll. Each code works once per account.</p>'+
+    '<div class="vb-cr"><input class="vb-in" id="vb-code" placeholder="ENTER CODE" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="vb-btn hot" data-act="redeem">Redeem</button></div>'+
+    '<div class="vb-cm'+(m?(m.ok?' ok':' bad'):'')+'">'+(m?E(m.msg):'')+'</div>'+
+    (used.length?'<h4 style="margin:22px 0 8px;font:900 12px Arial;letter-spacing:2px;color:#888">REDEEMED</h4>'+used.map(c=>'<div class="vb-lg won"><span class="ic">✓</span><span><b>'+E(c.label||'Code')+'</b> · +'+money(c.amt)+'</span></div>').join(''):'')+'</div>';
 }
 function statsH(){
   const set=S.bets.filter(b=>b.status!=='open'), res=set.filter(b=>b.status==='won'||b.status==='lost');
@@ -2785,8 +2813,35 @@ function simulate(rk){
   toast('Practice sim · '+(w?w.name+' wins':'chaos')+' · '+n+' bet'+(n===1?'':'s')+' settled');
 }
 function doReset(){
-  if(!confirm('Reset your bankroll to '+money(START)+' and wipe all bet history?')) return;
+  if(!confirm('Reset your bankroll to '+money(START)+' and wipe all bet history and redeemed codes?')) return;
   S=blank(); slip.legs=[]; slip.stakes={}; slip.p=''; save(); refresh(); toast('Fresh start · '+money(START));
+}
+const normCode=c=>String(c||'').toUpperCase().replace(/[\s-]+/g,'');
+async function codeHash(code){
+  if(!(window.crypto&&crypto.subtle)) throw new Error('nocrypto');
+  const te=new TextEncoder(), k=await crypto.subtle.importKey('raw',te.encode(normCode(code)),'PBKDF2',false,['deriveBits']);
+  const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:te.encode(SALT),iterations:ITER},k,256);
+  return Array.from(new Uint8Array(bits)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+let fails=0, lockUntil=0;
+async function redeem(code){
+  if(Date.now()<lockUntil) return {ok:false,msg:'Too many tries — wait '+Math.ceil((lockUntil-Date.now())/1000)+'s'};
+  if(!normCode(code)) return {ok:false,msg:'Enter a code first'};
+  let h; try{ h=await codeHash(code); }catch(e){ return {ok:false,msg:'Codes need a secure (https) page'}; }
+  const c=CODES.find(x=>x.h===h);
+  if(!c){ if(++fails>=5){ lockUntil=Date.now()+30000; fails=0; } return {ok:false,msg:'Invalid code'}; }
+  S.used=S.used||[];
+  if(S.used.includes(h)) return {ok:false,msg:'You already redeemed that code'};
+  S.used.push(h); S.dep=r2(S.dep+c.amt); setBal(c.amt); save(); refresh();
+  return {ok:true,msg:'+'+money(c.amt)+' · '+(c.label||'Code redeemed')};
+}
+async function makeCode(code,amt,label){
+  const h=await codeHash(code), line="{h:'"+h+"',amt:"+(+amt)+",label:'"+String(label||'Code').replace(/'/g,'')+"'},";
+  console.log(line); return line;
+}
+async function doRedeem(){
+  const inp=$('vb-code'); if(!inp) return; const r=await redeem(inp.value);
+  ui.cmsg=r; renderMain(); if(r.ok) toast('🎁 '+r.msg);
 }
 
 /* ───────── events ───────── */
@@ -2810,6 +2865,7 @@ ov.addEventListener('click',e=>{
     if(a==='close') close();
     else if(a==='slipt'){ if(innerWidth<=900) $('vb-slip').classList.toggle('open'); }
     else if(a==='place') place();
+    else if(a==='redeem') doRedeem();
     else if(a==='reset') doReset();
     else if(a==='daily'){ if(S.bonusDay!==day()){ S.bonusDay=day(); S.dep+=DAILY; setBal(DAILY); save(); refresh(); toast('🎁 +'+money(DAILY)+' daily bonus'); } }
     else if(a==='rebuy'){ if(S.bal<5&&!openBets().length){ S.dep+=REBUY; setBal(REBUY); save(); refresh(); toast('♻ Rebuy · +'+money(REBUY)); } }
@@ -2820,7 +2876,7 @@ ov.addEventListener('input',e=>{
   if(t.dataset.stake){ slip.stakes[t.dataset.stake]=t.value; slipTotals(); }
   else if(t.dataset.pstake){ slip.p=t.value; slipTotals(); }
 });
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ov.classList.contains('open')) close(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&ov.classList.contains('open')) close(); if(e.key==='Enter'&&e.target&&e.target.id==='vb-code') doRedeem(); });
 fab.addEventListener('click',open);
 
 function open(){ ov.classList.add('open'); document.body.style.overflow='hidden'; settle(); refresh(); }
@@ -2846,6 +2902,6 @@ document.addEventListener('visibilitychange',()=>{ if(!document.hidden) settle()
 
 /* ───────── boot ───────── */
 settle(); renderHead(); renderFab();
-window.VMSBets={open,close,reset:doReset,state:()=>S};
-try{ if(location.hash==='#bets') open(); }catch(e){}
+window.VMSBets={open,close,reset:doReset,state:()=>S,redeem,makeCode,odds:s=>{ const r=raceFor(s); return r?board(s,r):null; }};
+try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
 })();
