@@ -644,19 +644,19 @@
         "gap": "+50.631"
       },
       {
-        "pos": 8,
-        "name": "Diego",
-        "team": "Sahara Force India F1 Team",
-        "pts": 4,
-        "gap": "+58.297"
-      },
-      {
-        "pos": 8,
+        "pos": 7,
         "name": "yokesecapo",
         "team": "Scuderia Ferrari",
         "pts": 4,
         "half": true,
         "gap": "(Article B.4.1.4)"
+      },
+      {
+        "pos": 8,
+        "name": "Diego",
+        "team": "Sahara Force India F1 Team",
+        "pts": 4,
+        "gap": "+58.297"
       },
       {
         "pos": 9,
