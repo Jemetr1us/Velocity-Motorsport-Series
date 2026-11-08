@@ -4,7 +4,8 @@
    • For a transfer, the team that currently has the driver must accept first.
    • FIA officials (shared FIA code) approve, reject or ask for changes.
    • Approved moves show in a public Transfer Log.
-   • Drivers sign up publicly (Driver Sign-Up tab); an FIA official then sets each driver's price.
+   • Drivers sign up (Driver Sign-Up tab); only FIA officials see the sign-ups and set each driver's price.
+   • Team owners see FIA-priced drivers + every team's drivers in the portal, with Sign / Transfer buttons.
    Fully separate from app.js. Needs firebase-config.js + Firestore (see TRANSFERS-SETUP.md).
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
@@ -45,9 +46,9 @@
     all: [], approved: [], logSeries: 'all',
     team: pref('team'), name: pref('name'),
     form: blankForm(), editId: null, busy: false,
-    signups: [], suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
+    signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
   };
-  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, msgTimer = null;
+  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, msgTimer = null;
 
   /* ───────── tiny helpers ───────── */
   function $(id) { return document.getElementById(id); }
@@ -133,13 +134,25 @@
       S.logErr = 'Couldn’t load the transfer log right now.'; paintLog();
     });
   }
+  /* FIA sees every sign-up; owners only the priced ones; everyone else just their own doc (startMineListener) */
   function startSignupListener() {
-    unsubSU = db.collection('signups').onSnapshot(function (snap) {
+    if (unsubSU) { unsubSU(); unsubSU = null; }
+    S.signups = []; S.suErr = '';
+    var q = S.role === 'official' ? db.collection('signups')
+          : S.role === 'owner' ? db.collection('signups').where('status', '==', 'priced') : null;
+    if (!q) { paintSignupList(); paintForm(); return; }
+    unsubSU = q.onSnapshot(function (snap) {
       S.signups = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
-      S.suErr = ''; paintSignupForm(); paintSignupList();
+      S.suErr = ''; paintSignupList(); paintForm();
     }, function () {
       S.suErr = 'Couldn’t load the driver sign-ups right now.'; paintSignupList();
     });
+  }
+  function startMineListener() {
+    if (unsubMine || !S.uid) return;
+    unsubMine = db.collection('signups').doc(S.uid).onSnapshot(function (d) {
+      S.mine = d.exists ? Object.assign({ id: d.id }, d.data()) : null; paintSignupForm();
+    }, function () {});
   }
   function startPortalListener() {
     stopPortalListener();
@@ -151,13 +164,17 @@
       else flash('Lost connection to the server. Refresh the page.', 'err');
     });
   }
-  function stopPortalListener() { if (unsubAll) { unsubAll(); unsubAll = null; } S.all = []; }
+  function stopPortalListener() {
+    if (unsubAll) { unsubAll(); unsubAll = null; }
+    if (unsubSU) { unsubSU(); unsubSU = null; }
+    S.all = []; S.signups = [];
+  }
 
   function setRole(code, data) {
     S.code = code; S.role = data.role; S.locked = data.team || null;
     if (S.locked) { S.team = S.locked; pref('team', S.team); }
     S.form = blankForm(); S.editId = null;
-    startPortalListener(); paintPortal(); paintLog();
+    startPortalListener(); startSignupListener(); paintPortal(); paintLog();
   }
   function restore() {
     if (S.role || S.restoring || !S.uid) return;
@@ -247,7 +264,7 @@
   }
   /* ───────── driver sign-ups ───────── */
   function myPrice(p) { return '$' + Number(p).toFixed(1) + 'M'; }
-  function mySignup() { return S.uid ? S.signups.filter(function (x) { return x.id === S.uid; })[0] || null : null; }
+  function mySignup() { return S.mine; }
   function submitSignup() {
     var f = S.su, name = f.name.trim();
     if (!name) { flash('Enter your driver name.', 'err'); return; }
@@ -256,7 +273,7 @@
     S.suBusy = true; paintSignupForm();
     var step = fa.currentUser ? Promise.resolve(fa.currentUser) : fa.signInAnonymously().then(function (c) { return c.user; });
     step.then(function (u) {
-      S.uid = u.uid;
+      S.uid = u.uid; startMineListener();
       return db.collection('signups').doc(u.uid).set({ name: name, series: f.series, notes: f.notes.trim(), status: 'open', price: null, createdAt: stamp() });
     }).then(function () {
       flash('You’re signed up! The FIA will set your price.', 'ok'); S.su = { name: '', series: f.series, notes: '' };
@@ -288,7 +305,7 @@
       return;
     }
     var f = S.su;
-    b.innerHTML = '<div class="tr-card"><h3>Driver sign-up</h3><p class="tr-help">Want to race in VMS? Sign up here. An FIA official will set your <b>price</b>, then team owners can sign you.</p><div class="tr-formgrid">' +
+    b.innerHTML = '<div class="tr-card"><h3>Driver sign-up</h3><p class="tr-help">Want to race in VMS? Sign up here. Only FIA officials see sign-ups. They’ll set your <b>price</b>, and then team owners can sign you.</p><div class="tr-formgrid">' +
       '<label class="tr-f">Driver name<input data-s="name" maxlength="60" value="' + esc(f.name) + '" placeholder="Your racing name"></label>' +
       '<label class="tr-f">Series<select data-s="series">' + SERIES.map(function (s) { return '<option value="' + s + '"' + (s === f.series ? ' selected' : '') + '>' + esc(SNAME[s]) + '</option>'; }).join('') + '</select></label>' +
       '<label class="tr-f wide">About you <small>(optional)</small><textarea data-s="notes" maxlength="400" rows="3" placeholder="Experience, past teams, Discord name…">' + esc(f.notes) + '</textarea></label></div>' +
@@ -297,6 +314,7 @@
   function paintSignupList() {
     var b = $('trSuList'); if (!b) return;
     if (!configured) { b.innerHTML = notice('The transfer system isn’t connected yet.'); return; }
+    if (S.role !== 'official') { b.innerHTML = ''; return; }
     if (S.suErr) { b.innerHTML = notice(esc(S.suErr)); return; }
     var kept = grabInputs(), isFia = S.role === 'official';
     var tabs = '<div class="tabs">' + [['all', 'All']].concat(SERIES.map(function (s) { return [s, s.toUpperCase()]; })).map(function (p) {
@@ -409,7 +427,7 @@
     box.innerHTML =
       '<div class="tr-bar"><span>Signed in as <b>' + (S.role === 'owner' ? 'Team owner' : 'FIA official') + '</b></span><button type="button" class="tr-link" data-a="signout">Sign out</button></div>' +
       '<div id="trIdent"></div>' +
-      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trQueue"></div>');
+      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trMarket"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trQueue"></div>');
     paintIdent(); paintForm(); paintLists();
   }
 
@@ -424,7 +442,30 @@
     b.innerHTML = '<div class="tr-ident">' + team + '<label class="tr-f">Your name<input id="trName" maxlength="40" value="' + esc(S.name) + '" placeholder="Shown on everything you do"></label></div>';
   }
 
+  function paintMarket() {
+    var b = $('trMarket'); if (!b || S.role !== 'owner') return;
+    if (!S.team) { b.innerHTML = ''; return; }
+    var agents = S.signups.filter(function (r) { return r.status === 'priced'; }).sort(function (a, c) { return a.price - c.price; });
+    var h = '<div class="tr-card"><h3>Drivers you can sign</h3><p class="tr-help">Free agents priced by the FIA, and drivers on other teams. Pick one and the request form below fills in for you. The FIA makes the final call.</p>';
+    h += '<details class="tr-mk" open><summary>Free agents (' + agents.length + ')</summary>' + (agents.length ? agents.map(function (r) {
+      return '<div class="tr-mkrow"><b>' + esc(r.name) + '</b><small>' + esc((r.series || '').toUpperCase()) + '</small><span>' + esc(myPrice(r.price)) + '</span>' +
+        (r.notes ? '<small>' + esc(r.notes) + '</small>' : '') +
+        '<button type="button" class="btn" data-a="mkSign" data-id="' + esc(r.id) + '">Sign</button></div>';
+    }).join('') : '<div class="empty">No priced free agents yet.</div>') + '</details>';
+    SERIES.forEach(function (s) {
+      var teams = teamsOf(s).filter(function (t) { return t.name !== S.team && (t.drivers || []).length; });
+      if (!teams.length) return;
+      h += '<details class="tr-mk"><summary>' + esc(SNAME[s]) + ' drivers on teams</summary>' + teams.map(function (t) {
+        return t.drivers.map(function (d) {
+          return '<div class="tr-mkrow"><b>' + esc(d.name) + '</b><small>' + esc(t.name) + '</small>' +
+            '<button type="button" class="btn alt" data-a="mkTransfer" data-t="' + esc(t.name) + '" data-d="' + esc(d.name) + '">Transfer</button></div>';
+        }).join('');
+      }).join('') + '</details>';
+    });
+    b.innerHTML = h + '</div>';
+  }
   function paintForm() {
+    paintMarket();
     var b = $('trForm'); if (!b || S.role !== 'owner') return;
     if (!S.team) { b.innerHTML = notice('Choose your team above to send a request.'); return; }
     var f = S.form, ed = S.editId ? S.all.filter(function (r) { return r.id === S.editId; })[0] : null;
@@ -510,6 +551,15 @@
     else if (a === 'setprice') setPrice(id);
     else if (a === 'removesu') removeSignup(id);
     else if (a === 'suSeries') { S.suSeries = v; paintSignupList(); }
+    else if (a === 'mkSign') {
+      var sg = S.signups.filter(function (x) { return x.id === id; })[0]; if (!sg) return;
+      S.editId = null; S.form = { type: 'signing', from: '', driver: sg.name, effective: '', notes: 'FIA price: ' + myPrice(sg.price) };
+      paintForm(); var f1 = $('trForm'); if (f1 && f1.scrollIntoView) f1.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    else if (a === 'mkTransfer') {
+      S.editId = null; S.form = { type: 'transfer', from: t.getAttribute('data-t'), driver: t.getAttribute('data-d'), effective: '', notes: '' };
+      paintForm(); var f2 = $('trForm'); if (f2 && f2.scrollIntoView) f2.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
     else if (a === 'ftype') { S.form.type = v; S.form.from = ''; S.form.driver = ''; paintForm(); }
     else if (a === 'submit') submitForm();
     else if (a === 'cancelEdit') { S.editId = null; S.form = blankForm(); paintForm(); }
@@ -555,7 +605,7 @@
     initFirebase().then(function () {
       startLogListener(); startSignupListener();
       fa.onAuthStateChanged(function (u) {
-        if (u) { S.uid = u.uid; restore(); paintSignupForm(); } else { S.connecting = false; paintPortal(); }
+        if (u) { S.uid = u.uid; startMineListener(); restore(); } else { S.connecting = false; paintPortal(); }
       });
     }).catch(function (e) {
       S.connecting = false; S.loadErr = 'Couldn’t connect to the transfer system. ' + (e && e.message ? e.message : ''); paintPortal(); paintLog();
