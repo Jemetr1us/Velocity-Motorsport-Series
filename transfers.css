@@ -79,3 +79,10 @@
 
 @media(max-width:900px){#view-transfers .tr-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){#view-transfers .tr-grid,#view-transfers .tr-formgrid{grid-template-columns:1fr}#view-transfers .tr-chip{margin-left:0}}
+
+/* driver sign-up + pricing */
+#view-transfers .tr-price{margin-top:12px;font-size:22px;font-style:italic;font-weight:1000;color:#1fd45a}
+#view-transfers .tr-price small{font-size:10px;font-weight:1000;letter-spacing:1.3px;text-transform:uppercase;color:#666;font-style:normal;margin-right:6px}
+#view-transfers .tr-setprice{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#view-transfers .tr-setprice input{flex:0 1 150px;width:auto}
+#view-transfers .tr-setprice .btn{margin:0;border:0;cursor:pointer;font-family:inherit}
