@@ -1,0 +1,81 @@
+/* Transfers & Signings tab — same palette as the rest of the site */
+#view-transfers .tr-wrap{padding-top:36px}
+#view-transfers .tr-pane{display:none}
+#view-transfers .tr-pane.on{display:block}
+
+#view-transfers .tr-msg{margin:0 0 18px;padding:13px 16px;font:700 13px Arial,sans-serif;border-left:4px solid #1fd45a;background:#0b1a10;color:#cfeedd}
+#view-transfers .tr-msg.err{border-left-color:#e5484d;background:#2a0e10;color:#ffd6d8}
+#view-transfers .tr-note{padding:22px 24px;border:1px dashed #333;color:#aaa;line-height:1.6;font-size:14px;max-width:760px}
+#view-transfers .empty{padding:28px;color:#888;border:1px dashed #2a2a2a;font-size:14px}
+
+/* public log */
+#view-transfers .tr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+#view-transfers .tr-stack{display:grid;gap:14px;max-width:860px}
+#view-transfers .tr-item{background:linear-gradient(145deg,#111,#080808);border:1px solid #252525;padding:20px}
+#view-transfers .tr-pub:hover{border-color:#e8186d}
+#view-transfers .tr-top{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;margin-bottom:12px}
+#view-transfers .tr-type{font-size:10px;font-weight:1000;letter-spacing:1.5px;text-transform:uppercase;color:#e8186d}
+#view-transfers .tr-series{font-size:10px;font-weight:1000;letter-spacing:1.5px;color:#777;text-transform:uppercase}
+#view-transfers .tr-date{margin-left:auto;font-size:11px;color:#777}
+#view-transfers .tr-driver{font-size:24px;font-style:italic;font-weight:1000;text-transform:uppercase;line-height:1.1}
+#view-transfers .tr-move{margin-top:10px;display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14px;color:#cfcfcf}
+#view-transfers .tr-move i{font-style:normal;color:#e8186d;font-weight:1000}
+#view-transfers .tr-move .tr-from{color:#888}
+#view-transfers .tr-move b{color:#fff}
+#view-transfers .tr-meta{margin-top:10px;font-size:12px;color:#888}
+#view-transfers .tr-meta span{font-size:10px;font-weight:1000;letter-spacing:1.3px;text-transform:uppercase;color:#666;margin-right:4px}
+#view-transfers .tr-notes{margin-top:10px;font-size:13px;color:#b5b5b5;line-height:1.5;white-space:pre-wrap}
+#view-transfers .tr-why{margin-top:12px;padding:10px 12px;background:#14100a;border-left:3px solid #ffd34e;font-size:13px;color:#e8d9a8;line-height:1.5}
+
+/* status chips */
+#view-transfers .tr-chip{margin-left:auto;font-size:10px;font-weight:1000;letter-spacing:1px;text-transform:uppercase;padding:5px 9px;border:1px solid}
+#view-transfers .tr-chip.c-green{color:#1fd45a;border-color:#1fd45a}
+#view-transfers .tr-chip.c-blue{color:#4aa8ff;border-color:#4aa8ff}
+#view-transfers .tr-chip.c-amber{color:#ffd34e;border-color:#ffd34e}
+#view-transfers .tr-chip.c-red{color:#e5484d;border-color:#e5484d}
+#view-transfers .tr-chip.c-grey{color:#888;border-color:#444}
+
+/* history */
+#view-transfers .tr-hist{margin-top:12px;font-size:12px;color:#888}
+#view-transfers .tr-hist summary{cursor:pointer;font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:10px;color:#777}
+#view-transfers .tr-hist summary:hover{color:#e8186d}
+#view-transfers .tr-hist ol{list-style:none;margin-top:8px;display:grid;gap:6px}
+#view-transfers .tr-hist li{line-height:1.5;color:#aaa}
+#view-transfers .tr-hist li span{color:#666;margin-right:6px}
+#view-transfers .tr-hist li small{color:#777}
+
+/* portal */
+#view-transfers .tr-card{background:linear-gradient(145deg,#111,#080808);border:1px solid #252525;padding:24px;max-width:860px;margin:0 0 26px}
+#view-transfers .tr-card h3,#view-transfers .tr-h{font-style:italic;text-transform:uppercase;color:#e8186d;font-size:20px;margin:0 0 12px}
+#view-transfers .tr-h{margin:30px 0 14px}
+#view-transfers .tr-count{display:inline-block;min-width:24px;padding:2px 8px;margin-left:8px;background:var(--grad);color:#fff;font:900 12px Arial,sans-serif;text-align:center;font-style:normal;vertical-align:middle}
+#view-transfers .tr-help{color:#999;font-size:14px;line-height:1.6;margin-bottom:16px}
+#view-transfers .tr-help b{color:#fff}
+#view-transfers .tr-bar{display:flex;justify-content:space-between;align-items:center;max-width:860px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #222;font-size:13px;color:#999}
+#view-transfers .tr-bar b{color:#fff}
+#view-transfers .tr-link{appearance:none;background:none;border:0;color:#e8186d;font:900 11px Arial,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer}
+#view-transfers .tr-link:hover{color:#fff}
+#view-transfers .tr-ident{display:flex;flex-wrap:wrap;gap:16px;max-width:860px;margin-bottom:26px}
+#view-transfers .tr-ident .tr-f{flex:1 1 260px}
+#view-transfers .tr-formgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+#view-transfers .tr-f{display:flex;flex-direction:column;gap:7px;font-size:10px;font-weight:1000;letter-spacing:1.5px;text-transform:uppercase;color:#8f8f8f}
+#view-transfers .tr-f small{font-weight:700;letter-spacing:.5px;text-transform:none;color:#666}
+#view-transfers .tr-f.wide{grid-column:1/-1}
+#view-transfers .tr-locked{padding:12px 14px;background:#0b0b0b;border:1px solid #2c2c2c;color:#fff;font:700 14px Arial,sans-serif;letter-spacing:0;text-transform:none}
+#view-transfers input,#view-transfers select,#view-transfers textarea{width:100%;background:#0b0b0b;border:1px solid #2c2c2c;color:#fff;padding:12px 14px;font:14px Arial,sans-serif;letter-spacing:0;text-transform:none;border-radius:0}
+#view-transfers textarea{resize:vertical;min-height:70px}
+#view-transfers input:focus,#view-transfers select:focus,#view-transfers textarea:focus{outline:none;border-color:#e8186d}
+#view-transfers select option,#view-transfers select optgroup{background:#0b0b0b;color:#fff}
+#view-transfers .tr-row{display:flex;flex-wrap:wrap;gap:12px}
+#view-transfers .tr-row input{flex:1 1 240px;width:auto}
+#view-transfers .tr-row .btn{margin:0}
+#view-transfers .tr-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+#view-transfers .tr-actions .btn{margin:0;border:0;cursor:pointer;font-family:inherit}
+#view-transfers .btn[disabled]{opacity:.5;cursor:default}
+#view-transfers .btn.danger{color:#c4141c}
+#view-transfers .tr-decide{margin-top:16px;padding-top:14px;border-top:1px solid #222}
+#view-transfers .tr-ask{font-size:14px;color:#ddd;margin-bottom:10px;line-height:1.5}
+#view-transfers .tr-code{max-width:560px}
+
+@media(max-width:900px){#view-transfers .tr-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){#view-transfers .tr-grid,#view-transfers .tr-formgrid{grid-template-columns:1fr}#view-transfers .tr-chip{margin-left:0}}

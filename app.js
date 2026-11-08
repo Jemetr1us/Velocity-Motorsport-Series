@@ -1439,7 +1439,7 @@ function rpDraw(t,instant){
 renderNext(); renderSeriesCards(); renderStandings(); renderCalendar(); renderResults(); renderTeams(); renderChampions(); renderTitleFight(); renderHeadToHead();
  
 
-const VIEWS=['home', 'standings', 'calendar', 'results', 'news', 'teams', 'about', 'join'];
+const VIEWS=['home', 'standings', 'calendar', 'results', 'news', 'teams', 'transfers', 'about', 'join'];
 function go(v){
   if(!VIEWS.includes(v)) v='home';
   document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='view-'+v));
