@@ -1031,6 +1031,138 @@
     ]
   },
   {
+    "series": "f1",
+    "rnd": "18",
+    "rows": [
+      {
+        "pos": 1,
+        "name": "Rox",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 26,
+        "fl": true,
+        "gap": "Leader"
+      },
+      {
+        "pos": 1,
+        "name": "Nick",
+        "team": "Scuderia Ferrari",
+        "pts": 25,
+        "pole": true,
+        "gap": "+1.517"
+      },
+      {
+        "pos": 3,
+        "name": "yokesecapo",
+        "team": "Scuderia Ferrari",
+        "pts": 15,
+        "gap": "+10.283"
+      },
+      {
+        "pos": 4,
+        "name": "Sly",
+        "team": "Sahara Force India F1 Team",
+        "pts": 12,
+        "gap": "+24.899"
+      },
+      {
+        "pos": 5,
+        "name": "Peters",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 10,
+        "gap": "+30.382"
+      },
+      {
+        "pos": 6,
+        "name": "Jack",
+        "team": "Mercedes-AMG",
+        "pts": 8,
+        "gap": "+39.998"
+      },
+      {
+        "pos": 7,
+        "name": "Sckibles",
+        "team": "GlitchGP F1 Team",
+        "pts": 6,
+        "gap": "+69.896"
+      },
+      {
+        "pos": 8,
+        "name": "Gui",
+        "team": "Renault Sport Formula 1 Team",
+        "pts": 4,
+        "gap": "+69.898"
+      },
+      {
+        "pos": 9,
+        "name": "Bence",
+        "team": "GlitchGP F1 Team",
+        "pts": 2,
+        "gap": "+94.896"
+      },
+      {
+        "pos": 10,
+        "name": "ShadowRex",
+        "team": "Tarigy's Motorsport Team F1",
+        "pts": 1,
+        "gap": "+98.917"
+      },
+      {
+        "pos": 11,
+        "name": "Juantoes",
+        "team": "Richard Mille LM Motorsport F1",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 12,
+        "name": "Sun_Rise",
+        "team": "Hertz Porsche",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 13,
+        "name": "Batwert",
+        "team": "Vodafone McLaren",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 14,
+        "name": "gkf",
+        "team": "Vodafone McLaren",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 15,
+        "name": "luddster",
+        "team": "Hertz Porsche",
+        "pts": 0,
+        "gap": "DNF",
+        "status": "DNF",
+        "note": "DNF"
+      },
+      {
+        "pos": 16,
+        "name": "Syxe",
+        "team": "BMW Sauber F1 Team",
+        "pts": 0,
+        "gap": "DNS",
+        "status": "DNS",
+        "note": "DNS"
+      }
+    ]
+  },
+  {
     "series": "f2",
     "rnd": "18",
     "rows": [
