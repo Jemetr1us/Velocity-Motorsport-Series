@@ -5,6 +5,8 @@
    • FIA officials (shared FIA code) approve, reject or ask for changes.
    • Approved moves show in a public Transfer Log.
    • Drivers sign up (Driver Sign-Up tab); only FIA officials see the sign-ups and set each driver's price.
+   • Each request carries an agreed fee ($M); the FIA sets team budgets; approving a move shifts the fee between budgets.
+   • The FIA also picks which series a priced driver may race in.
    • Team owners see FIA-priced drivers + every team's drivers in the portal, with Sign / Transfer buttons.
    Fully separate from app.js. Needs firebase-config.js + Firestore (see TRANSFERS-SETUP.md).
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -38,7 +40,7 @@
     try { if (v === undefined) return localStorage.getItem('vms_tr_' + k) || ''; localStorage.setItem('vms_tr_' + k, v); } catch (e) {}
     return '';
   }
-  function blankForm() { return { type: 'transfer', from: '', driver: '', effective: '', notes: '' }; }
+  function blankForm() { return { type: 'transfer', from: '', driver: '', effective: '', notes: '', fee: '' }; }
 
   var S = {
     tab: 'log', lineups: null, connecting: configured, restoring: false, loadErr: '', logErr: '',
@@ -46,9 +48,9 @@
     all: [], approved: [], logSeries: 'all',
     team: pref('team'), name: pref('name'),
     form: blankForm(), editId: null, busy: false,
-    ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
+    budgets: {}, ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
   };
-  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubCodes = null, msgTimer = null;
+  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubCodes = null, unsubBud = null, msgTimer = null;
 
   /* ───────── tiny helpers ───────── */
   function $(id) { return document.getElementById(id); }
@@ -209,6 +211,45 @@
       '<div class="tr-actions" style="margin:0 0 8px"><button type="button" class="btn" data-a="genall"' + (missing ? '' : ' disabled') + '>Generate all missing (' + missing + ')</button></div>' +
       rows + (old ? '<h3 class="tr-h" style="font-size:14px">Old shared code</h3>' + old : '') + '</div>';
   }
+  /* ───────── budgets ───────── */
+  function startBudgetListener() {
+    if (unsubBud) { unsubBud(); unsubBud = null; }
+    S.budgets = {};
+    if (S.role === 'official') {
+      unsubBud = db.collection('budgets').onSnapshot(function (snap) {
+        var m = {}; snap.docs.forEach(function (d) { var x = d.data(); m[x.team] = x.budget; });
+        S.budgets = m; paintBudgets();
+      }, function () {});
+    } else if (S.role === 'owner' && S.team) {
+      var team = S.team;
+      unsubBud = db.collection('budgets').doc(encodeURIComponent(team)).onSnapshot(function (d) {
+        S.budgets = {}; if (d.exists) S.budgets[team] = d.data().budget; paintForm();
+      }, function () { S.budgets = {}; paintForm(); });
+    }
+  }
+  function saveBudget(team) {
+    if (!needName()) return;
+    var inp = root.querySelector('[data-k="b-' + encodeURIComponent(team) + '"]'), v = inp ? num(inp.value) : NaN;
+    if (!(v >= 0 && v <= 100000)) { flash('Enter a budget in $M (0 or more).', 'err'); if (inp) inp.focus(); return; }
+    v = Math.round(v * 10) / 10;
+    db.collection('budgets').doc(encodeURIComponent(team)).set({ team: team, budget: v, updatedBy: S.name.trim().slice(0, 40), updatedAt: stamp() })
+      .then(function () { flash(team + ' budget set to ' + myPrice(v) + '.', 'ok'); })
+      .catch(function (e) { flash(niceError(e), 'err'); });
+  }
+  function paintBudgets() {
+    var b = $('trBudgets'); if (!b) return;
+    var det = b.querySelector('details'), wasOpen = !!(det && det.open), kept = grabInputs();
+    var rows = allTeams().map(function (t) {
+      var set = S.budgets[t.name] != null, l = ledger(t.name);
+      return '<div class="tr-mkrow"><b>' + esc(t.name) + '</b><small>' + esc(t.series.toUpperCase()) + '</small>' +
+        '<small>' + (set ? 'Left ' + esc(myPrice(S.budgets[t.name] - l.spent + l.received)) + ' · spent ' + esc(myPrice(l.spent)) + (l.received ? ' · received ' + esc(myPrice(l.received)) : '') : 'No budget set') + '</small>' +
+        '<input type="number" step="0.1" min="0" style="flex:0 0 110px;width:110px;padding:8px 10px" data-k="b-' + esc(encodeURIComponent(t.name)) + '" placeholder="$M" value="' + (set ? esc(S.budgets[t.name]) : '') + '">' +
+        '<button type="button" class="btn" data-a="savebudget" data-t="' + esc(t.name) + '">Save</button></div>';
+    }).join('');
+    b.innerHTML = '<div class="tr-card"><h3>Team budgets</h3><p class="tr-help">Set each team’s budget in $M. When you approve a move, its fee comes off the signing team’s budget; for a transfer it goes to the team that gave the driver up. An approval is blocked if a team can’t afford it.</p>' +
+      '<details class="tr-mk"' + (wasOpen ? ' open' : '') + '><summary>All teams (' + allTeams().length + ')</summary>' + (rows || '<div class="empty">No teams loaded yet.</div>') + '</details></div>';
+    putInputs(kept);
+  }
   function startMineListener() {
     if (unsubMine || !S.uid) return;
     unsubMine = db.collection('signups').doc(S.uid).onSnapshot(function (d) {
@@ -229,6 +270,8 @@
     if (unsubAll) { unsubAll(); unsubAll = null; }
     if (unsubSU) { unsubSU(); unsubSU = null; }
     if (unsubCodes) { unsubCodes(); unsubCodes = null; }
+    if (unsubBud) { unsubBud(); unsubBud = null; }
+    S.budgets = {};
     S.all = []; S.signups = []; S.ownerCodes = []; S.codesErr = '';
   }
 
@@ -237,7 +280,7 @@
     S.locked = data.team ? [data.team] : (Array.isArray(data.teams) && data.teams.length ? data.teams.slice() : null);
     if (S.locked) { if (S.locked.indexOf(S.team) < 0) S.team = S.locked[0]; pref('team', S.team); }
     S.form = blankForm(); S.editId = null;
-    startPortalListener(); startSignupListener(); startCodesListener(); paintPortal(); paintLog();
+    startPortalListener(); startSignupListener(); startCodesListener(); startBudgetListener(); paintPortal(); paintLog();
   }
   function restore() {
     if (S.role || S.restoring || !S.uid) return;
@@ -290,6 +333,35 @@
     var up = Object.assign({}, extra || {}, { status: status, updatedAt: stamp(), history: FV.arrayUnion(hist(action, comment)) });
     return db.collection('requests').doc(id).update(up);
   }
+  /* ───────── budgets, fees, pool helpers ───────── */
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : NaN; }
+  function teamSeries(team) { var i = teamInfo(team); return i ? i.series : null; }
+  function allowedOf(r) { return (Array.isArray(r.allowed) && r.allowed.length) ? r.allowed : [r.series]; }
+  function poolMatch(name) {
+    var n = String(name || '').trim().toLowerCase(); if (!n) return null;
+    return S.signups.filter(function (r) { return r.status === 'priced' && String(r.name).trim().toLowerCase() === n; })[0] || null;
+  }
+  function ledger(team) {
+    var sp = 0, rc = 0;
+    S.all.forEach(function (r) {
+      if (r.status !== 'approved') return;
+      var f = Number(r.fee) || 0;
+      if (r.toTeam === team) sp += f;
+      if (r.type === 'transfer' && r.fromTeam === team) rc += f;
+    });
+    return { spent: sp, received: rc };
+  }
+  function remaining(team) {
+    var b = S.budgets[team]; if (b == null) return null;
+    var l = ledger(team); return b - l.spent + l.received;
+  }
+  function budgetLine(team) {
+    if (!team) return '';
+    var b = S.budgets[team];
+    if (b == null) return 'No budget set for ' + esc(team) + ' yet. The FIA sets it.';
+    var l = ledger(team);
+    return 'Budget: <b>' + esc(myPrice(b - l.spent + l.received)) + '</b> left <small>(of ' + esc(myPrice(b)) + '; spent ' + esc(myPrice(l.spent)) + (l.received ? ', received ' + esc(myPrice(l.received)) : '') + ')</small>';
+  }
   function validateForm(f, type) {
     if (!S.team) return 'Choose your team first.';
     if (type === 'transfer') {
@@ -300,14 +372,25 @@
     if (f.driver.trim().length > 60) return 'Driver name is too long.';
     if (f.effective.length > 80) return 'Keep “effective from” under 80 characters.';
     if (f.notes.length > 600) return 'Keep notes under 600 characters.';
+    var fee = num(f.fee);
+    if (!(fee >= 0 && fee <= 500)) return 'Enter the fee in $M (0 if there isn’t one).';
     return '';
   }
   function submitForm() {
     if (!needName()) return;
     var f = S.form, ed = S.editId ? S.all.filter(function (r) { return r.id === S.editId; })[0] : null;
     var type = ed ? ed.type : f.type;
+    if (type === 'signing') {
+      var pm = poolMatch(f.driver), ts = teamSeries(S.team);
+      if (pm) {
+        if (ts && allowedOf(pm).indexOf(ts) < 0) { flash(pm.name + ' isn’t approved to race in ' + ts.toUpperCase() + ' (approved: ' + allowedOf(pm).map(function (x) { return x.toUpperCase(); }).join(', ') + ').', 'err'); return; }
+        f = Object.assign({}, f, { fee: String(pm.price) });
+      }
+    }
     var bad = validateForm(f, type); if (bad) { flash(bad, 'err'); return; }
-    var fields = { driver: f.driver.trim(), fromTeam: type === 'transfer' ? f.from : null, effective: f.effective.trim(), notes: f.notes.trim() };
+    var fee = Math.round(num(f.fee) * 10) / 10, left = remaining(S.team);
+    if (left != null && fee > left + 1e-9) { flash('That fee is more than your budget: you have ' + myPrice(left) + ' left.', 'err'); return; }
+    var fields = { driver: f.driver.trim(), fromTeam: type === 'transfer' ? f.from : null, effective: f.effective.trim(), notes: f.notes.trim(), fee: fee };
     S.busy = true; paintForm();
     var job;
     if (ed) {
@@ -316,7 +399,7 @@
       var info = teamInfo(S.team);
       job = db.collection('requests').add({
         type: type, series: info ? info.series : 'f1', driver: fields.driver, fromTeam: fields.fromTeam, toTeam: S.team,
-        effective: fields.effective, notes: fields.notes, requesterName: S.name.trim().slice(0, 40),
+        effective: fields.effective, notes: fields.notes, fee: fee, requesterName: S.name.trim().slice(0, 40),
         status: type === 'transfer' ? 'awaiting_team' : 'pending_fia', createdAt: stamp(), updatedAt: stamp(), history: [hist('submitted', '')]
       });
     }
@@ -349,7 +432,10 @@
     var inp = root.querySelector('[data-k="p-' + id + '"]'), v = inp ? parseFloat(inp.value) : NaN;
     if (!(v > 0 && v <= 500)) { flash('Enter a price between 0.1 and 500 (in $M).', 'err'); if (inp) inp.focus(); return; }
     v = Math.round(v * 10) / 10;
-    db.collection('signups').doc(id).update({ price: v, status: 'priced', pricedBy: S.name.trim().slice(0, 40), pricedAt: stamp() })
+    var al = [];
+    SERIES.forEach(function (x) { var c = root.querySelector('[data-al="' + id + '|' + x + '"]'); if (c && c.checked) al.push(x); });
+    if (!al.length) { flash('Pick at least one series the driver may race in.', 'err'); return; }
+    db.collection('signups').doc(id).update({ price: v, status: 'priced', allowed: al, pricedBy: S.name.trim().slice(0, 40), pricedAt: stamp() })
       .then(function () { flash('Price set to ' + myPrice(v) + '.', 'ok'); })
       .catch(function (e) { flash(niceError(e), 'err'); });
   }
@@ -379,7 +465,8 @@
     if (!configured) { b.innerHTML = notice('The transfer system isn’t connected yet.'); return; }
     if (S.role !== 'official') { b.innerHTML = ''; return; }
     if (S.suErr) { b.innerHTML = notice(esc(S.suErr)); return; }
-    var kept = grabInputs(), isFia = S.role === 'official';
+    var kept = grabInputs(), isFia = S.role === 'official', chk = {};
+    Array.prototype.forEach.call(root.querySelectorAll('[data-al]'), function (n) { chk[n.getAttribute('data-al')] = n.checked; });
     var tabs = '<div class="tabs">' + [['all', 'All']].concat(SERIES.map(function (s) { return [s, s.toUpperCase()]; })).map(function (p) {
       return '<button type="button" class="tab ' + (S.suSeries === p[0] ? 'on' : '') + '" data-a="suSeries" data-v="' + p[0] + '">' + p[1] + '</button>';
     }).join('') + '</div>';
@@ -388,7 +475,10 @@
       var priced = r.status === 'priced';
       var ctl = '';
       if (isFia) {
-        ctl = '<div class="tr-decide"><div class="tr-setprice"><input type="number" inputmode="decimal" step="0.1" min="0.1" max="500" data-k="p-' + esc(r.id) + '" placeholder="Price in $M" value="' + (priced ? esc(r.price) : '') + '">' +
+        var al = priced ? allowedOf(r) : [r.series];
+        ctl = '<div class="tr-decide"><div class="tr-setprice" style="margin-bottom:10px"><span class="tr-ask" style="margin:0">Allowed to race in:</span>' + SERIES.map(function (x) {
+          return '<label style="display:flex;gap:6px;align-items:center;font-size:13px;color:#ddd"><input type="checkbox" style="width:auto;padding:0" data-al="' + esc(r.id) + '|' + x + '"' + (al.indexOf(x) > -1 ? ' checked' : '') + '>' + x.toUpperCase() + '</label>';
+        }).join('') + '</div><div class="tr-setprice"><input type="number" inputmode="decimal" step="0.1" min="0.1" max="500" data-k="p-' + esc(r.id) + '" placeholder="Price in $M" value="' + (priced ? esc(r.price) : '') + '">' +
           '<button type="button" class="btn" data-a="setprice" data-id="' + esc(r.id) + '">' + (priced ? 'Update price' : 'Set price') + '</button>' +
           '<button type="button" class="btn alt danger" data-a="removesu" data-id="' + esc(r.id) + '">Remove</button></div></div>';
       }
@@ -396,17 +486,32 @@
         '<span class="tr-chip c-' + (priced ? 'green' : 'amber') + '">' + (priced ? 'Priced' : 'Awaiting price') + '</span></div>' +
         '<div class="tr-driver">' + esc(r.name) + '</div>' +
         (r.notes ? '<div class="tr-notes">' + esc(r.notes) + '</div>' : '') +
-        (priced ? '<div class="tr-price"><small>Price</small>' + esc(myPrice(r.price)) + '</div>' : '') +
+        (priced ? '<div class="tr-price"><small>Price</small>' + esc(myPrice(r.price)) + '</div><div class="tr-meta"><span>Approved for</span> ' + esc(allowedOf(r).map(function (x) { return x.toUpperCase(); }).join(', ')) + '</div>' : '') +
         '<div class="tr-meta">Signed up ' + esc(fmtDay(r.createdAt)) + (priced && r.pricedBy ? ' · priced by ' + esc(r.pricedBy) : '') + '</div>' + ctl + '</div>';
     }).join('');
     b.innerHTML = tabs + (list.length ? '<div class="tr-grid">' + cards + '</div>' : '<div class="empty">No drivers have signed up yet.</div>');
     putInputs(kept);
+    Array.prototype.forEach.call(b.querySelectorAll('[data-al]'), function (n) { var k = n.getAttribute('data-al'); if (k in chk) n.checked = chk[k]; });
   }
   function decide(id, status, action, needReason) {
     if (!needName()) return;
     var ta = root.querySelector('[data-k="c-' + id + '"]'), comment = ta ? ta.value.trim() : '';
     if (needReason && !comment) { flash('Write a short reason for the team first.', 'err'); if (ta) ta.focus(); return; }
-    change(id, status, action, comment).then(function () { flash('Done.', 'ok'); }).catch(function (e) { flash(niceError(e), 'err'); });
+    var r = S.all.filter(function (x) { return x.id === id; })[0];
+    if (status === 'approved' && r) {
+      var fee = Number(r.fee) || 0, rem = remaining(r.toTeam);
+      if (rem != null && fee > rem + 1e-9) {
+        flash(r.toTeam + ' only has ' + myPrice(rem) + ' left but the fee is ' + myPrice(fee) + '. Raise their budget first, or ask for changes / reject.', 'err'); return;
+      }
+    }
+    change(id, status, action, comment).then(function () {
+      flash('Done.', 'ok');
+      if (status === 'approved' && r && r.type === 'signing') {
+        var nm = String(r.driver).trim().toLowerCase();
+        var m = S.signups.filter(function (x) { return String(x.name).trim().toLowerCase() === nm; })[0];
+        if (m && window.confirm('Remove ' + m.name + ' from the driver pool now they’ve signed?')) db.collection('signups').doc(m.id).delete().catch(function () {});
+      }
+    }).catch(function (e) { flash(niceError(e), 'err'); });
   }
 
   /* ───────── view pieces ───────── */
@@ -427,6 +532,7 @@
     return '<div class="tr-item" data-id="' + esc(r.id) + '">' +
       '<div class="tr-top"><span class="tr-type">' + (r.type === 'transfer' ? 'Transfer' : 'Signing') + '</span><span class="tr-series">' + esc((r.series || '').toUpperCase()) + '</span>' + chip(r.status) + '</div>' +
       '<div class="tr-driver">' + esc(r.driver) + '</div><div class="tr-move">' + moveHTML(r) + '</div>' +
+      (r.fee != null ? '<div class="tr-meta"><span>Fee</span> ' + esc(myPrice(r.fee)) + '</div>' : '') +
       (r.effective ? '<div class="tr-meta"><span>Effective</span> ' + esc(r.effective) + '</div>' : '') +
       (r.notes ? '<div class="tr-notes">' + esc(r.notes) + '</div>' : '') +
       '<div class="tr-meta">Requested by ' + esc(r.requesterName) + ' · ' + esc(fmt(r.createdAt)) + '</div>' +
@@ -490,7 +596,7 @@
     box.innerHTML =
       '<div class="tr-bar"><span>Signed in as <b>' + (S.role === 'owner' ? 'Team owner' : 'FIA official') + '</b></span><button type="button" class="tr-link" data-a="signout">Sign out</button></div>' +
       '<div id="trIdent"></div>' +
-      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trMarket"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trCodes"></div><div id="trQueue"></div>');
+      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trMarket"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trCodes"></div><div id="trBudgets"></div><div id="trQueue"></div>');
     paintIdent(); paintForm(); paintLists();
   }
 
@@ -510,10 +616,11 @@
   function paintMarket() {
     var b = $('trMarket'); if (!b || S.role !== 'owner') return;
     if (!S.team) { b.innerHTML = ''; return; }
-    var agents = S.signups.filter(function (r) { return r.status === 'priced'; }).sort(function (a, c) { return a.price - c.price; });
-    var h = '<div class="tr-card"><h3>Drivers you can sign</h3><p class="tr-help">Free agents priced by the FIA, and drivers on other teams. Pick one and the request form below fills in for you. The FIA makes the final call.</p>';
+    var ts = teamSeries(S.team);
+    var agents = S.signups.filter(function (r) { return r.status === 'priced' && (!ts || allowedOf(r).indexOf(ts) > -1); }).sort(function (a, c) { return a.price - c.price; });
+    var h = '<div class="tr-card"><h3>Drivers you can sign</h3><p class="tr-help">Free agents priced by the FIA, and drivers on other teams. Pick one and the request form below fills in for you. The FIA makes the final call.</p><p class="tr-help">' + budgetLine(S.team) + '</p>';
     h += '<details class="tr-mk" open><summary>Free agents (' + agents.length + ')</summary>' + (agents.length ? agents.map(function (r) {
-      return '<div class="tr-mkrow"><b>' + esc(r.name) + '</b><small>' + esc((r.series || '').toUpperCase()) + '</small><span>' + esc(myPrice(r.price)) + '</span>' +
+      return '<div class="tr-mkrow"><b>' + esc(r.name) + '</b><small>Approved: ' + esc(allowedOf(r).map(function (x) { return x.toUpperCase(); }).join(', ')) + '</small><span>' + esc(myPrice(r.price)) + '</span>' +
         (r.notes ? '<small>' + esc(r.notes) + '</small>' : '') +
         '<button type="button" class="btn" data-a="mkSign" data-id="' + esc(r.id) + '">Sign</button></div>';
     }).join('') : '<div class="empty">No priced free agents yet.</div>') + '</details>';
@@ -543,7 +650,7 @@
     }
     h += '<p class="tr-help">' + (tr
       ? 'Ask to bring a driver to <b>' + esc(S.team) + '</b> from another team. The driver’s current team answers first, then the FIA decides.'
-      : 'Sign a driver for <b>' + esc(S.team) + '</b>. This goes straight to the FIA.') + '</p><div class="tr-formgrid">';
+      : 'Sign a driver for <b>' + esc(S.team) + '</b>. This goes straight to the FIA.') + '</p><p class="tr-help">' + budgetLine(S.team) + '</p><div class="tr-formgrid">';
     if (tr) {
       var info = teamInfo(f.from), drivers = info ? info.drivers : [];
       h += '<label class="tr-f">Driver’s current team' + teamSelectHTML('trFrom', f.from, S.team, 'Choose a team', 'data-f="from"') + '</label>';
@@ -557,6 +664,10 @@
     } else {
       h += '<label class="tr-f">Driver<input data-f="driver" maxlength="60" value="' + esc(f.driver) + '" placeholder="Driver name"></label>';
     }
+    var pm2 = !tr ? poolMatch(f.driver) : null;
+    h += '<label class="tr-f">' + (tr ? 'Agreed fee ($M)' : (pm2 ? 'Fee ($M) · FIA price' : 'Fee ($M)')) + '<small>' +
+         (tr ? 'What you and the other team agreed. Your team pays it to theirs when the FIA approves.' : 'Comes out of your budget when the FIA approves.') + '</small>' +
+         '<input type="number" step="0.1" min="0" max="500" data-f="fee" placeholder="0" value="' + esc(pm2 ? pm2.price : f.fee) + '"' + (pm2 ? ' readonly' : '') + '></label>';
     h += '<label class="tr-f">Effective from <small>(optional)</small><input data-f="effective" maxlength="80" value="' + esc(f.effective) + '" placeholder="e.g. before Round 8"></label>' +
          '<label class="tr-f wide">Notes <small>(optional)</small><textarea data-f="notes" maxlength="600" rows="3" placeholder="Anything the other team or the FIA should know">' + esc(f.notes) + '</textarea></label></div>' +
          '<div class="tr-actions"><button type="button" class="btn" data-a="submit"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Sending…' : (ed ? 'Resubmit' : 'Send request')) + '</button>' +
@@ -571,7 +682,7 @@
       var team = S.team;
       var need = team ? S.all.filter(function (r) { return r.status === 'awaiting_team' && r.type === 'transfer' && r.fromTeam === team; }).sort(byNewest) : [];
       needs.innerHTML = need.length ? '<h3 class="tr-h">Needs your answer <span class="tr-count">' + need.length + '</span></h3><div class="tr-stack">' + need.map(function (r) {
-        return reqCard(r, '<div class="tr-decide"><div class="tr-ask">' + esc(r.toTeam) + ' wants <b>' + esc(r.driver) + '</b> to leave your team.</div>' +
+        return reqCard(r, '<div class="tr-decide"><div class="tr-ask">' + esc(r.toTeam) + ' wants <b>' + esc(r.driver) + '</b> to leave your team' + (r.fee != null ? ' for <b>' + esc(myPrice(r.fee)) + '</b>' : '') + '.</div>' +
           '<textarea data-k="c-' + esc(r.id) + '" rows="2" maxlength="500" placeholder="Optional message"></textarea>' +
           '<div class="tr-actions"><button type="button" class="btn" data-a="accept" data-id="' + esc(r.id) + '">Accept</button><button type="button" class="btn alt" data-a="decline" data-id="' + esc(r.id) + '">Decline</button></div></div>');
       }).join('') + '</div>' : '';
@@ -587,7 +698,7 @@
         return reqCard(r, why + (a ? '<div class="tr-actions">' + a + '</div>' : ''));
       }).join('') + '</div>' : '<div class="empty">No requests for your team yet.</div>') : '';
     } else if (S.role === 'official') {
-      paintCodes();
+      paintCodes(); paintBudgets();
       var q = $('trQueue'); if (!q) return;
       var pend = S.all.filter(function (r) { return r.status === 'pending_fia'; }).sort(function (a, b) { return ms(a.updatedAt) - ms(b.updatedAt); });
       var wait = S.all.filter(function (r) { return r.status === 'awaiting_team' || r.status === 'changes_requested'; }).sort(byNewest);
@@ -595,7 +706,7 @@
       q.innerHTML =
         '<h3 class="tr-h">Waiting for the FIA <span class="tr-count">' + pend.length + '</span></h3>' +
         (pend.length ? '<div class="tr-stack">' + pend.map(function (r) {
-          return reqCard(r, '<div class="tr-decide"><textarea data-k="c-' + esc(r.id) + '" rows="2" maxlength="500" placeholder="Comment for the team (required to reject or ask for changes)"></textarea>' +
+          return reqCard(r, '<div class="tr-decide"><div class="tr-meta">' + budgetLine(r.toTeam) + '</div><textarea data-k="c-' + esc(r.id) + '" rows="2" maxlength="500" placeholder="Comment for the team (required to reject or ask for changes)"></textarea>' +
             '<div class="tr-actions"><button type="button" class="btn" data-a="approve" data-id="' + esc(r.id) + '">Approve</button>' +
             '<button type="button" class="btn alt" data-a="changes" data-id="' + esc(r.id) + '">Ask for changes</button>' +
             '<button type="button" class="btn alt danger" data-a="reject" data-id="' + esc(r.id) + '">Reject</button></div></div>');
@@ -617,6 +728,7 @@
     else if (a === 'setprice') setPrice(id);
     else if (a === 'removesu') removeSignup(id);
     else if (a === 'suSeries') { S.suSeries = v; paintSignupList(); }
+    else if (a === 'savebudget') saveBudget(t.getAttribute('data-t'));
     else if (a === 'gencode') {
       var o1 = orgByName(t.getAttribute('data-o')); if (!o1) return; t.disabled = true;
       createOrgCode(o1).then(function () { flash('Code created for ' + o1.org + '.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); t.disabled = false; });
@@ -636,11 +748,11 @@
     }
     else if (a === 'mkSign') {
       var sg = S.signups.filter(function (x) { return x.id === id; })[0]; if (!sg) return;
-      S.editId = null; S.form = { type: 'signing', from: '', driver: sg.name, effective: '', notes: 'FIA price: ' + myPrice(sg.price) };
+      S.editId = null; S.form = { type: 'signing', from: '', driver: sg.name, effective: '', notes: '', fee: String(sg.price) };
       paintForm(); var f1 = $('trForm'); if (f1 && f1.scrollIntoView) f1.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     else if (a === 'mkTransfer') {
-      S.editId = null; S.form = { type: 'transfer', from: t.getAttribute('data-t'), driver: t.getAttribute('data-d'), effective: '', notes: '' };
+      S.editId = null; S.form = { type: 'transfer', from: t.getAttribute('data-t'), driver: t.getAttribute('data-d'), effective: '', notes: '', fee: '' };
       paintForm(); var f2 = $('trForm'); if (f2 && f2.scrollIntoView) f2.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     else if (a === 'ftype') { S.form.type = v; S.form.from = ''; S.form.driver = ''; paintForm(); }
@@ -648,7 +760,7 @@
     else if (a === 'cancelEdit') { S.editId = null; S.form = blankForm(); paintForm(); }
     else if (a === 'edit') {
       var r = S.all.filter(function (x) { return x.id === id; })[0]; if (!r) return;
-      S.editId = id; S.form = { type: r.type, from: r.fromTeam || '', driver: r.driver, effective: r.effective || '', notes: r.notes || '' };
+      S.editId = id; S.form = { type: r.type, from: r.fromTeam || '', driver: r.driver, effective: r.effective || '', notes: r.notes || '', fee: r.fee == null ? '' : String(r.fee) };
       paintForm(); var fb = $('trForm'); if (fb && fb.scrollIntoView) fb.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     else if (a === 'withdraw') { if (needName()) change(id, 'withdrawn', 'withdrawn', '').then(function () { flash('Request withdrawn.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); }); }
@@ -673,7 +785,7 @@
   root.addEventListener('change', function (e) {
     var t = e.target;
     if (t.getAttribute && t.getAttribute('data-s')) S.su[t.getAttribute('data-s')] = t.value;
-    else if (t.id === 'trTeam') { S.team = t.value; pref('team', S.team); S.form.from = ''; S.form.driver = ''; paintForm(); paintLists(); }
+    else if (t.id === 'trTeam') { S.team = t.value; pref('team', S.team); S.form.from = ''; S.form.driver = ''; startBudgetListener(); paintForm(); paintLists(); }
     else if (t.getAttribute && t.getAttribute('data-f') === 'from') { S.form.from = t.value; S.form.driver = ''; paintForm(); }
     else if (t.getAttribute && t.getAttribute('data-f')) S.form[t.getAttribute('data-f')] = t.value;
   });
