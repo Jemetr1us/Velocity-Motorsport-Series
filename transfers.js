@@ -43,7 +43,7 @@
   function blankForm() { return { type: 'transfer', from: '', driver: '', effective: '', notes: '', fee: '' }; }
 
   var S = {
-    tab: 'log', lineups: null, connecting: configured, restoring: false, loadErr: '', logErr: '',
+    tab: 'signup', lineups: null, connecting: configured, restoring: false, loadErr: '', logErr: '',
     uid: null, role: null, locked: null, code: null,
     all: [], approved: [], logSeries: 'all',
     team: pref('team'), name: pref('name'),
@@ -594,16 +594,16 @@
   /* ───────── painting ───────── */
   function build() {
     root.innerHTML =
-      '<div class="page-hero"><div class="section-head"><div><div class="title">Transfers &amp; <span class="yellow">Signings</span></div><div class="line"></div></div><span class="sub">Owner requests · FIA approved</span></div></div>' +
-      '<section class="st-subwrap"><nav class="st-sub" id="trSub" aria-label="Transfers sections"><button type="button" data-a="tab" data-v="log" class="on">Transfer Log</button><button type="button" data-a="tab" data-v="signup">Driver Sign-Up</button><button type="button" data-a="tab" data-v="portal">Owner / FIA Portal</button></nav></section>' +
-      '<section class="tr-wrap"><div id="trMsg" class="tr-msg" style="display:none"></div><div id="trPaneLog" class="tr-pane on"></div>' +
-      '<div id="trPaneSignup" class="tr-pane"><div id="trSuForm"></div><div id="trSuList"></div></div><div id="trPanePortal" class="tr-pane"></div></section>';
+      '<div class="page-hero"><div class="section-head"><div><div class="title">Driver <span class="yellow">Hub</span></div><div class="line"></div></div><span class="sub">Sign-up · Owner / FIA portal</span></div></div>' +
+      '<section class="st-subwrap"><nav class="st-sub" id="trSub" aria-label="Hub sections"><button type="button" data-a="tab" data-v="signup" class="on">Driver Sign-Up</button><button type="button" data-a="tab" data-v="portal">Owner / FIA Portal</button></nav></section>' +
+      '<section class="tr-wrap"><div id="trMsg" class="tr-msg" style="display:none"></div>' +
+      '<div id="trPaneSignup" class="tr-pane on"><div id="trSuForm"></div><div id="trSuList"></div></div><div id="trPanePortal" class="tr-pane"></div></section>';
     paintLog(); paintPortal(); paintSignupForm(); paintSignupList();
   }
   function setTab(t) {
     S.tab = t;
     Array.prototype.forEach.call(root.querySelectorAll('#trSub button'), function (b) { b.classList.toggle('on', b.getAttribute('data-v') === t); });
-    $('trPaneLog').classList.toggle('on', t === 'log'); $('trPaneSignup').classList.toggle('on', t === 'signup'); $('trPanePortal').classList.toggle('on', t === 'portal');
+    $('trPaneSignup').classList.toggle('on', t === 'signup'); $('trPanePortal').classList.toggle('on', t === 'portal');
   }
 
   function paintLog() {
@@ -837,6 +837,35 @@
     else if (t.getAttribute && t.getAttribute('data-f') === 'from') { S.form.from = t.value; S.form.driver = ''; paintForm(); }
     else if (t.getAttribute && t.getAttribute('data-f')) S.form[t.getAttribute('data-f')] = t.value;
   });
+
+  /* ───────── nav pieces outside this view: Transfer Log inside News, Hub dropdown in the header ───────── */
+  var logHost = document.getElementById('trLogHost');
+  if (logHost) logHost.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-a]'); if (!t || t.getAttribute('data-a') !== 'logSeries') return;
+    S.logSeries = t.getAttribute('data-v'); paintLog();
+  });
+  (function newsTransfersTab() {
+    var nav = document.getElementById('newsSub'), nb = document.getElementById('newsBoard'), nt = document.getElementById('newsTransfers');
+    if (!nav || !nb || !nt) return;
+    nav.addEventListener('click', function (e) {
+      var tr = e.target.closest('button[data-tr]'), other = e.target.closest('button[data-p]');
+      if (tr) {
+        Array.prototype.forEach.call(nav.querySelectorAll('button'), function (b) { b.classList.toggle('on', b === tr); });
+        nb.style.display = 'none'; nt.style.display = ''; paintLog();
+      } else if (other) { nb.style.display = ''; nt.style.display = 'none'; }
+    });
+  })();
+  function openHub(tab) { if (typeof window.go === 'function') window.go('transfers'); setTab(tab); }
+  (function hubMenu() {
+    var btn = document.getElementById('hubBtn'), menu = document.getElementById('hubMenu'); if (!btn || !menu) return;
+    var ref = document.querySelector('header nav a');   // make the button look like the other nav links
+    if (ref) { var cs = getComputedStyle(ref); ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'textTransform', 'color', 'padding'].forEach(function (k) { btn.style[k] = cs[k]; }); }
+    function setOpen(o) { menu.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(menu.hidden); });
+    menu.addEventListener('click', function (e) { var b = e.target.closest('[data-hub]'); if (!b) return; setOpen(false); openHub(b.getAttribute('data-hub')); });
+    document.addEventListener('click', function () { setOpen(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  })();
 
   /* ───────── start ───────── */
   build();
