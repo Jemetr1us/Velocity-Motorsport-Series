@@ -970,6 +970,33 @@ function conFor(s,teamName){
   });
 })();
 
+/* ───────── SEASON 1 SNAPSHOT + FRESH START ─────────
+   S1_SNAP = complete Season 1 (calendar, final standings, every race result), taken after all the data above has been applied.
+   The Archive page shows it. With SEASON_CLEARED on, the Standings / Results pages (and everything else that reads D) start empty.
+   For a permanent copy that no later data can change, open the site once with ?freeze=1 → it downloads season1.json → put it in /data. */
+const SEASON_CLEARED=true;
+const S1_SNAP=JSON.parse(JSON.stringify({races:D.races,standings:D.standings,results:D.results}));
+const S1_CHAMPS=[
+  {series:'f1',kind:"World Drivers' Champion",name:'Nick',team:'Scuderia Ferrari',color:'#dc143c'},
+  {series:'f1',kind:"World Constructors' Champion",name:'Scuderia Ferrari',team:'Constructors',color:'#dc143c',tm:1},
+  {series:'f2',kind:"World Drivers' Champion",name:'Skirmis',team:'LM Performance F2',color:'#a78bfa'},
+  {series:'f2',kind:"World Constructors' Champion",name:'LM Performance F2',team:'Constructors',color:'#a78bfa',tm:1},
+  {series:'f3',kind:"World Drivers' Champion",name:'Piko',team:'LMP',color:'#a78bfa'},
+  {series:'f3',kind:"World Constructors' Champion",name:'LMP',team:'Constructors',color:'#a78bfa',tm:1}
+];
+if(SEASON_CLEARED){
+  Object.keys(D.results).forEach(k=>delete D.results[k]);
+  ['f1','f2','f3'].forEach(k=>{
+    const teams=(D.info[k]||[]), drivers=[], cons=[];
+    teams.forEach(t=>{
+      cons.push({name:t.name,color:t.color||'#e8186d',pts:0,pos:0});
+      (t.drivers||[]).forEach(d=>{ if(d&&d.name&&d.name!=='—') drivers.push({name:d.name,code:d.code||'—',team:t.name,pts:0,wins:0,pods:0,dnf:0,pos:0,gap:'0',form:[]}); });
+    });
+    drivers.forEach((d,i)=>d.pos=i+1); cons.forEach((c,i)=>c.pos=i+1);
+    D.standings[k]={drivers:[],constructors:[]};   /* standings fully cleared for the new season */
+  });
+}
+
 function tabs(el,items,active,fn){
   el.innerHTML=items.map(([k,l])=>`<button class="tab${k===active?' on':''}" data-k="${k}">${esc(l)}</button>`).join('');
   el.onclick=e=>{const b=e.target.closest('.tab'); if(b) fn(b.dataset.k);};
@@ -1032,6 +1059,7 @@ function renderStandings(){
   tabs($('stSeries'),SERIES.map(s=>[s,FULL[s]]),st.series,k=>{st.series=k;renderStandings();});
   tabs($('stView'),[['drivers','Drivers'],['constructors','Constructors']],st.view,k=>{st.view=k;renderStandings();});
   const data=D.standings[st.series];
+  if(!data.drivers.length&&!data.constructors.length){ $('stBoard').innerHTML='<div class="empty">No standings yet — the new season hasn\'t started.</div>'; $('ptsInfo').innerHTML=''; return; }
   if(st.view==='drivers'){
     const list=data.drivers.filter(d=>!d.hidden).slice().sort((a,b)=>b.pts-a.pts);
     const top=list[0]?list[0].pts:0;
@@ -1205,39 +1233,9 @@ function openTeam(s,teamName){
 }
 
 /* ───────── champions ───────── */
-const CHAMPS=[
-  {series:'f1',type:'driver',name:'Nick',kind:"World Drivers' Champion"},
-  {series:'f3',type:'team',name:'LMP',kind:"World Constructors' Champion"}
-];
 function renderChampions(){
   const box=$('champBoard'); if(!box) return;
-  box.innerHTML=CHAMPS.map(ch=>{
-    const s=ch.series;
-    if(ch.type==='driver'){
-      const list=D.standings[s].drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts);
-      const se=list.find(d=>canon(s,d.name)===canon(s,ch.name)); if(!se) return '';
-      const c=conFor(s,se.team), col=(c&&c.color)||(lineupFor(s,ch.name)||{}).color||'#e8186d';
-      let wins=0,pods=0,poles=0,fls=0;
-      real.forEach(r=>{const hit=(D.results[rkey(r,s)]||[]).find(x=>canon(s,x.name)===canon(s,ch.name)); if(!hit) return;
-        if(+hit.pos===1) wins++; if(+hit.pos<=3) pods++; if(hit.pole) poles++; if(hit.fl) fls++;});
-      const lead=list[1]?se.pts-list[1].pts:0;
-      return `<div class="champ click" style="--c:${esc(col)}" data-name="${esc(se.name)}" data-s="${s}">
-        <div class="champ-trophy">🏆</div><div class="champ-kind">${esc(FULL[s])} · ${esc(ch.kind)}</div>
-        <div class="champ-name">${esc(se.name)}</div><div class="champ-team">${esc(se.team||'')}</div>
-        <div class="champ-stats"><div><strong>${se.pts}</strong><span>Points</span></div><div><strong>+${lead}</strong><span>Margin</span></div><div><strong>${wins}</strong><span>Wins</span></div><div><strong>${pods}</strong><span>Podiums</span></div><div><strong>${poles} / ${fls}</strong><span>Poles / FL</span></div></div></div>`;
-    }
-    const cons=(D.standings[s].constructors||[]).slice().sort((a,b)=>b.pts-a.pts);
-    const se=cons.find(x=>normTeam(x.name)===normTeam(ch.name)); if(!se) return '';
-    const lead=cons[1]?se.pts-cons[1].pts:0;
-    let wins=0,pods=0;
-    real.forEach(r=>(D.results[rkey(r,s)]||[]).forEach(x=>{ if(normTeam(x.team)!==normTeam(ch.name)) return; if(+x.pos===1) wins++; if(+x.pos<=3) pods++; }));
-    const drv=((D.info[s]||[]).find(t=>normTeam(t.name)===normTeam(ch.name))||{drivers:[]}).drivers.filter(d=>d.name&&d.name!=='—').map(d=>d.name);
-    return `<div class="champ click team" style="--c:${esc(se.color||'#a78bfa')}" data-team="${esc(se.name)}" data-s="${s}">
-      <div class="champ-trophy">🏆</div><div class="champ-kind">${esc(FULL[s])} · ${esc(ch.kind)}</div>
-      <div class="champ-name">${esc(se.name)}</div><div class="champ-team">${esc(drv.join(' · '))}</div>
-      <div class="champ-stats"><div><strong>${se.pts}</strong><span>Points</span></div><div><strong>+${lead}</strong><span>Margin</span></div><div><strong>${wins}</strong><span>Wins</span></div><div><strong>${pods}</strong><span>Podiums</span></div></div></div>`;
-  }).join('');
-  box.onclick=e=>{const tm_=e.target.closest('[data-team]'); if(tm_) return openTeam(tm_.dataset.s,tm_.dataset.team); const el=e.target.closest('[data-name]'); if(el) openDriver(el.dataset.s,el.dataset.name);};
+  box.innerHTML=S1_CHAMPS.map(c=>`<div class="champ${c.tm?' team':''}" style="--c:${esc(c.color)}"><div class="champ-trophy">🏆</div><div class="champ-kind">${esc(FULL[c.series])} · ${esc(c.kind)}</div><div class="champ-name">${esc(c.name)}</div><div class="champ-team">${esc(c.team)}</div></div>`).join('');
 }
 
 /* ───────── title fight ───────── */
@@ -2857,15 +2855,13 @@ try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
 (function(){
   /* Add a new object here each time a season ends. Season 1 reads the season-one data above (D). */
   const ARCHIVE=[
-    {id:'s1',label:'Season 1',year:'2026',sub:'VMS Season One · Final',champs:[
-      {series:'f1',kind:"World Drivers' Champion",name:'Nick',team:'Scuderia Ferrari',color:'#dc143c'},
-      {series:'f1',kind:"World Constructors' Champion",name:'Scuderia Ferrari',team:'Constructors',color:'#dc143c',tm:1},
-      {series:'f2',kind:"World Drivers' Champion",name:'Skirmis',team:'LM Performance F2',color:'#a78bfa'},
-      {series:'f2',kind:"World Constructors' Champion",name:'LM Performance F2',team:'Constructors',color:'#a78bfa',tm:1},
-      {series:'f3',kind:"World Drivers' Champion",name:'Piko',team:'LMP',color:'#a78bfa'},
-      {series:'f3',kind:"World Constructors' Champion",name:'LMP',team:'Constructors',color:'#a78bfa',tm:1}
-    ]}
+    {id:'s1',label:'Season 1',year:'2026',sub:'VMS Season One · Final',champs:S1_CHAMPS}
   ];
+  const SRC=()=>window.VMS_S1_FILE||S1_SNAP;
+  const srcReal=()=>SRC().races.filter(r=>r.status!=='break');
+  const colorFor=(s,team,name)=>{const n=normTeam(team); const c=SRC().standings[s].constructors.find(x=>normTeam(x.name)===n); return (c&&c.color)||(lineupFor(s,name)||{}).color||'#e8186d';};
+  fetch('data/season1.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(j=>{ if(j&&j.standings&&j.results&&j.races){ window.VMS_S1_FILE=j; paint(); } }).catch(()=>{});
+  try{ if(/[?&]freeze=1/.test(location.search)){ const bl=new Blob([JSON.stringify(S1_SNAP)],{type:'application/json'}), an=document.createElement('a'); an.href=URL.createObjectURL(bl); an.download='season1.json'; document.body.appendChild(an); an.click(); an.remove(); } }catch(e){}
   const st={id:ARCHIVE[0].id,pane:'champs',series:'f1',view:'drivers',rnd:null};
   const btn=(attr,val,label,on)=>`<button type="button" class="tab ${on?'on':''}" ${attr}="${esc(val)}">${esc(label)}</button>`;
   function champs(a){
@@ -2873,7 +2869,7 @@ try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
       a.champs.filter(c=>c.series===s).map(c=>`<div class="champ${c.tm?' team':''}" style="--c:${esc(c.color)}"><div class="champ-trophy">🏆</div><div class="champ-kind">${esc(FULL[s])} · ${esc(c.kind)}</div><div class="champ-name">${esc(c.name)}</div><div class="champ-team">${esc(c.team)}</div></div>`).join('')}</div>`).join('');
   }
   function standings(){
-    const data=D.standings[st.series];
+    const data=SRC().standings[st.series];
     const sw=`<div class="tabs">${SERIES.map(s=>btn('data-s',s,FULL[s],s===st.series)).join('')}</div><div class="tabs">${btn('data-v','drivers','Drivers',st.view==='drivers')}${btn('data-v','constructors','Constructors',st.view==='constructors')}</div>`;
     if(st.view==='drivers'){
       const list=data.drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts), top=list[0]?list[0].pts:0;
@@ -2883,14 +2879,24 @@ try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
     return sw+`<div class="panel scroll"><table><thead><tr><th>#</th><th>Team</th><th>Gap</th><th>Points</th></tr></thead><tbody>${list.map((c,i)=>`<tr class="${i===0?'lead':''}"><td class="${i<3?'pos':''}">${String(i+1).padStart(2,'0')}</td><td><span class="dot" style="background:${esc(c.color)}"></span><b>${esc(c.name)}</b></td><td class="muted">${i===0?'—':'-'+(top-c.pts)}</td><td class="points">${c.pts}</td></tr>`).join('')}</tbody></table></div>`;
   }
   function results(){
-    const rounds=real.filter(r=>D.results[rkey(r,st.series)]);
+    const rounds=srcReal().filter(r=>SRC().results[rkey(r,st.series)]);
     const sw=`<div class="tabs">${SERIES.map(s=>btn('data-s',s,FULL[s],s===st.series)).join('')}</div>`;
     if(!rounds.length) return sw+'<div class="empty">No results archived for this series.</div>';
     if(!rounds.find(r=>r.rnd===st.rnd)) st.rnd=rounds[rounds.length-1].rnd;
-    const race=rounds.find(r=>r.rnd===st.rnd), rows=D.results[rkey(race,st.series)], hasGap=rows.some(r=>r.gap);
+    const race=rounds.find(r=>r.rnd===st.rnd), rows=SRC().results[rkey(race,st.series)], hasGap=rows.some(r=>r.gap);
+    const s=st.series, badRe=/DNF|DSq|DSQ|DNS|Retired/i;
+    const col=(team,name)=>colorFor(s,team,name);
+    /* race podium — same cards as the Results page; two drivers on one position share a card that flips */
+    const byPos={}; rows.forEach((x,i)=>{ if(badRe.test(x.note||'')||x.pos<1||x.pos>3) return; (byPos[x.pos]=byPos[x.pos]||[]).push(i); });
+    const groups=Object.keys(byPos).map(Number).sort((a,b)=>a-b).slice(0,3).map(p=>byPos[p].slice(0,2));
+    const idxs=[].concat(...groups);
+    const face=(x,cls,tie)=>`<div class="lp-c p${x.pos}${cls}" data-name="${esc(x.name)}" style="--c:${esc(col(x.team,x.name))}"><div class="lp-pos">${x.pos}</div><div class="lp-n">${esc(x.name)}</div><div class="lp-t">${esc(x.team||'')}</div><div class="lp-tags">${x.pole?'<span class="tag pole">Pole</span>':''}${x.fl?'<span class="tag fl">Fastest Lap</span>':''}${x.half?'<span class="tag half">50% rule</span>':''}</div><div class="lp-p">${esc(x.pts)}<small>PTS</small></div>${x.gap?`<div class="lp-gap">${esc(x.gap)}</div>`:''}${x.note?`<div class="lp-note">${esc(x.note)}</div>`:''}${tie?`<div class="lp-tie">⇄ ${tie}</div>`:''}</div>`;
+    const pod=idxs.length?`<div class="lp-pod" style="margin-bottom:22px">${groups.map(g=>{const x=rows[g[0]]; if(g.length<2) return face(x,'',''); const y=rows[g[1]];
+      return `<div class="lp-flip p${x.pos}" tabindex="0"><div class="lp-in">${face(x,' lp-front',`Tied P${x.pos} · 1 of 2 · hover to flip`)}${face(y,' lp-back',`Tied P${x.pos} · 2 of 2`)}</div></div>`;}).join('')}</div>`:'';
+    const rest=rows.filter((_,i)=>!idxs.includes(i));
     return sw+`<div class="tabs"><select id="arcRnd" style="background:#0b0b0b;color:#fff;border:1px solid #2c2c2c;padding:12px 14px;font:700 14px Arial,sans-serif;min-width:280px">${rounds.map(r=>`<option value="${esc(r.rnd)}" ${r.rnd===st.rnd?'selected':''}>Round ${esc(r.rnd)} · ${esc(r.name)}</option>`).join('')}</select></div>
-    <div class="meta-row"><span>${esc(race.flag)} <b>${esc(race.circuit)}</b></span><span>${esc(dates(race))}</span></div>
-    <div class="panel scroll"><table><thead><tr><th>Pos</th><th>Driver</th><th>Team</th>${hasGap?'<th>Gap</th>':''}<th>Notes</th><th>Pts</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="${r.pos<=3?'pos':''}">P${esc(r.pos)}</td><td><b>${esc(r.name)}</b>${r.pole?'<span class="tag pole">Pole</span>':''}${r.fl?'<span class="tag fl">FL</span>':''}</td><td class="muted">${esc(r.team)}</td>${hasGap?`<td class="muted">${esc(r.gap||'')}</td>`:''}<td class="note">${esc(r.note||'')}</td><td class="points">${esc(r.pts)}</td></tr>`).join('')}</tbody></table></div>`;
+    <div class="meta-row"><span>${esc(race.flag)} <b>${esc(race.circuit)}</b></span><span>${esc(dates(race))}</span></div>${pod}
+    ${rest.length?`<div class="panel scroll"><table><thead><tr><th>Pos</th><th>Driver</th><th>Team</th>${hasGap?'<th>Gap</th>':''}<th>Notes</th><th>Pts</th></tr></thead><tbody>${rest.map(r=>`<tr><td class="${r.pos<=3?'pos':''}">P${esc(r.pos)}</td><td><b>${esc(r.name)}</b>${r.pole?'<span class="tag pole">Pole</span>':''}${r.fl?'<span class="tag fl">FL</span>':''}</td><td class="muted">${esc(r.team)}</td>${hasGap?`<td class="muted">${esc(r.gap||'')}</td>`:''}<td class="note">${esc(r.note||'')}</td><td class="points">${esc(r.pts)}</td></tr>`).join('')}</tbody></table></div>`:''}`;
   }
   function paint(){
     const box=document.getElementById('arcBoard'); if(!box) return;
@@ -2906,6 +2912,8 @@ try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
   const link=document.createElement('a'); link.href='#archive'; link.dataset.v='archive'; link.textContent='Archive';
   document.querySelector('header nav a[data-v="about"]').before(link);
   view.addEventListener('click',e=>{
+    const fl=e.target.closest('.lp-flip'); if(fl&&window.matchMedia&&matchMedia('(hover:none)').matches&&!e.target.closest('.lp-n')){ fl.classList.toggle('flipped'); return; }
+    const pc=e.target.closest('.lp-c[data-name]'); if(pc){ openDriver(st.series,pc.dataset.name); return; }
     const t=e.target.closest('[data-id],[data-p],[data-s],[data-v]'); if(!t||t.tagName==='OPTION') return;
     if(t.dataset.id){st.id=t.dataset.id;st.rnd=null;} else if(t.dataset.p) st.pane=t.dataset.p;
     else if(t.dataset.s){st.series=t.dataset.s;st.rnd=null;} else if(t.dataset.v) st.view=t.dataset.v;
@@ -2913,5 +2921,5 @@ try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
   });
   view.addEventListener('change',e=>{ if(e.target.id==='arcRnd'){st.rnd=e.target.value;paint();} });
   paint();
-  if(location.hash==='#archive') go('archive');
+  if((window.__VMS_HASH0||location.hash)==='#archive') go('archive');
 })();
