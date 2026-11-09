@@ -9,7 +9,7 @@
         "team": "Scuderia Ferrari",
         "pts": 26,
         "fl": true,
-        "gap": "+0.917",
+        "gap": "Leader",
         "note": "Fastest Lap"
       },
       {
@@ -17,90 +17,91 @@
         "name": "Rox",
         "team": "Renault Sport Formula 1 Team",
         "pts": 18,
-        "gap": "+6.149"
+        "gap": "+5.232"
       },
       {
         "pos": 3,
         "name": "yokesecapo",
         "team": "Scuderia Ferrari",
         "pts": 15,
-        "gap": "+9.767"
+        "gap": "+8.850"
       },
       {
         "pos": 4,
         "name": "Diego",
         "team": "Sahara Force India F1 Team",
         "pts": 12,
-        "gap": "+11.283"
+        "gap": "+10.366"
       },
       {
         "pos": 5,
         "name": "gkf",
         "team": "Vodafone McLaren",
         "pts": 10,
-        "gap": "+15.350"
+        "gap": "+14.433"
       },
       {
         "pos": 6,
         "name": "Unironically",
         "team": "Mercedes-AMG",
         "pts": 8,
-        "gap": "+17.916"
+        "gap": "+16.999"
       },
       {
         "pos": 7,
         "name": "ShadowRex",
         "team": "Tarigy's Motorsport Team F1",
         "pts": 6,
-        "gap": "+19.066"
+        "gap": "+18.149"
       },
       {
         "pos": 8,
         "name": "Batwert",
         "team": "Renault Sport Formula 1 Team",
         "pts": 4,
-        "gap": "+19.599"
+        "gap": "+18.682"
       },
       {
         "pos": 9,
         "name": "Sly",
         "team": "Sahara Force India F1 Team",
         "pts": 2,
-        "gap": "+23.491"
+        "gap": "+22.574"
       },
       {
         "pos": 10,
         "name": "Joshua",
         "team": "Aero Apex Racing",
         "pts": 1,
-        "gap": "+25.632"
+        "gap": "+24.715"
       },
       {
         "pos": 11,
         "name": "Igorexe",
         "team": "Hertz Porsche",
         "pts": 0,
-        "gap": "+33.448"
+        "gap": "+32.531"
       },
       {
         "pos": 12,
         "name": "Emirovic",
         "team": "Mercedes-AMG",
         "pts": 0,
-        "gap": "+37.965"
+        "gap": "+37.048"
       },
       {
         "pos": 13,
         "name": "EL_KRAZY",
         "team": "GlitchGP F1 Team",
         "pts": 0,
-        "gap": "+63.164"
+        "gap": "+62.247"
       },
       {
         "pos": 14,
         "name": "luddster",
         "team": "Hertz Porsche",
         "pts": 0,
+        "gap": "DNF",
         "status": "DNF",
         "note": "DNF"
       },
@@ -109,6 +110,7 @@
         "name": "Waffle",
         "team": "Vanguard Sabre Motorsport",
         "pts": 0,
+        "gap": "DNF",
         "status": "DNF",
         "note": "DNF"
       },
@@ -117,6 +119,7 @@
         "name": "Nath",
         "team": "Vanguard Sabre Motorsport",
         "pts": 0,
+        "gap": "DNF",
         "status": "DNF",
         "note": "DNF"
       },
@@ -125,6 +128,7 @@
         "name": "Infinity",
         "team": "Aero Apex Racing",
         "pts": 0,
+        "gap": "DNF",
         "status": "DNF",
         "note": "DNF"
       },
@@ -133,6 +137,7 @@
         "name": "Lory",
         "team": "Richard Mille LM Motorsport F1",
         "pts": 0,
+        "gap": "DSQ",
         "status": "DSq",
         "note": "DSq"
       },
@@ -141,6 +146,7 @@
         "name": "Peters",
         "team": "Richard Mille LM Motorsport F1",
         "pts": 0,
+        "gap": "DSQ",
         "status": "DSq",
         "note": "DSq"
       },
@@ -149,6 +155,7 @@
         "name": "Theo",
         "team": "Vodafone McLaren",
         "pts": 0,
+        "gap": "DSQ",
         "status": "DSq",
         "note": "DSq"
       }
