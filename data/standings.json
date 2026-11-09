@@ -5,37 +5,37 @@
         "pos": 1,
         "name": "Nick",
         "team": "Scuderia Ferrari",
-        "pts": 352
+        "pts": 359
       },
       {
         "pos": 2,
         "name": "Lory",
         "team": "Richard Mille LM Motorsport F1",
-        "pts": 194
+        "pts": 169
       },
       {
         "pos": 3,
-        "name": "Sly",
-        "team": "Sahara Force India F1 Team",
-        "pts": 57
+        "name": "yokesecapo",
+        "team": "Scuderia Ferrari",
+        "pts": 60
       },
       {
         "pos": 4,
-        "name": "yokesecapo",
-        "team": "Scuderia Ferrari",
-        "pts": 57
+        "name": "Sly",
+        "team": "Sahara Force India F1 Team",
+        "pts": 59
       },
       {
         "pos": 5,
         "name": "Rox",
         "team": "Renault Sport Formula 1 Team",
-        "pts": 51
+        "pts": 54
       },
       {
         "pos": 6,
         "name": "GKF",
         "team": "Vodafone McLaren",
-        "pts": 51
+        "pts": 53
       },
       {
         "pos": 7,
@@ -47,13 +47,13 @@
         "pos": 8,
         "name": "ShadowRex",
         "team": "Tarigy's Motorsport Team F1",
-        "pts": 42
+        "pts": 44
       },
       {
         "pos": 9,
         "name": "Joshua",
         "team": "Aero Apex Racing",
-        "pts": 40
+        "pts": 41
       },
       {
         "pos": 10,
@@ -71,7 +71,7 @@
         "pos": 12,
         "name": "Peters",
         "team": "Tarigy's Motorsport Team F1",
-        "pts": 29
+        "pts": 28
       },
       {
         "pos": 13,
@@ -117,66 +117,42 @@
       },
       {
         "pos": 20,
+        "name": "Diego",
+        "team": "Sahara Force India F1 Team",
+        "pts": 16
+      },
+      {
+        "pos": 21,
         "name": "Skirmis",
         "team": "Richard Mille LM Motorsport F1",
         "pts": 15
       },
       {
-        "pos": 21,
-        "name": "Diego",
-        "team": "Sahara Force India F1 Team",
-        "pts": 14
-      },
-      {
         "pos": 22,
-        "name": "Amin",
+        "name": "Batwert",
         "team": "Renault Sport Formula 1 Team",
-        "pts": 12
-      },
-      {
-        "pos": 23,
-        "name": "Syxe",
-        "team": "GlitchGP F1 Team",
         "pts": 10
       },
       {
-        "pos": 24,
+        "pos": 23,
         "name": "Infinity",
         "team": "Aero Apex Racing",
         "pts": 8
       },
       {
-        "pos": 25,
-        "name": "Batwert",
-        "team": "Renault Sport Formula 1 Team",
-        "pts": 8
-      },
-      {
-        "pos": 26,
-        "name": "Maldonado",
-        "team": "Tarigy's Motorsport Team F1",
-        "pts": 6
-      },
-      {
-        "pos": 27,
+        "pos": 24,
         "name": "Nath",
         "team": "Vanguard Sabre Motorsport",
         "pts": 4
       },
       {
-        "pos": 28,
+        "pos": 25,
         "name": "Emirovic",
         "team": "Mercedes-AMG",
         "pts": 3
       },
       {
-        "pos": 29,
-        "name": "Yuki",
-        "team": "GlitchGP F1 Team",
-        "pts": 2
-      },
-      {
-        "pos": 30,
+        "pos": 26,
         "name": "Gamrin",
         "team": "Renault Sport Formula 1 Team",
         "pts": 1
@@ -187,17 +163,17 @@
       {
         "pos": 1,
         "name": "Scuderia Ferrari",
-        "pts": 437
+        "pts": 445
       },
       {
         "pos": 2,
         "name": "Richard Mille LM Motorsport F1",
-        "pts": 397
+        "pts": 371
       },
       {
         "pos": 3,
         "name": "Renault Sport Formula 1 Team",
-        "pts": 224
+        "pts": 229
       },
       {
         "pos": 4,
@@ -207,7 +183,7 @@
       {
         "pos": 5,
         "name": "Aero Apex Racing",
-        "pts": 117
+        "pts": 118
       },
       {
         "pos": 6,
@@ -217,17 +193,17 @@
       {
         "pos": 7,
         "name": "Vodafone McLaren",
-        "pts": 86
+        "pts": 88
       },
       {
         "pos": 8,
         "name": "Tarigy's Motorsport Team F1",
-        "pts": 86
+        "pts": 88
       },
       {
         "pos": 9,
         "name": "Sahara Force India F1 Team",
-        "pts": 84
+        "pts": 88
       },
       {
         "pos": 10,
