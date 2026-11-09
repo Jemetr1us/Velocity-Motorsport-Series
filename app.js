@@ -2852,3 +2852,39 @@ settle(); renderHead(); renderFab();
 window.VMSBets={open,close,reset:doReset,state:()=>S,redeem,makeCode,odds:s=>{ const r=raceFor(s); return r?board(s,r):null; }};
 try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
 })();
+
+/* ───────── archive (past seasons) ───────── */
+(function(){
+  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  /* Add a new object here each time a season ends. Names are frozen on purpose, so later seasons can't change history. */
+  const ARCHIVE=[
+    {id:'s1',label:'Season 1',year:'2026',sub:'VMS Season One · Crowned',champs:[
+      {series:'F1',kind:"World Drivers' Champion",name:'Nick',team:'Scuderia Ferrari',color:'#dc143c'},
+      {series:'F1',kind:"World Constructors' Champion",name:'Scuderia Ferrari',team:'Constructors',color:'#dc143c',team_:true},
+      {series:'F2',kind:"World Drivers' Champion",name:'Skirmis',team:'LM Performance F2',color:'#a78bfa'},
+      {series:'F2',kind:"World Constructors' Champion",name:'LM Performance F2',team:'Constructors',color:'#a78bfa',team_:true},
+      {series:'F3',kind:"World Drivers' Champion",name:'Piko',team:'LMP',color:'#a78bfa'},
+      {series:'F3',kind:"World Constructors' Champion",name:'LMP',team:'Constructors',color:'#a78bfa',team_:true}
+    ]}
+  ];
+  const st={id:ARCHIVE[0].id};
+  function paint(){
+    const box=document.getElementById('arcBoard'), tabsEl=document.getElementById('arcTabs'); if(!box) return;
+    tabsEl.innerHTML=ARCHIVE.map(a=>`<button type="button" class="tab ${a.id===st.id?'on':''}" data-id="${a.id}">${esc(a.label)} · ${esc(a.year)}</button>`).join('');
+    const a=ARCHIVE.find(x=>x.id===st.id)||ARCHIVE[0];
+    const group=s=>a.champs.filter(c=>c.series===s).map(c=>`<div class="champ${c.team_?' team':''}" style="--c:${esc(c.color)}">
+      <div class="champ-trophy">🏆</div><div class="champ-kind">VMS ${esc(c.series)} · ${esc(c.kind)}</div>
+      <div class="champ-name">${esc(c.name)}</div><div class="champ-team">${esc(c.team)}</div></div>`).join('');
+    box.innerHTML=`<div style="color:#999;margin:0 0 22px;font-size:14px">${esc(a.sub)} · ${a.champs.length} titles awarded</div>`+
+      ['F1','F2','F3'].map(s=>`<div class="tr-h" style="font-style:italic;text-transform:uppercase;color:#e8186d;font-size:18px;margin:26px 0 14px">Formula ${s.slice(1)}</div><div class="champs">${group(s)}</div>`).join('');
+  }
+  const view=document.createElement('div'); view.className='view'; view.id='view-archive';
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Every champion in VMS history</span></div></div><section><div class="tabs" id="arcTabs"></div><div id="arcBoard"></div></section>';
+  document.getElementById('view-about').before(view);
+  VIEWS.splice(VIEWS.indexOf('about'),0,'archive');
+  const link=document.createElement('a'); link.href='#archive'; link.dataset.v='archive'; link.textContent='Archive';
+  document.querySelector('header nav a[data-v="about"]').before(link);
+  document.getElementById('arcTabs').addEventListener('click',e=>{const b=e.target.closest('[data-id]'); if(b){st.id=b.dataset.id;paint();}});
+  paint();
+  if(location.hash==='#archive') go('archive');
+})();
