@@ -860,8 +860,14 @@
     var btn = document.getElementById('hubBtn'), menu = document.getElementById('hubMenu'); if (!btn || !menu) return;
     var ref = document.querySelector('header nav a');   // make the button look like the other nav links
     if (ref) { var cs = getComputedStyle(ref); ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'textTransform', 'color', 'padding'].forEach(function (k) { btn.style[k] = cs[k]; }); }
-    function setOpen(o) { menu.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false'); }
+    /* the top bar scrolls sideways (overflow-x:auto), which clips an absolutely-positioned dropdown — so the menu lives on <body> and is placed under the button */
+    document.body.appendChild(menu);
+    function setOpen(o) {
+      if (o) { var r = btn.getBoundingClientRect(); menu.style.top = (r.bottom + 8) + 'px'; menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; }
+      menu.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false');
+    }
     btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(menu.hidden); });
+    window.addEventListener('resize', function () { setOpen(false); });
     menu.addEventListener('click', function (e) { var b = e.target.closest('[data-hub]'); if (!b) return; setOpen(false); openHub(b.getAttribute('data-hub')); });
     document.addEventListener('click', function () { setOpen(false); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });

@@ -2853,38 +2853,65 @@ window.VMSBets={open,close,reset:doReset,state:()=>S,redeem,makeCode,odds:s=>{ c
 try{ if((window.__VMS_HASH0||location.hash)==='#bets') open(); }catch(e){}
 })();
 
-/* ───────── archive (past seasons) ───────── */
+/* ───────── archive (past seasons): champions + final standings + every race result ───────── */
 (function(){
-  const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  /* Add a new object here each time a season ends. Names are frozen on purpose, so later seasons can't change history. */
+  /* Add a new object here each time a season ends. Season 1 reads the season-one data above (D). */
   const ARCHIVE=[
-    {id:'s1',label:'Season 1',year:'2026',sub:'VMS Season One · Crowned',champs:[
-      {series:'F1',kind:"World Drivers' Champion",name:'Nick',team:'Scuderia Ferrari',color:'#dc143c'},
-      {series:'F1',kind:"World Constructors' Champion",name:'Scuderia Ferrari',team:'Constructors',color:'#dc143c',team_:true},
-      {series:'F2',kind:"World Drivers' Champion",name:'Skirmis',team:'LM Performance F2',color:'#a78bfa'},
-      {series:'F2',kind:"World Constructors' Champion",name:'LM Performance F2',team:'Constructors',color:'#a78bfa',team_:true},
-      {series:'F3',kind:"World Drivers' Champion",name:'Piko',team:'LMP',color:'#a78bfa'},
-      {series:'F3',kind:"World Constructors' Champion",name:'LMP',team:'Constructors',color:'#a78bfa',team_:true}
+    {id:'s1',label:'Season 1',year:'2026',sub:'VMS Season One · Final',champs:[
+      {series:'f1',kind:"World Drivers' Champion",name:'Nick',team:'Scuderia Ferrari',color:'#dc143c'},
+      {series:'f1',kind:"World Constructors' Champion",name:'Scuderia Ferrari',team:'Constructors',color:'#dc143c',tm:1},
+      {series:'f2',kind:"World Drivers' Champion",name:'Skirmis',team:'LM Performance F2',color:'#a78bfa'},
+      {series:'f2',kind:"World Constructors' Champion",name:'LM Performance F2',team:'Constructors',color:'#a78bfa',tm:1},
+      {series:'f3',kind:"World Drivers' Champion",name:'Piko',team:'LMP',color:'#a78bfa'},
+      {series:'f3',kind:"World Constructors' Champion",name:'LMP',team:'Constructors',color:'#a78bfa',tm:1}
     ]}
   ];
-  const st={id:ARCHIVE[0].id};
+  const st={id:ARCHIVE[0].id,pane:'champs',series:'f1',view:'drivers',rnd:null};
+  const btn=(attr,val,label,on)=>`<button type="button" class="tab ${on?'on':''}" ${attr}="${esc(val)}">${esc(label)}</button>`;
+  function champs(a){
+    return SERIES.map(s=>`<div style="font-style:italic;text-transform:uppercase;color:#e8186d;font-size:18px;margin:26px 0 14px">Formula ${s.slice(1)}</div><div class="champs">${
+      a.champs.filter(c=>c.series===s).map(c=>`<div class="champ${c.tm?' team':''}" style="--c:${esc(c.color)}"><div class="champ-trophy">🏆</div><div class="champ-kind">${esc(FULL[s])} · ${esc(c.kind)}</div><div class="champ-name">${esc(c.name)}</div><div class="champ-team">${esc(c.team)}</div></div>`).join('')}</div>`).join('');
+  }
+  function standings(){
+    const data=D.standings[st.series];
+    const sw=`<div class="tabs">${SERIES.map(s=>btn('data-s',s,FULL[s],s===st.series)).join('')}</div><div class="tabs">${btn('data-v','drivers','Drivers',st.view==='drivers')}${btn('data-v','constructors','Constructors',st.view==='constructors')}</div>`;
+    if(st.view==='drivers'){
+      const list=data.drivers.filter(d=>!d.hidden&&d.name&&d.name!=='—').slice().sort((a,b)=>b.pts-a.pts), top=list[0]?list[0].pts:0;
+      return sw+`<div class="panel scroll"><table><thead><tr><th>#</th><th>Driver</th><th>Team</th><th>Gap</th><th>Points</th></tr></thead><tbody>${list.map((d,i)=>`<tr class="${i===0?'lead':''}"><td class="${i<3?'pos':''}">${String(i+1).padStart(2,'0')}</td><td><b>${esc(d.name)}</b></td><td class="muted">${esc(d.team)}</td><td class="muted">${i===0?'—':'-'+(top-d.pts)}</td><td class="points">${d.pts}</td></tr>`).join('')}</tbody></table></div>`;
+    }
+    const list=data.constructors.slice().sort((a,b)=>b.pts-a.pts), top=list[0]?list[0].pts:0;
+    return sw+`<div class="panel scroll"><table><thead><tr><th>#</th><th>Team</th><th>Gap</th><th>Points</th></tr></thead><tbody>${list.map((c,i)=>`<tr class="${i===0?'lead':''}"><td class="${i<3?'pos':''}">${String(i+1).padStart(2,'0')}</td><td><span class="dot" style="background:${esc(c.color)}"></span><b>${esc(c.name)}</b></td><td class="muted">${i===0?'—':'-'+(top-c.pts)}</td><td class="points">${c.pts}</td></tr>`).join('')}</tbody></table></div>`;
+  }
+  function results(){
+    const rounds=real.filter(r=>D.results[rkey(r,st.series)]);
+    const sw=`<div class="tabs">${SERIES.map(s=>btn('data-s',s,FULL[s],s===st.series)).join('')}</div>`;
+    if(!rounds.length) return sw+'<div class="empty">No results archived for this series.</div>';
+    if(!rounds.find(r=>r.rnd===st.rnd)) st.rnd=rounds[rounds.length-1].rnd;
+    const race=rounds.find(r=>r.rnd===st.rnd), rows=D.results[rkey(race,st.series)], hasGap=rows.some(r=>r.gap);
+    return sw+`<div class="tabs"><select id="arcRnd" style="background:#0b0b0b;color:#fff;border:1px solid #2c2c2c;padding:12px 14px;font:700 14px Arial,sans-serif;min-width:280px">${rounds.map(r=>`<option value="${esc(r.rnd)}" ${r.rnd===st.rnd?'selected':''}>Round ${esc(r.rnd)} · ${esc(r.name)}</option>`).join('')}</select></div>
+    <div class="meta-row"><span>${esc(race.flag)} <b>${esc(race.circuit)}</b></span><span>${esc(dates(race))}</span></div>
+    <div class="panel scroll"><table><thead><tr><th>Pos</th><th>Driver</th><th>Team</th>${hasGap?'<th>Gap</th>':''}<th>Notes</th><th>Pts</th></tr></thead><tbody>${rows.map(r=>`<tr><td class="${r.pos<=3?'pos':''}">P${esc(r.pos)}</td><td><b>${esc(r.name)}</b>${r.pole?'<span class="tag pole">Pole</span>':''}${r.fl?'<span class="tag fl">FL</span>':''}</td><td class="muted">${esc(r.team)}</td>${hasGap?`<td class="muted">${esc(r.gap||'')}</td>`:''}<td class="note">${esc(r.note||'')}</td><td class="points">${esc(r.pts)}</td></tr>`).join('')}</tbody></table></div>`;
+  }
   function paint(){
-    const box=document.getElementById('arcBoard'), tabsEl=document.getElementById('arcTabs'); if(!box) return;
-    tabsEl.innerHTML=ARCHIVE.map(a=>`<button type="button" class="tab ${a.id===st.id?'on':''}" data-id="${a.id}">${esc(a.label)} · ${esc(a.year)}</button>`).join('');
+    const box=document.getElementById('arcBoard'); if(!box) return;
     const a=ARCHIVE.find(x=>x.id===st.id)||ARCHIVE[0];
-    const group=s=>a.champs.filter(c=>c.series===s).map(c=>`<div class="champ${c.team_?' team':''}" style="--c:${esc(c.color)}">
-      <div class="champ-trophy">🏆</div><div class="champ-kind">VMS ${esc(c.series)} · ${esc(c.kind)}</div>
-      <div class="champ-name">${esc(c.name)}</div><div class="champ-team">${esc(c.team)}</div></div>`).join('');
-    box.innerHTML=`<div style="color:#999;margin:0 0 22px;font-size:14px">${esc(a.sub)} · ${a.champs.length} titles awarded</div>`+
-      ['F1','F2','F3'].map(s=>`<div class="tr-h" style="font-style:italic;text-transform:uppercase;color:#e8186d;font-size:18px;margin:26px 0 14px">Formula ${s.slice(1)}</div><div class="champs">${group(s)}</div>`).join('');
+    document.getElementById('arcTabs').innerHTML=ARCHIVE.map(x=>btn('data-id',x.id,x.label+' · '+x.year,x.id===st.id)).join('');
+    document.getElementById('arcSub').innerHTML=[['champs','Champions'],['standings','Final Standings'],['results','Race Results']].map(p=>`<button type="button" class="${st.pane===p[0]?'on':''}" data-p="${p[0]}">${p[1]}</button>`).join('');
+    box.innerHTML=`<div style="color:#999;margin:0 0 6px;font-size:14px">${esc(a.sub)}</div>`+(st.pane==='champs'?champs(a):st.pane==='standings'?standings():results());
   }
   const view=document.createElement('div'); view.className='view'; view.id='view-archive';
-  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Every champion in VMS history</span></div></div><section><div class="tabs" id="arcTabs"></div><div id="arcBoard"></div></section>';
+  view.innerHTML='<div class="page-hero"><div class="section-head"><div><div class="title">Season <span class="yellow">Archive</span></div><div class="line"></div></div><span class="sub">Every champion in VMS history</span></div></div><section class="st-subwrap"><nav class="st-sub" id="arcSub" aria-label="Archive sections"></nav></section><section><div class="tabs" id="arcTabs"></div><div id="arcBoard"></div></section>';
   document.getElementById('view-about').before(view);
   VIEWS.splice(VIEWS.indexOf('about'),0,'archive');
   const link=document.createElement('a'); link.href='#archive'; link.dataset.v='archive'; link.textContent='Archive';
   document.querySelector('header nav a[data-v="about"]').before(link);
-  document.getElementById('arcTabs').addEventListener('click',e=>{const b=e.target.closest('[data-id]'); if(b){st.id=b.dataset.id;paint();}});
+  view.addEventListener('click',e=>{
+    const t=e.target.closest('[data-id],[data-p],[data-s],[data-v]'); if(!t||t.tagName==='OPTION') return;
+    if(t.dataset.id){st.id=t.dataset.id;st.rnd=null;} else if(t.dataset.p) st.pane=t.dataset.p;
+    else if(t.dataset.s){st.series=t.dataset.s;st.rnd=null;} else if(t.dataset.v) st.view=t.dataset.v;
+    paint();
+  });
+  view.addEventListener('change',e=>{ if(e.target.id==='arcRnd'){st.rnd=e.target.value;paint();} });
   paint();
   if(location.hash==='#archive') go('archive');
 })();
