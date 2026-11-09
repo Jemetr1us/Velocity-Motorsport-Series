@@ -46,9 +46,9 @@
     all: [], approved: [], logSeries: 'all',
     team: pref('team'), name: pref('name'),
     form: blankForm(), editId: null, busy: false,
-    signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
+    ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
   };
-  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, msgTimer = null;
+  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubCodes = null, msgTimer = null;
 
   /* ───────── tiny helpers ───────── */
   function $(id) { return document.getElementById(id); }
@@ -148,6 +148,67 @@
       S.suErr = 'Couldn’t load the driver sign-ups right now.'; paintSignupList();
     });
   }
+  /* ───────── FIA: team owner codes (one per team group) ───────── */
+  var OWNER_ORGS = [
+    { org: 'LM', key: 'LM' }, { org: 'Renault', key: 'Renault' }, { org: 'Vanguard', key: 'Vanguard' },
+    { org: 'Glitch', key: 'Glitch' }, { org: 'OMC', key: 'OMC' }, { org: 'Tarigys', key: 'Tarigys' },
+    { org: 'BMW', key: 'BMW' }, { org: 'Carti', key: 'Carti' }, { org: 'Ducati', key: 'Ducati' },
+    { org: 'Acura', key: 'Acura', series: ['f1', 'f2'] }, { org: 'Nissan', key: 'Nissan', series: ['f2', 'f3'] },
+    { org: 'Tohago', key: 'Tohago', series: ['f1'] }, { org: 'APXGP', key: 'APXGP', series: ['f1'] },
+    { org: 'Salvo', key: 'Salvo', series: ['f3'] }, { org: 'Ford', key: 'Ford', series: ['f3'] }, { org: 'BWL', key: 'BWL', series: ['f2'] }
+  ];
+  function orgTeams(o) {
+    var re = new RegExp('\\b' + o.key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'), out = [];
+    (o.series || SERIES).forEach(function (s) {
+      teamsOf(s).forEach(function (t) { if (re.test(t.name) && out.indexOf(t.name) < 0) out.push(t.name); });
+    });
+    return out;
+  }
+  function genCode() {
+    var A = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789', a = new Uint8Array(20), s = '';
+    (window.crypto || window.msCrypto).getRandomValues(a);
+    for (var i = 0; i < 20; i++) s += A.charAt(a[i] % 32);
+    return 'VMS-' + s.match(/.{5}/g).join('-');
+  }
+  function startCodesListener() {
+    if (unsubCodes) { unsubCodes(); unsubCodes = null; }
+    S.ownerCodes = []; S.codesErr = '';
+    if (S.role !== 'official') return;
+    unsubCodes = db.collection('codes').where('role', '==', 'owner').onSnapshot(function (snap) {
+      S.ownerCodes = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      S.codesErr = ''; paintCodes();
+    }, function () { S.codesErr = 'Couldn’t load the team codes — publish the latest firestore.rules first.'; paintCodes(); });
+  }
+  function createOrgCode(o) {
+    var teams = orgTeams(o);
+    if (!teams.length) return Promise.reject(new Error('No team on the site matches “' + o.org + '”.'));
+    return db.collection('codes').doc(genCode()).set({ role: 'owner', org: o.org, teams: teams });
+  }
+  function orgByName(name) { return OWNER_ORGS.filter(function (o) { return o.org === name; })[0]; }
+  function paintCodes() {
+    var b = $('trCodes'); if (!b) return;
+    if (S.codesErr) { b.innerHTML = '<div class="tr-card"><h3>Team owner codes</h3>' + notice(esc(S.codesErr)) + '</div>'; return; }
+    var by = {}; S.ownerCodes.forEach(function (c) { if (c.org) (by[c.org] = by[c.org] || []).push(c); });
+    var shared = S.ownerCodes.filter(function (c) { return !c.org; });
+    var missing = OWNER_ORGS.filter(function (o) { return !by[o.org] && orgTeams(o).length; }).length;
+    var rows = OWNER_ORGS.map(function (o) {
+      var teams = orgTeams(o), codes = by[o.org] || [];
+      var left = '<b>' + esc(o.org) + '</b> <small>' + (teams.length ? esc(teams.join(', ')) : '⚠ no team on the site matches') + '</small>';
+      if (codes.length) return codes.map(function (c) {
+        return '<div class="tr-mkrow">' + left + '<span class="tr-codeval">' + esc(c.id) + '</span>' +
+          '<button type="button" class="btn alt tr-lnk" data-a="copycode" data-id="' + esc(c.id) + '">Copy</button>' +
+          '<button type="button" class="btn alt danger tr-lnk" data-a="revokecode" data-id="' + esc(c.id) + '">Revoke</button></div>';
+      }).join('');
+      return '<div class="tr-mkrow">' + left + '<button type="button" class="btn" data-a="gencode" data-o="' + esc(o.org) + '"' + (teams.length ? '' : ' disabled') + '>Generate code</button></div>';
+    }).join('');
+    var old = shared.map(function (c) {
+      return '<div class="tr-mkrow"><b>Shared owner code</b> <small>works for any team</small><span class="tr-codeval">' + esc(c.id) + '</span>' +
+        '<button type="button" class="btn alt danger tr-lnk" data-a="revokecode" data-id="' + esc(c.id) + '">Revoke</button></div>';
+    }).join('');
+    b.innerHTML = '<div class="tr-card"><h3>Team owner codes</h3><p class="tr-help">One code per team group. A team owner can only act as their own team(s) and only accept transfers for their own drivers. DM each owner their code. <b>Revoke</b> cuts a code off immediately.</p>' +
+      '<div class="tr-actions" style="margin:0 0 8px"><button type="button" class="btn" data-a="genall"' + (missing ? '' : ' disabled') + '>Generate all missing (' + missing + ')</button></div>' +
+      rows + (old ? '<h3 class="tr-h" style="font-size:14px">Old shared code</h3>' + old : '') + '</div>';
+  }
   function startMineListener() {
     if (unsubMine || !S.uid) return;
     unsubMine = db.collection('signups').doc(S.uid).onSnapshot(function (d) {
@@ -167,14 +228,16 @@
   function stopPortalListener() {
     if (unsubAll) { unsubAll(); unsubAll = null; }
     if (unsubSU) { unsubSU(); unsubSU = null; }
-    S.all = []; S.signups = [];
+    if (unsubCodes) { unsubCodes(); unsubCodes = null; }
+    S.all = []; S.signups = []; S.ownerCodes = []; S.codesErr = '';
   }
 
   function setRole(code, data) {
-    S.code = code; S.role = data.role; S.locked = data.team || null;
-    if (S.locked) { S.team = S.locked; pref('team', S.team); }
+    S.code = code; S.role = data.role;
+    S.locked = data.team ? [data.team] : (Array.isArray(data.teams) && data.teams.length ? data.teams.slice() : null);
+    if (S.locked) { if (S.locked.indexOf(S.team) < 0) S.team = S.locked[0]; pref('team', S.team); }
     S.form = blankForm(); S.editId = null;
-    startPortalListener(); startSignupListener(); paintPortal(); paintLog();
+    startPortalListener(); startSignupListener(); startCodesListener(); paintPortal(); paintLog();
   }
   function restore() {
     if (S.role || S.restoring || !S.uid) return;
@@ -427,7 +490,7 @@
     box.innerHTML =
       '<div class="tr-bar"><span>Signed in as <b>' + (S.role === 'owner' ? 'Team owner' : 'FIA official') + '</b></span><button type="button" class="tr-link" data-a="signout">Sign out</button></div>' +
       '<div id="trIdent"></div>' +
-      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trMarket"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trQueue"></div>');
+      (S.role === 'owner' ? '<div id="trNeeds"></div><div id="trMarket"></div><div id="trForm"></div><div id="trMine"></div>' : '<div id="trCodes"></div><div id="trQueue"></div>');
     paintIdent(); paintForm(); paintLists();
   }
 
@@ -436,7 +499,9 @@
     var team = '';
     if (S.role === 'owner') {
       team = '<label class="tr-f">Acting as team' + (S.locked
-        ? '<div class="tr-locked">' + esc(S.locked) + '</div>'
+        ? (S.locked.length === 1
+            ? '<div class="tr-locked">' + esc(S.locked[0]) + '</div>'
+            : '<select id="trTeam">' + S.locked.map(function (n) { return '<option value="' + esc(n) + '"' + (n === S.team ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select>')
         : teamSelectHTML('trTeam', S.team, '', 'Choose your team')) + '</label>';
     }
     b.innerHTML = '<div class="tr-ident">' + team + '<label class="tr-f">Your name<input id="trName" maxlength="40" value="' + esc(S.name) + '" placeholder="Shown on everything you do"></label></div>';
@@ -522,6 +587,7 @@
         return reqCard(r, why + (a ? '<div class="tr-actions">' + a + '</div>' : ''));
       }).join('') + '</div>' : '<div class="empty">No requests for your team yet.</div>') : '';
     } else if (S.role === 'official') {
+      paintCodes();
       var q = $('trQueue'); if (!q) return;
       var pend = S.all.filter(function (r) { return r.status === 'pending_fia'; }).sort(function (a, b) { return ms(a.updatedAt) - ms(b.updatedAt); });
       var wait = S.all.filter(function (r) { return r.status === 'awaiting_team' || r.status === 'changes_requested'; }).sort(byNewest);
@@ -551,6 +617,23 @@
     else if (a === 'setprice') setPrice(id);
     else if (a === 'removesu') removeSignup(id);
     else if (a === 'suSeries') { S.suSeries = v; paintSignupList(); }
+    else if (a === 'gencode') {
+      var o1 = orgByName(t.getAttribute('data-o')); if (!o1) return; t.disabled = true;
+      createOrgCode(o1).then(function () { flash('Code created for ' + o1.org + '.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); t.disabled = false; });
+    }
+    else if (a === 'genall') {
+      t.disabled = true; var have = {}; S.ownerCodes.forEach(function (c) { if (c.org) have[c.org] = 1; });
+      Promise.all(OWNER_ORGS.filter(function (o) { return !have[o.org] && orgTeams(o).length; }).map(createOrgCode))
+        .then(function () { flash('Codes created.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); t.disabled = false; });
+    }
+    else if (a === 'revokecode') {
+      if (!window.confirm('Revoke this code? Anyone using it is signed out immediately.')) return;
+      db.collection('codes').doc(id).delete().then(function () { flash('Code revoked.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); });
+    }
+    else if (a === 'copycode') {
+      try { navigator.clipboard.writeText(id).then(function () { flash('Code copied.', 'ok'); }, function () { flash('Couldn’t copy — select the code and copy it by hand.', 'err'); }); }
+      catch (er) { flash('Couldn’t copy — select the code and copy it by hand.', 'err'); }
+    }
     else if (a === 'mkSign') {
       var sg = S.signups.filter(function (x) { return x.id === id; })[0]; if (!sg) return;
       S.editId = null; S.form = { type: 'signing', from: '', driver: sg.name, effective: '', notes: 'FIA price: ' + myPrice(sg.price) };

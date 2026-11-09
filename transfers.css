@@ -94,3 +94,7 @@
 #view-transfers .tr-mkrow b{color:#fff}
 #view-transfers .tr-mkrow small{color:#777}
 #view-transfers .tr-mkrow .btn{margin:0 0 0 auto;border:0;cursor:pointer;font-family:inherit;padding:8px 14px;font-size:11px}
+
+/* FIA: team owner codes */
+#view-transfers .tr-codeval{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1fd45a;user-select:all}
+#view-transfers .tr-mkrow .tr-lnk{margin-left:0}
