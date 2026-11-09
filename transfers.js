@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    VMS TRANSFERS & SIGNINGS
    • Team owners send signing / transfer requests with a shared owner code.
+   • A signing must be approved by the DRIVER (in Driver Sign-Up → Offers for you) before it reaches the FIA.
    • For a transfer, the team that currently has the driver must accept first.
    • FIA officials (shared FIA code) approve, reject or ask for changes.
    • Approved moves show in a public Transfer Log.
@@ -10,6 +11,33 @@
    • Team owners see FIA-priced drivers + every team's drivers in the portal, with Sign / Transfer buttons.
    Fully separate from app.js. Needs firebase-config.js + Firestore (see TRANSFERS-SETUP.md).
    ═══════════════════════════════════════════════════════════════════════════ */
+/* Hub dropdown — standalone so it still works even if the Transfers code below hits an error.
+   The menu lives on <body>: the top bar scrolls sideways (overflow-x:auto) and would clip it. */
+(function () {
+  function init() {
+    var btn = document.getElementById('hubBtn'), menu = document.getElementById('hubMenu');
+    if (!btn || !menu || btn.__hubWired) return; btn.__hubWired = true;
+    var ref = document.querySelector('header nav a');
+    if (ref) { var cs = getComputedStyle(ref); ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'textTransform', 'color', 'padding'].forEach(function (k) { btn.style[k] = cs[k]; }); }
+    document.body.appendChild(menu);
+    function setOpen(o) {
+      if (o) { var r = btn.getBoundingClientRect(); menu.style.top = (r.bottom + 8) + 'px'; menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; }
+      menu.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false');
+    }
+    function openHub(tab, tries) {
+      if (typeof window.go === 'function') window.go('transfers'); else { try { location.hash = '#transfers'; } catch (e) {} }
+      if (typeof window.__vmsHubTab === 'function') window.__vmsHubTab(tab);
+      else if ((tries || 0) < 20) setTimeout(function () { openHub(tab, (tries || 0) + 1); }, 150);
+    }
+    btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(menu.hidden); });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); var b = e.target.closest('[data-hub]'); if (!b) return; setOpen(false); openHub(b.getAttribute('data-hub')); });
+    document.addEventListener('click', function () { setOpen(false); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+    window.addEventListener('resize', function () { setOpen(false); });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+
 (function () {
   'use strict';
   var root = document.getElementById('view-transfers');
@@ -23,6 +51,8 @@
   var SNAME = { f1: 'Formula 1', f2: 'Formula 2', f3: 'Formula 3' };
   var STATUS = {
     awaiting_team:     ['Awaiting other team', 'amber'],
+    awaiting_driver:   ['Awaiting driver', 'amber'],
+    driver_declined:   ['Declined by driver', 'red'],
     pending_fia:       ['Awaiting FIA', 'blue'],
     approved:          ['Approved', 'green'],
     rejected:          ['Rejected by FIA', 'red'],
@@ -33,7 +63,8 @@
   var ACTION = {
     submitted: 'submitted the request', accepted: 'accepted the transfer', declined: 'declined the transfer',
     withdrawn: 'withdrew the request', approved: 'approved', rejected: 'rejected',
-    changes_requested: 'asked for changes', resubmitted: 'edited and resubmitted'
+    changes_requested: 'asked for changes', resubmitted: 'edited and resubmitted',
+    driver_accepted: 'accepted the offer', driver_declined: 'declined the offer'
   };
 
   function pref(k, v) {
@@ -50,7 +81,7 @@
     form: blankForm(), editId: null, busy: false,
     budgets: {}, ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '', raced: '', shot: '' }, suBusy: false
   };
-  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubCodes = null, unsubBud = null, msgTimer = null;
+  var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubOffers = null, unsubCodes = null, unsubBud = null, msgTimer = null;
 
   /* ───────── tiny helpers ───────── */
   function $(id) { return document.getElementById(id); }
@@ -255,6 +286,10 @@
     unsubMine = db.collection('signups').doc(S.uid).onSnapshot(function (d) {
       S.mine = d.exists ? Object.assign({ id: d.id }, d.data()) : null; paintSignupForm();
     }, function () {});
+    /* offers addressed to this driver (requests carry driverUid = the driver's sign-up id) */
+    unsubOffers = db.collection('requests').where('driverUid', '==', S.uid).onSnapshot(function (snap) {
+      S.offers = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); paintSignupForm();
+    }, function () {});
   }
   function startPortalListener() {
     stopPortalListener();
@@ -380,8 +415,10 @@
     if (!needName()) return;
     var f = S.form, ed = S.editId ? S.all.filter(function (r) { return r.id === S.editId; })[0] : null;
     var type = ed ? ed.type : f.type;
+    var pm = null;
     if (type === 'signing') {
-      var pm = poolMatch(f.driver), ts = teamSeries(S.team);
+      pm = poolMatch(f.driver); var ts = teamSeries(S.team);
+      if (!pm) { flash('Pick a driver from “Drivers you can sign”. They have to sign up in Driver Sign-Up and approve your offer.', 'err'); return; }
       if (pm) {
         if (ts && allowedOf(pm).indexOf(ts) < 0) { flash(pm.name + ' isn’t approved to race in ' + ts.toUpperCase() + ' (approved: ' + allowedOf(pm).map(function (x) { return x.toUpperCase(); }).join(', ') + ').', 'err'); return; }
         f = Object.assign({}, f, { fee: String(pm.price) });
@@ -391,20 +428,21 @@
     var fee = Math.round(num(f.fee) * 10) / 10, left = remaining(S.team);
     if (left != null && fee > left + 1e-9) { flash('That fee is more than your budget: you have ' + myPrice(left) + ' left.', 'err'); return; }
     var fields = { driver: f.driver.trim(), fromTeam: type === 'transfer' ? f.from : null, effective: f.effective.trim(), notes: f.notes.trim(), fee: fee };
+    if (type === 'signing' && pm) fields.driverUid = pm.id;
     S.busy = true; paintForm();
     var job;
     if (ed) {
-      job = change(ed.id, type === 'transfer' ? 'awaiting_team' : 'pending_fia', 'resubmitted', '', fields);
+      job = change(ed.id, type === 'transfer' ? 'awaiting_team' : 'awaiting_driver', 'resubmitted', '', fields);
     } else {
       var info = teamInfo(S.team);
       job = db.collection('requests').add({
-        type: type, series: info ? info.series : 'f1', driver: fields.driver, fromTeam: fields.fromTeam, toTeam: S.team,
+        type: type, series: info ? info.series : 'f1', driver: fields.driver, driverUid: fields.driverUid || null, fromTeam: fields.fromTeam, toTeam: S.team,
         effective: fields.effective, notes: fields.notes, fee: fee, requesterName: S.name.trim().slice(0, 40),
-        status: type === 'transfer' ? 'awaiting_team' : 'pending_fia', createdAt: stamp(), updatedAt: stamp(), history: [hist('submitted', '')]
+        status: type === 'transfer' ? 'awaiting_team' : 'awaiting_driver', createdAt: stamp(), updatedAt: stamp(), history: [hist('submitted', '')]
       });
     }
     job.then(function () {
-      flash(ed ? 'Resubmitted.' : (type === 'transfer' ? 'Request sent to ' + f.from + ' for their answer.' : 'Request sent to the FIA.'), 'ok');
+      flash(ed ? 'Resubmitted.' : (type === 'transfer' ? 'Request sent to ' + f.from + ' for their answer.' : 'Offer sent to ' + f.driver.trim() + ' — they need to approve it before it goes to the FIA.'), 'ok');
       S.form = blankForm(); S.form.type = type; S.editId = null;
     }).catch(function (e) { flash(niceError(e), 'err'); }).then(function () { S.busy = false; paintForm(); });
   }
@@ -452,14 +490,19 @@
     var step = fa.currentUser ? Promise.resolve(fa.currentUser) : fa.signInAnonymously().then(function (c) { return c.user; });
     step.then(function (u) {
       S.uid = u.uid; startMineListener();
-      var shot = f.raced === 'no' ? db.collection('signupShots').doc(u.uid).set({ data: f.shot, createdAt: stamp() }) : Promise.resolve();
+      var tag = function (what) { return function (e) { try { e.vmsStep = what; } catch (x) {} throw e; }; };
+      var shot = f.raced === 'no' ? db.collection('signupShots').doc(u.uid).set({ data: f.shot, createdAt: stamp() }).catch(tag('screenshot')) : Promise.resolve();
       return shot.then(function () {
-        return db.collection('signups').doc(u.uid).set({ name: name, series: f.series, notes: f.notes.trim(), raced: f.raced, status: 'open', price: null, createdAt: stamp() });
+        return db.collection('signups').doc(u.uid).set({ name: name, series: f.series, notes: f.notes.trim(), raced: f.raced, status: 'open', price: null, createdAt: stamp() }).catch(tag('sign-up'));
       });
     }).then(function () {
       flash('You’re signed up! The FIA will set your price.', 'ok'); S.su = { name: '', series: f.series, notes: '', raced: '', shot: '' };
     }).catch(function (e) {
-      flash(e && e.code === 'permission-denied' ? 'You’ve already signed up from this browser, or the sign-up couldn’t be saved.' : niceError(e), 'err');
+      var code = e && e.code ? e.code : 'unknown', stepName = e && e.vmsStep ? e.vmsStep : 'sign-up';
+      if (window.console) console.error('VMS sign-up failed at', stepName, e);
+      flash((code === 'permission-denied'
+        ? (stepName === 'screenshot' ? 'The lap-time screenshot couldn’t be saved (blocked by the database rules).' : 'The sign-up couldn’t be saved (blocked by the database rules).')
+        : niceError(e)) + ' [' + stepName + ' · ' + code + ']', 'err');
     }).then(function () { S.suBusy = false; paintSignupForm(); paintSignupList(); });
   }
   function setPrice(id) {
@@ -480,7 +523,7 @@
       flash('Sign-up removed.', 'ok'); db.collection('signupShots').doc(id).delete().catch(function () {});
     }).catch(function (e) { flash(niceError(e), 'err'); });
   }
-  function paintSignupForm() {
+  function paintSignupBase() {
     var b = $('trSuForm'); if (!b) return;
     if (!configured) { b.innerHTML = ''; return; }
     var mine = mySignup();
@@ -500,6 +543,30 @@
                 : '<input type="file" accept="image/*" data-s="shot">') + '</div>' : '') +
       '<label class="tr-f wide">About you <small>(optional)</small><textarea data-s="notes" maxlength="400" rows="3" placeholder="Experience, past teams, Discord name…">' + esc(f.notes) + '</textarea></label></div>' +
       '<div class="tr-actions"><button type="button" class="btn" data-a="submitsu"' + (S.suBusy ? ' disabled' : '') + '>' + (S.suBusy ? 'Signing up…' : 'Sign up') + '</button></div></div>';
+  }
+  /* offers made to this driver: they must accept before the FIA ever sees the signing */
+  function paintSignupForm() {
+    paintSignupBase();
+    var b = $('trSuForm'); if (!b || !configured) return;
+    var offers = (S.offers || []).filter(function (r) { return r.status === 'awaiting_driver'; }).sort(function (a, c) { return ms(c.updatedAt) - ms(a.updatedAt); });
+    var past = (S.offers || []).filter(function (r) { return r.status !== 'awaiting_driver'; }).sort(function (a, c) { return ms(c.updatedAt) - ms(a.updatedAt); }).slice(0, 8);
+    var h = '';
+    if (offers.length) h += '<h3 class="tr-h">Offers for you <span class="tr-count">' + offers.length + '</span></h3><div class="tr-stack">' + offers.map(function (r) {
+      return reqCard(r, '<div class="tr-decide"><div class="tr-ask"><b>' + esc(r.toTeam) + '</b> wants to sign you' + (r.fee != null ? ' for <b>' + esc(myPrice(r.fee)) + '</b>' : '') + '. If you accept, it goes to the FIA for the final decision. Nothing happens without your yes.</div>' +
+        '<textarea data-k="c-' + esc(r.id) + '" rows="2" maxlength="500" placeholder="Optional message to the team"></textarea>' +
+        '<div class="tr-actions"><button type="button" class="btn" data-a="drvaccept" data-id="' + esc(r.id) + '">Accept offer</button>' +
+        '<button type="button" class="btn alt danger" data-a="drvdecline" data-id="' + esc(r.id) + '">Decline</button></div></div>');
+    }).join('') + '</div>';
+    if (past.length) h += '<h3 class="tr-h">Your past offers</h3><div class="tr-stack">' + past.map(function (r) { return reqCard(r, ''); }).join('') + '</div>';
+    if (h) { var kept = grabInputs(); b.insertAdjacentHTML('beforeend', h); putInputs(kept); }
+  }
+  function driverAnswer(id, accept) {
+    var me = S.mine, ta = root.querySelector('[data-k="c-' + id + '"]'), comment = ta ? ta.value.trim() : '';
+    if (!me) { flash('Sign up as a driver first.', 'err'); return; }
+    var entry = { at: Date.now(), by: String(me.name || 'Driver').slice(0, 40), role: 'driver', team: null, action: accept ? 'driver_accepted' : 'driver_declined', comment: comment.slice(0, 500) };
+    db.collection('requests').doc(id).update({ status: accept ? 'pending_fia' : 'driver_declined', updatedAt: stamp(), history: FV.arrayUnion(entry) })
+      .then(function () { flash(accept ? 'Offer accepted — it’s now with the FIA.' : 'Offer declined.', 'ok'); })
+      .catch(function (e) { flash(niceError(e), 'err'); });
   }
   function paintSignupList() {
     var b = $('trSuList'); if (!b) return;
@@ -565,7 +632,7 @@
   }
   function histHTML(r) {
     var h = (r.history || []).map(function (e) {
-      var who = esc(e.by || '?') + ' <small>(' + (e.role === 'official' ? 'FIA' : esc(e.team || 'team owner')) + ')</small>';
+      var who = esc(e.by || '?') + ' <small>(' + (e.role === 'official' ? 'FIA' : e.role === 'driver' ? 'driver' : esc(e.team || 'team owner')) + ')</small>';
       return '<li><span>' + esc(fmt(e.at)) + '</span> ' + who + ' ' + esc(ACTION[e.action] || e.action) + (e.comment ? ' — “' + esc(e.comment) + '”' : '') + '</li>';
     }).join('');
     return '<details class="tr-hist"><summary>History</summary><ol>' + h + '</ol></details>';
@@ -692,7 +759,7 @@
     }
     h += '<p class="tr-help">' + (tr
       ? 'Ask to bring a driver to <b>' + esc(S.team) + '</b> from another team. The driver’s current team answers first, then the FIA decides.'
-      : 'Sign a driver for <b>' + esc(S.team) + '</b>. This goes straight to the FIA.') + '</p><p class="tr-help">' + budgetLine(S.team) + '</p><div class="tr-formgrid">';
+      : 'Sign a driver for <b>' + esc(S.team) + '</b>. The driver has to approve your offer first, then the FIA makes the final call.') + '</p><p class="tr-help">' + budgetLine(S.team) + '</p><div class="tr-formgrid">';
     if (tr) {
       var info = teamInfo(f.from), drivers = info ? info.drivers : [];
       h += '<label class="tr-f">Driver’s current team' + teamSelectHTML('trFrom', f.from, S.team, 'Choose a team', 'data-f="from"') + '</label>';
@@ -731,20 +798,20 @@
       var needIds = {}; need.forEach(function (r) { needIds[r.id] = 1; });
       var list = team ? S.all.filter(function (r) { return (r.toTeam === team || r.fromTeam === team) && !needIds[r.id]; }).sort(byNewest) : [];
       mine.innerHTML = team ? '<h3 class="tr-h">Your team’s requests</h3>' + (list.length ? '<div class="tr-stack">' + list.map(function (r) {
-        var open = r.status === 'awaiting_team' || r.status === 'pending_fia' || r.status === 'changes_requested';
+        var open = r.status === 'awaiting_team' || r.status === 'awaiting_driver' || r.status === 'pending_fia' || r.status === 'changes_requested';
         var mineReq = r.toTeam === team, a = '';
         if (r.status === 'changes_requested' && mineReq) a += '<button type="button" class="btn" data-a="edit" data-id="' + esc(r.id) + '">Edit &amp; resubmit</button>';
         if (open && mineReq) a += '<button type="button" class="btn alt" data-a="withdraw" data-id="' + esc(r.id) + '">Withdraw</button>';
         var last = (r.history || [])[(r.history || []).length - 1];
-        var why = (r.status === 'changes_requested' || r.status === 'rejected' || r.status === 'declined') && last && last.comment ? '<div class="tr-why">“' + esc(last.comment) + '” — ' + esc(last.by || '') + '</div>' : '';
+        var why = (r.status === 'changes_requested' || r.status === 'rejected' || r.status === 'declined' || r.status === 'driver_declined') && last && last.comment ? '<div class="tr-why">“' + esc(last.comment) + '” — ' + esc(last.by || '') + '</div>' : '';
         return reqCard(r, why + (a ? '<div class="tr-actions">' + a + '</div>' : ''));
       }).join('') + '</div>' : '<div class="empty">No requests for your team yet.</div>') : '';
     } else if (S.role === 'official') {
       paintCodes(); paintBudgets();
       var q = $('trQueue'); if (!q) return;
       var pend = S.all.filter(function (r) { return r.status === 'pending_fia'; }).sort(function (a, b) { return ms(a.updatedAt) - ms(b.updatedAt); });
-      var wait = S.all.filter(function (r) { return r.status === 'awaiting_team' || r.status === 'changes_requested'; }).sort(byNewest);
-      var done = S.all.filter(function (r) { return ['approved', 'rejected', 'declined', 'withdrawn'].indexOf(r.status) > -1; }).sort(byNewest).slice(0, 20);
+      var wait = S.all.filter(function (r) { return r.status === 'awaiting_team' || r.status === 'awaiting_driver' || r.status === 'changes_requested'; }).sort(byNewest);
+      var done = S.all.filter(function (r) { return ['approved', 'rejected', 'declined', 'driver_declined', 'withdrawn'].indexOf(r.status) > -1; }).sort(byNewest).slice(0, 20);
       q.innerHTML =
         '<h3 class="tr-h">Waiting for the FIA <span class="tr-count">' + pend.length + '</span></h3>' +
         (pend.length ? '<div class="tr-stack">' + pend.map(function (r) {
@@ -753,7 +820,7 @@
             '<button type="button" class="btn alt" data-a="changes" data-id="' + esc(r.id) + '">Ask for changes</button>' +
             '<button type="button" class="btn alt danger" data-a="reject" data-id="' + esc(r.id) + '">Reject</button></div></div>');
         }).join('') + '</div>' : '<div class="empty">Nothing waiting — you’re all caught up.</div>') +
-        (wait.length ? '<h3 class="tr-h">With the teams <span class="tr-count">' + wait.length + '</span></h3><div class="tr-stack">' + wait.map(function (r) { return reqCard(r, ''); }).join('') + '</div>' : '') +
+        (wait.length ? '<h3 class="tr-h">With the teams / drivers <span class="tr-count">' + wait.length + '</span></h3><div class="tr-stack">' + wait.map(function (r) { return reqCard(r, ''); }).join('') + '</div>' : '') +
         (done.length ? '<h3 class="tr-h">Recently closed</h3><div class="tr-stack">' + done.map(function (r) { return reqCard(r, ''); }).join('') + '</div>' : '');
     }
     putInputs(kept);
@@ -767,6 +834,8 @@
     else if (a === 'logSeries') { S.logSeries = v; paintLog(); }
     else if (a === 'signout') signOut();
     else if (a === 'submitsu') submitSignup();
+    else if (a === 'drvaccept') driverAnswer(id, true);
+    else if (a === 'drvdecline') driverAnswer(id, false);
     else if (a === 'setprice') setPrice(id);
     else if (a === 'removesu') removeSignup(id);
     else if (a === 'suSeries') { S.suSeries = v; paintSignupList(); }
@@ -855,23 +924,7 @@
       } else if (other) { nb.style.display = ''; nt.style.display = 'none'; }
     });
   })();
-  function openHub(tab) { if (typeof window.go === 'function') window.go('transfers'); setTab(tab); }
-  (function hubMenu() {
-    var btn = document.getElementById('hubBtn'), menu = document.getElementById('hubMenu'); if (!btn || !menu) return;
-    var ref = document.querySelector('header nav a');   // make the button look like the other nav links
-    if (ref) { var cs = getComputedStyle(ref); ['fontFamily', 'fontSize', 'fontWeight', 'letterSpacing', 'textTransform', 'color', 'padding'].forEach(function (k) { btn.style[k] = cs[k]; }); }
-    /* the top bar scrolls sideways (overflow-x:auto), which clips an absolutely-positioned dropdown — so the menu lives on <body> and is placed under the button */
-    document.body.appendChild(menu);
-    function setOpen(o) {
-      if (o) { var r = btn.getBoundingClientRect(); menu.style.top = (r.bottom + 8) + 'px'; menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px'; }
-      menu.hidden = !o; btn.setAttribute('aria-expanded', o ? 'true' : 'false');
-    }
-    btn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(menu.hidden); });
-    window.addEventListener('resize', function () { setOpen(false); });
-    menu.addEventListener('click', function (e) { var b = e.target.closest('[data-hub]'); if (!b) return; setOpen(false); openHub(b.getAttribute('data-hub')); });
-    document.addEventListener('click', function () { setOpen(false); });
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
-  })();
+  window.__vmsHubTab = setTab;
 
   /* ───────── start ───────── */
   build();
