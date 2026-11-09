@@ -48,7 +48,7 @@
     all: [], approved: [], logSeries: 'all',
     team: pref('team'), name: pref('name'),
     form: blankForm(), editId: null, busy: false,
-    budgets: {}, ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '' }, suBusy: false
+    budgets: {}, ownerCodes: [], codesErr: '', signups: [], mine: null, suErr: '', suSeries: 'all', su: { name: '', series: 'f1', notes: '', raced: '', shot: '' }, suBusy: false
   };
   var db = null, fa = null, FV = null, unsubAll = null, unsubLog = null, unsubSU = null, unsubMine = null, unsubCodes = null, unsubBud = null, msgTimer = null;
 
@@ -411,18 +411,53 @@
   /* ───────── driver sign-ups ───────── */
   function myPrice(p) { return '$' + Number(p).toFixed(1) + 'M'; }
   function mySignup() { return S.mine; }
+  /* shrink a screenshot to a small JPEG so it fits in a Firestore document (no paid storage needed) */
+  function shrinkShot(file, cb) {
+    var rdr = new FileReader();
+    rdr.onerror = function () { cb('Couldn’t read that file.'); };
+    rdr.onload = function () {
+      var img = new Image();
+      img.onerror = function () { cb('That doesn’t look like an image.'); };
+      img.onload = function () {
+        var scale = Math.min(1, 1100 / Math.max(img.width, img.height)), out = '';
+        for (var tries = 0; tries < 4; tries++) {
+          var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(img.width * scale)); c.height = Math.max(1, Math.round(img.height * scale));
+          var ctx = c.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+          for (var q = 0.75; q >= 0.35; q -= 0.1) { out = c.toDataURL('image/jpeg', q); if (out.length <= 650000) { cb(null, out); return; } }
+          scale *= 0.7;
+        }
+        cb('That image is too big to shrink. Try a smaller screenshot.');
+      };
+      img.src = rdr.result;
+    };
+    rdr.readAsDataURL(file);
+  }
+  function showShot(id) {
+    db.collection('signupShots').doc(id).get().then(function (d) {
+      if (!d.exists) { flash('No screenshot found for this driver.', 'err'); return; }
+      var ov = document.createElement('div');
+      ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:20px;cursor:pointer';
+      var im = document.createElement('img'); im.src = d.data().data; im.style.cssText = 'max-width:100%;max-height:100%;border:1px solid #333';
+      ov.appendChild(im); ov.addEventListener('click', function () { ov.remove(); }); document.body.appendChild(ov);
+    }).catch(function (e) { flash(niceError(e), 'err'); });
+  }
   function submitSignup() {
     var f = S.su, name = f.name.trim();
     if (!name) { flash('Enter your driver name.', 'err'); return; }
     if (name.length > 60) { flash('Driver name is too long.', 'err'); return; }
     if (f.notes.length > 400) { flash('Keep the note under 400 characters.', 'err'); return; }
+    if (f.raced !== 'yes' && f.raced !== 'no') { flash('Say whether you’ve raced in VMS before.', 'err'); return; }
+    if (f.raced === 'no' && !f.shot) { flash('Upload a screenshot of a lap time since you haven’t raced in VMS yet.', 'err'); return; }
     S.suBusy = true; paintSignupForm();
     var step = fa.currentUser ? Promise.resolve(fa.currentUser) : fa.signInAnonymously().then(function (c) { return c.user; });
     step.then(function (u) {
       S.uid = u.uid; startMineListener();
-      return db.collection('signups').doc(u.uid).set({ name: name, series: f.series, notes: f.notes.trim(), status: 'open', price: null, createdAt: stamp() });
+      var shot = f.raced === 'no' ? db.collection('signupShots').doc(u.uid).set({ data: f.shot, createdAt: stamp() }) : Promise.resolve();
+      return shot.then(function () {
+        return db.collection('signups').doc(u.uid).set({ name: name, series: f.series, notes: f.notes.trim(), raced: f.raced, status: 'open', price: null, createdAt: stamp() });
+      });
     }).then(function () {
-      flash('You’re signed up! The FIA will set your price.', 'ok'); S.su = { name: '', series: f.series, notes: '' };
+      flash('You’re signed up! The FIA will set your price.', 'ok'); S.su = { name: '', series: f.series, notes: '', raced: '', shot: '' };
     }).catch(function (e) {
       flash(e && e.code === 'permission-denied' ? 'You’ve already signed up from this browser, or the sign-up couldn’t be saved.' : niceError(e), 'err');
     }).then(function () { S.suBusy = false; paintSignupForm(); paintSignupList(); });
@@ -441,7 +476,9 @@
   }
   function removeSignup(id) {
     if (!window.confirm('Remove this sign-up?')) return;
-    db.collection('signups').doc(id).delete().then(function () { flash('Sign-up removed.', 'ok'); }).catch(function (e) { flash(niceError(e), 'err'); });
+    db.collection('signups').doc(id).delete().then(function () {
+      flash('Sign-up removed.', 'ok'); db.collection('signupShots').doc(id).delete().catch(function () {});
+    }).catch(function (e) { flash(niceError(e), 'err'); });
   }
   function paintSignupForm() {
     var b = $('trSuForm'); if (!b) return;
@@ -457,6 +494,10 @@
     b.innerHTML = '<div class="tr-card"><h3>Driver sign-up</h3><p class="tr-help">Want to race in VMS? Sign up here. Only FIA officials see sign-ups. They’ll set your <b>price</b>, and then team owners can sign you.</p><div class="tr-formgrid">' +
       '<label class="tr-f">Driver name<input data-s="name" maxlength="60" value="' + esc(f.name) + '" placeholder="Your racing name"></label>' +
       '<label class="tr-f">Series<select data-s="series">' + SERIES.map(function (s) { return '<option value="' + s + '"' + (s === f.series ? ' selected' : '') + '>' + esc(SNAME[s]) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="tr-f">Have you raced in VMS?<select data-s="raced"><option value="">Choose…</option><option value="yes"' + (f.raced === 'yes' ? ' selected' : '') + '>Yes</option><option value="no"' + (f.raced === 'no' ? ' selected' : '') + '>No</option></select></label>' +
+      (f.raced === 'no' ? '<div class="tr-f wide">Screenshot of a lap time<small>Upload a screenshot showing a lap time you’ve set. It’s shrunk automatically and only the FIA can see it.</small>' +
+        (f.shot ? '<img src="' + f.shot + '" alt="Your screenshot" style="max-width:240px;border:1px solid #2c2c2c"><div class="tr-actions" style="margin-top:4px"><button type="button" class="btn alt" data-a="rmshot">Remove screenshot</button></div>'
+                : '<input type="file" accept="image/*" data-s="shot">') + '</div>' : '') +
       '<label class="tr-f wide">About you <small>(optional)</small><textarea data-s="notes" maxlength="400" rows="3" placeholder="Experience, past teams, Discord name…">' + esc(f.notes) + '</textarea></label></div>' +
       '<div class="tr-actions"><button type="button" class="btn" data-a="submitsu"' + (S.suBusy ? ' disabled' : '') + '>' + (S.suBusy ? 'Signing up…' : 'Sign up') + '</button></div></div>';
   }
@@ -487,6 +528,7 @@
         '<div class="tr-driver">' + esc(r.name) + '</div>' +
         (r.notes ? '<div class="tr-notes">' + esc(r.notes) + '</div>' : '') +
         (priced ? '<div class="tr-price"><small>Price</small>' + esc(myPrice(r.price)) + '</div><div class="tr-meta"><span>Approved for</span> ' + esc(allowedOf(r).map(function (x) { return x.toUpperCase(); }).join(', ')) + '</div>' : '') +
+        '<div class="tr-meta"><span>Raced in VMS</span> ' + (r.raced === 'yes' ? 'Yes' : r.raced === 'no' ? 'No · <button type="button" class="tr-link" data-a="viewshot" data-id="' + esc(r.id) + '">View lap-time screenshot</button>' : '—') + '</div>' +
         '<div class="tr-meta">Signed up ' + esc(fmtDay(r.createdAt)) + (priced && r.pricedBy ? ' · priced by ' + esc(r.pricedBy) : '') + '</div>' + ctl + '</div>';
     }).join('');
     b.innerHTML = tabs + (list.length ? '<div class="tr-grid">' + cards + '</div>' : '<div class="empty">No drivers have signed up yet.</div>');
@@ -509,7 +551,7 @@
       if (status === 'approved' && r && r.type === 'signing') {
         var nm = String(r.driver).trim().toLowerCase();
         var m = S.signups.filter(function (x) { return String(x.name).trim().toLowerCase() === nm; })[0];
-        if (m && window.confirm('Remove ' + m.name + ' from the driver pool now they’ve signed?')) db.collection('signups').doc(m.id).delete().catch(function () {});
+        if (m && window.confirm('Remove ' + m.name + ' from the driver pool now they’ve signed?')) db.collection('signups').doc(m.id).delete().then(function () { db.collection('signupShots').doc(m.id).delete().catch(function () {}); }).catch(function () {});
       }
     }).catch(function (e) { flash(niceError(e), 'err'); });
   }
@@ -729,6 +771,8 @@
     else if (a === 'removesu') removeSignup(id);
     else if (a === 'suSeries') { S.suSeries = v; paintSignupList(); }
     else if (a === 'savebudget') saveBudget(t.getAttribute('data-t'));
+    else if (a === 'viewshot') showShot(id);
+    else if (a === 'rmshot') { S.su.shot = ''; paintSignupForm(); }
     else if (a === 'gencode') {
       var o1 = orgByName(t.getAttribute('data-o')); if (!o1) return; t.disabled = true;
       createOrgCode(o1).then(function () { flash('Code created for ' + o1.org + '.', 'ok'); }).catch(function (er) { flash(niceError(er), 'err'); t.disabled = false; });
@@ -779,12 +823,16 @@
   root.addEventListener('input', function (e) {
     var t = e.target;
     if (t.id === 'trName') { S.name = t.value; pref('name', S.name); }
-    else if (t.getAttribute && t.getAttribute('data-s')) S.su[t.getAttribute('data-s')] = t.value;
+    else if (t.getAttribute && t.getAttribute('data-s') && t.type !== 'file') S.su[t.getAttribute('data-s')] = t.value;
     else if (t.getAttribute && t.getAttribute('data-f') && t.getAttribute('data-f') !== 'from') S.form[t.getAttribute('data-f')] = t.value;
   });
   root.addEventListener('change', function (e) {
     var t = e.target;
-    if (t.getAttribute && t.getAttribute('data-s')) S.su[t.getAttribute('data-s')] = t.value;
+    if (t.type === 'file' && t.getAttribute('data-s') === 'shot') {
+      var fl = t.files && t.files[0]; if (!fl) return;
+      shrinkShot(fl, function (err, url) { if (err) { flash(err, 'err'); return; } S.su.shot = url; paintSignupForm(); });
+    }
+    else if (t.getAttribute && t.getAttribute('data-s')) { S.su[t.getAttribute('data-s')] = t.value; if (t.getAttribute('data-s') === 'raced') paintSignupForm(); }
     else if (t.id === 'trTeam') { S.team = t.value; pref('team', S.team); S.form.from = ''; S.form.driver = ''; startBudgetListener(); paintForm(); paintLists(); }
     else if (t.getAttribute && t.getAttribute('data-f') === 'from') { S.form.from = t.value; S.form.driver = ''; paintForm(); }
     else if (t.getAttribute && t.getAttribute('data-f')) S.form[t.getAttribute('data-f')] = t.value;
