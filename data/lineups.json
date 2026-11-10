@@ -1,9 +1,9 @@
 {
   "f1": [
     {
-      "name": "Richard Mille LM Motorsport F1",
+      "name": "unknown-role",
       "engine": "CEO: Mikos | LM CEO · Director: Lawie (a random white dude)",
-      "color": "#a78bfa",
+      "color": "#888888",
       "drivers": [
         {
           "num": "91",
@@ -32,9 +32,9 @@
       ]
     },
     {
-      "name": "Scuderia Ferrari",
+      "name": "unknown-role",
       "engine": "CEO: pringle- jem #1 fan · Director: Perez | Ferrari Team director",
-      "color": "#dc143c",
+      "color": "#888888",
       "drivers": [
         {
           "num": "—",
@@ -63,9 +63,9 @@
       ]
     },
     {
-      "name": "Vodafone McLaren",
+      "name": "unknown-role",
       "engine": "CEO: Neon | Renault & McLaren CEO · Director: Zachary | McLaren Director",
-      "color": "#ff8000",
+      "color": "#888888",
       "drivers": [
         {
           "num": "27",
@@ -94,9 +94,9 @@
       ]
     },
     {
-      "name": "Renault Sport Formula 1 Team",
+      "name": "unknown-role",
       "engine": "CEO: Neon | Renault & McLaren CEO",
-      "color": "#60a5fa",
+      "color": "#888888",
       "drivers": [
         {
           "num": "56",
@@ -125,9 +125,9 @@
       ]
     },
     {
-      "name": "Aero Apex Racing",
+      "name": "unknown-role",
       "engine": "CEO: Flekzy | Aero Team Owner · Director: Ernesto2013 | AAR Team Director",
-      "color": "#7c3aed",
+      "color": "#888888",
       "drivers": [
         {
           "num": "41",
@@ -156,9 +156,9 @@
       ]
     },
     {
-      "name": "Mercedes-AMG",
-      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: Kuzey | Merc Director",
-      "color": "#00d2be",
+      "name": "unknown-role",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: Kuzey | Merc Director",
+      "color": "#888888",
       "drivers": [
         {
           "num": "12",
@@ -187,9 +187,9 @@
       ]
     },
     {
-      "name": "Hertz Porsche",
+      "name": "unknown-role",
       "engine": "CEO: yake | Porsche CEO",
-      "color": "#b9a96a",
+      "color": "#888888",
       "drivers": [
         {
           "num": "—",
@@ -218,9 +218,9 @@
       ]
     },
     {
-      "name": "Vanguard Sabre Motorsport",
+      "name": "unknown-role",
       "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
-      "color": "#7f1010",
+      "color": "#888888",
       "drivers": [
         {
           "num": "69",
@@ -241,9 +241,9 @@
       ]
     },
     {
-      "name": "GlitchGP F1 Team",
-      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
-      "color": "#8e3bb5",
+      "name": "unknown-role",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
+      "color": "#888888",
       "drivers": [
         {
           "num": "77",
@@ -272,9 +272,9 @@
       ]
     },
     {
-      "name": "Tarigy's Motorsport Team F1",
+      "name": "unknown-role",
       "engine": "CEO: Flande | Tarigy's CEO",
-      "color": "#1438d4",
+      "color": "#888888",
       "drivers": [
         {
           "num": "26",
@@ -311,9 +311,9 @@
       ]
     },
     {
-      "name": "BMW Sauber F1 Team",
+      "name": "unknown-role",
       "engine": "CEO: Jamie | BMW Sauber CEO · Director: G spot | of BMW",
-      "color": "#7dd3fc",
+      "color": "#888888",
       "drivers": [
         {
           "num": "48",
@@ -453,7 +453,7 @@
     },
     {
       "name": "GlitchGP F2 Team",
-      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
       "color": "#8e3bb5",
       "drivers": [
         {
@@ -982,7 +982,7 @@
     },
     {
       "name": "GlitchGP F3",
-      "engine": "CEO: LeYeetBoi | Merc & GlitchGP CEO · Director: CJ | glitchgp director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
       "color": "#00d2be",
       "drivers": [
         {
