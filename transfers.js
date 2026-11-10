@@ -155,6 +155,9 @@
       var sdk = window.firebase, app;
       try { app = sdk.app('vms-transfers'); } catch (e) { app = sdk.initializeApp(cfg, 'vms-transfers'); }
       db = app.firestore(); fa = app.auth(); FV = sdk.firestore.FieldValue;
+      /* shared with accounts.js + betting.js so the whole site uses ONE login */
+      window.VMS_FB = { db: db, fa: fa, FV: FV, sdk: sdk };
+      try { document.dispatchEvent(new Event('vms-fb-ready')); } catch (e) {}
     });
   }
   function stamp() { return FV.serverTimestamp(); }
@@ -449,6 +452,21 @@
   /* ───────── driver sign-ups ───────── */
   function myPrice(p) { return '$' + Number(p).toFixed(1) + 'M'; }
   function mySignup() { return S.mine; }
+  /* ───────── accounts: a real (email) login, not just a browser session ───────── */
+  function hasAccount() { return !!(fa && fa.currentUser && !fa.currentUser.isAnonymous); }
+  function publishState(offerCount) {
+    window.VMS_TR_STATE = { offers: offerCount, hasSignup: !!S.mine };
+    try { document.dispatchEvent(new Event('vms-tr-change')); } catch (e) {}
+  }
+  /* a different person logged in (or out) on this browser: drop everything that belonged to the last one */
+  function switchUser() {
+    if (unsubMine) { unsubMine(); unsubMine = null; }
+    if (unsubOffers) { unsubOffers(); unsubOffers = null; }
+    stopPortalListener();
+    S.mine = null; S.offers = []; S.role = null; S.code = null; S.locked = null; S.editId = null; S.restoring = false; S.form = blankForm();
+    publishState(0);
+  }
+  document.addEventListener('vms-account-change', function () { paintSignupForm(); });
   /* shrink a screenshot to a small JPEG so it fits in a Firestore document (no paid storage needed) */
   function shrinkShot(file, cb) {
     var rdr = new FileReader();
@@ -486,6 +504,11 @@
     if (f.notes.length > 400) { flash('Keep the note under 400 characters.', 'err'); return; }
     if (f.raced !== 'yes' && f.raced !== 'no') { flash('Say whether you’ve raced in VMS before.', 'err'); return; }
     if (f.raced === 'no' && !f.shot) { flash('Upload a screenshot of a lap time since you haven’t raced in VMS yet.', 'err'); return; }
+    if (!hasAccount()) {
+      flash('Create a free account (or log in) first. That’s how you’ll see your offers on any device.', 'err');
+      if (window.VMSAccount) window.VMSAccount.open('create');
+      return;
+    }
     S.suBusy = true; paintSignupForm();
     var step = fa.currentUser ? Promise.resolve(fa.currentUser) : fa.signInAnonymously().then(function (c) { return c.user; });
     step.then(function (u) {
@@ -548,8 +571,15 @@
   function paintSignupForm() {
     paintSignupBase();
     var b = $('trSuForm'); if (!b || !configured) return;
+    if (!hasAccount()) {
+      b.insertAdjacentHTML('afterbegin', '<div class="tr-card"><h3>' + (S.mine ? 'Attach your sign-up to an account' : 'Create an account first') + '</h3><p class="tr-help">' +
+        (S.mine ? 'Your driver sign-up is only saved in this browser. Create a free account to keep it and see your offers on any device.'
+                : 'You need a free account to sign up as a driver. It’s how you’ll see your transfer offers from any device.') +
+        '</p><div class="tr-actions"><button type="button" class="btn" data-a="acct" data-v="create">Create account</button><button type="button" class="btn alt" data-a="acct" data-v="login">Log in</button></div></div>');
+    }
     var offers = (S.offers || []).filter(function (r) { return r.status === 'awaiting_driver'; }).sort(function (a, c) { return ms(c.updatedAt) - ms(a.updatedAt); });
     var past = (S.offers || []).filter(function (r) { return r.status !== 'awaiting_driver'; }).sort(function (a, c) { return ms(c.updatedAt) - ms(a.updatedAt); }).slice(0, 8);
+    publishState(offers.length);
     var h = '';
     if (offers.length) h += '<h3 class="tr-h">Offers for you <span class="tr-count">' + offers.length + '</span></h3><div class="tr-stack">' + offers.map(function (r) {
       return reqCard(r, '<div class="tr-decide"><div class="tr-ask"><b>' + esc(r.toTeam) + '</b> wants to sign you' + (r.fee != null ? ' for <b>' + esc(myPrice(r.fee)) + '</b>' : '') + '. If you accept, it goes to the FIA for the final decision. Nothing happens without your yes.</div>' +
@@ -834,6 +864,7 @@
     else if (a === 'logSeries') { S.logSeries = v; paintLog(); }
     else if (a === 'signout') signOut();
     else if (a === 'submitsu') submitSignup();
+    else if (a === 'acct') { if (window.VMSAccount) window.VMSAccount.open(v); }
     else if (a === 'drvaccept') driverAnswer(id, true);
     else if (a === 'drvdecline') driverAnswer(id, false);
     else if (a === 'setprice') setPrice(id);
@@ -936,7 +967,9 @@
     initFirebase().then(function () {
       startLogListener(); startSignupListener();
       fa.onAuthStateChanged(function (u) {
-        if (u) { S.uid = u.uid; startMineListener(); restore(); } else { S.connecting = false; paintPortal(); }
+        if (S.uid && (!u || u.uid !== S.uid)) switchUser();
+        if (u) { S.uid = u.uid; startMineListener(); restore(); }
+        else { S.uid = null; S.connecting = false; paintPortal(); paintSignupForm(); paintSignupList(); }
       });
     }).catch(function (e) {
       S.connecting = false; S.loadErr = 'Couldn’t connect to the transfer system. ' + (e && e.message ? e.message : ''); paintPortal(); paintLog();
