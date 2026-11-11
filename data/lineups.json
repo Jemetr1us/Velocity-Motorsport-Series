@@ -344,9 +344,9 @@
   ],
   "f2": [
     {
-      "name": "LM Performance F2",
+      "name": "unknown-role",
       "engine": "CEO: Mikos | LM CEO · Director: Lawie (a random white dude)",
-      "color": "#a78bfa",
+      "color": "#888888",
       "drivers": [
         {
           "num": "03",
@@ -375,9 +375,9 @@
       ]
     },
     {
-      "name": "Renault Sport Formula 2 Team",
+      "name": "unknown-role",
       "engine": "CEO: Neon | Renault & McLaren CEO",
-      "color": "#d9a300",
+      "color": "#888888",
       "drivers": [
         {
           "num": "—",
@@ -390,9 +390,9 @@
       ]
     },
     {
-      "name": "Tarigy's Motorsport Team F2",
+      "name": "unknown-role",
       "engine": "CEO: Flande | Tarigy's CEO · Director: Lauuu | Tarigy's Director",
-      "color": "#7b2cbf",
+      "color": "#888888",
       "drivers": [
         {
           "num": "0",
@@ -413,9 +413,9 @@
       ]
     },
     {
-      "name": "AF Corsa",
+      "name": "unknown-role",
       "engine": "CEO: pringle- jem #1 fan · Director: Perez | Ferrari Team director",
-      "color": "#ef0000",
+      "color": "#888888",
       "drivers": [
         {
           "num": "52",
@@ -452,9 +452,9 @@
       ]
     },
     {
-      "name": "GlitchGP F2 Team",
+      "name": "unknown-role",
       "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
-      "color": "#8e3bb5",
+      "color": "#888888",
       "drivers": [
         {
           "num": "33",
@@ -483,9 +483,9 @@
       ]
     },
     {
-      "name": "Vanguard Sabre Racing",
+      "name": "unknown-role",
       "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
-      "color": "#7f1010",
+      "color": "#888888",
       "drivers": [
         {
           "num": "27",
@@ -522,9 +522,9 @@
       ]
     },
     {
-      "name": "Aero Apex Racing F2",
+      "name": "unknown-role",
       "engine": "CEO: Flekzy | Aero Team Owner",
-      "color": "#2496d2",
+      "color": "#888888",
       "drivers": [
         {
           "num": "10",
@@ -553,7 +553,7 @@
       ]
     },
     {
-      "name": "BWL Sim Racing Team",
+      "name": "unknown-role",
       "engine": "CEO: Roven | BWL CEO",
       "color": "#888888",
       "drivers": [
@@ -576,9 +576,9 @@
       ]
     },
     {
-      "name": "Carti Racing Association",
+      "name": "unknown-role",
       "engine": "CEO: Tiyu | 7 · Director: Zak",
-      "color": "#555555",
+      "color": "#888888",
       "drivers": [
         {
           "num": "26",
@@ -599,9 +599,9 @@
       ]
     },
     {
-      "name": "Nissan Nissmo",
+      "name": "unknown-role",
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | NRX Director",
-      "color": "#dbe4cf",
+      "color": "#888888",
       "drivers": [
         {
           "num": "95",
@@ -630,9 +630,9 @@
       ]
     },
     {
-      "name": "BMW Sauber F2 Team",
+      "name": "unknown-role",
       "engine": "CEO: Jamie | BMW Sauber CEO",
-      "color": "#7dd3fc",
+      "color": "#888888",
       "drivers": [
         {
           "num": "17",
