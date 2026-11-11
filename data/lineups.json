@@ -655,9 +655,9 @@
   ],
   "f3": [
     {
-      "name": "LMP",
+      "name": "unknown-role",
       "engine": "CEO: Mikos | LM CEO · Director: Lawie (a random white dude)",
-      "color": "#a78bfa",
+      "color": "#888888",
       "drivers": [
         {
           "num": "53",
@@ -686,9 +686,9 @@
       ]
     },
     {
-      "name": "Tarigy's Motorsport Team F3",
+      "name": "unknown-role",
       "engine": "CEO: Flande | Tarigy's CEO · Director: Lauuu | Tarigy's Director",
-      "color": "#f59e0b",
+      "color": "#888888",
       "drivers": [
         {
           "num": "11",
@@ -717,9 +717,9 @@
       ]
     },
     {
-      "name": "Aston Martin Racing F3",
+      "name": "unknown-role",
       "engine": "CEO: G spot | of BMW",
-      "color": "#22c55e",
+      "color": "#888888",
       "drivers": [
         {
           "num": "39",
@@ -756,9 +756,9 @@
       ]
     },
     {
-      "name": "Renault Sport Formula 3 Team",
+      "name": "unknown-role",
       "engine": "CEO: Neon | Renault & McLaren CEO",
-      "color": "#60a5fa",
+      "color": "#888888",
       "drivers": [
         {
           "num": "27",
@@ -787,9 +787,9 @@
       ]
     },
     {
-      "name": "Carti Racing Association F3",
+      "name": "unknown-role",
       "engine": "CEO: Crocs | 26 · Director: Zak",
-      "color": "#ec4899",
+      "color": "#888888",
       "drivers": [
         {
           "num": "3",
@@ -818,9 +818,9 @@
       ]
     },
     {
-      "name": "Aero Apex Racing F3",
+      "name": "unknown-role",
       "engine": "CEO: Flekzy | Aero Team Owner",
-      "color": "#7c3aed",
+      "color": "#888888",
       "drivers": [
         {
           "num": "93",
@@ -833,9 +833,9 @@
       ]
     },
     {
-      "name": "Pola Sabre Motorsports",
+      "name": "unknown-role",
       "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
-      "color": "#1e40af",
+      "color": "#888888",
       "drivers": [
         {
           "num": "28",
@@ -872,9 +872,9 @@
       ]
     },
     {
-      "name": "Anonymous Juniors",
+      "name": "unknown-role",
       "engine": "CEO: pringle- jem #1 fan · Director: Perez | Ferrari Team director",
-      "color": "#dc143c",
+      "color": "#888888",
       "drivers": [
         {
           "num": "56",
@@ -903,9 +903,9 @@
       ]
     },
     {
-      "name": "Kogun Technologies F3 Team",
+      "name": "unknown-role",
       "engine": "CEO: Altin | Kogun CEO · Director: Whapples",
-      "color": "#eab308",
+      "color": "#888888",
       "drivers": [
         {
           "num": "81",
@@ -942,9 +942,9 @@
       ]
     },
     {
-      "name": "BMW Sauber F3 Team",
+      "name": "unknown-role",
       "engine": "CEO: Jamie | BMW Sauber CEO",
-      "color": "#7dd3fc",
+      "color": "#888888",
       "drivers": [
         {
           "num": "29",
@@ -981,9 +981,9 @@
       ]
     },
     {
-      "name": "GlitchGP F3",
+      "name": "unknown-role",
       "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
-      "color": "#00d2be",
+      "color": "#888888",
       "drivers": [
         {
           "num": "19",
