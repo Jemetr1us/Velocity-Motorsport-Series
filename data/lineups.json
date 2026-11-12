@@ -4,13 +4,39 @@
       "name": "Richard Mille LM Performance F1 Team",
       "engine": "CEO: Lawie (a random white dude)",
       "color": "#3a3c3f",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "91",
+          "code": "MD1",
+          "name": "Juan",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Team Sport Renault Formula One Team",
       "engine": "CEO: Neon | Renault & McLaren CEO · Director: Doughvontae (@dovante758)",
       "color": "#ffa400",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "17",
+          "code": "MD1",
+          "name": "Theo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "5",
+          "code": "MD2",
+          "name": "Clamzy",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Vanguard Sabre Motorsport F1",
@@ -22,13 +48,79 @@
       "name": "GlitchGP F1 Team",
       "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
       "color": "#71368a",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "12",
+          "code": "MD1",
+          "name": "Jack",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "83",
+          "code": "MD2",
+          "name": "Alonso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "14",
+          "code": "RD1",
+          "name": "EL_KRAZY",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "RD2",
+          "name": "Yuki",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Oscar Mayer Cadillac",
-      "engine": "CEO: Lucas | Oscar Mayer Cadillac",
+      "engine": "CEO: Lucas | OMC Owner",
       "color": "#fff000",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "99",
+          "code": "MD1",
+          "name": "Jeffz",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "10",
+          "code": "MD2",
+          "name": "EXO_Kyo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "69",
+          "code": "RD1",
+          "name": "Nath",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "14",
+          "code": "RD2",
+          "name": "smol",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Tarigy's Motosport F1 Team",
@@ -38,7 +130,7 @@
     },
     {
       "name": "Tohago Mobile Oracle Racing F1",
-      "engine": "CEO: Anti | 3",
+      "engine": "CEO: Anti | Tohago CEO",
       "color": "#070c73",
       "drivers": []
     },
@@ -50,9 +142,18 @@
     },
     {
       "name": "BMW Sauber F1 Team",
-      "engine": "CEO: Jamie | BMW Sauber CEO · Director: G spot | of BMW",
+      "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "Jamie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Carti Racing Association F1 Team",
@@ -78,13 +179,39 @@
       "name": "Richard Mille LM Performance F2 Team",
       "engine": "CEO: Lawie (a random white dude)",
       "color": "#3a3c3f",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "53",
+          "code": "MD1",
+          "name": "Piko",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Team Sport Renault Formula Two Team",
       "engine": "CEO: Neon | Renault & McLaren CEO",
       "color": "#ffa400",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "29",
+          "code": "MD1",
+          "name": "Gui",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "Soap<3 (local femboy)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Vanguard Sabre Motorsport F2",
@@ -96,13 +223,63 @@
       "name": "GlitchGP F2 Team",
       "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
       "color": "#71368a",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "FTL",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "77",
+          "code": "MD2",
+          "name": "Bence",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "41",
+          "code": "RD1",
+          "name": "RuTa",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "19",
+          "code": "RD2",
+          "name": "Hakeman",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "HitechGP F2 Team",
-      "engine": "CEO: Lucas | Oscar Mayer Cadillac · Director: SMUDGE2 | Hitech TD/HQ Designer",
+      "engine": "CEO: Lucas | OMC Owner · Director: SMUDGE2 | Hitech TD/HQ Designer",
       "color": "#7f7f7f",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "43",
+          "code": "MD1",
+          "name": "yokesecapo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "69",
+          "code": "MD2",
+          "name": "Nath",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Tarigy's Motorsport F2 Team",
@@ -133,7 +310,7 @@
     },
     {
       "name": "BMW Sauber F2 Team",
-      "engine": "CEO: Jamie | BMW Sauber CEO · Director: G spot | of BMW",
+      "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
       "drivers": []
     },
@@ -147,13 +324,63 @@
       "name": "Nissan Nismo F2",
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | Nissan Director",
       "color": "#111111",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "23",
+          "code": "MD1",
+          "name": "Gamrin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "95",
+          "code": "MD2",
+          "name": "Alien",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "RD1",
+          "name": "Vittorioso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "headsaf51",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "BWL Sim Racing F2 Team",
       "engine": "CEO: Roven | BWL CEO",
       "color": "#fdfeff",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "27",
+          "code": "MD1",
+          "name": "Patrykowski",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "8",
+          "code": "MD2",
+          "name": "Matt",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     }
   ],
   "f3": [
@@ -161,13 +388,39 @@
       "name": "Richard Mille LM Performance F3 Team",
       "engine": "CEO: Lawie (a random white dude)",
       "color": "#3a3c3f",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "56",
+          "code": "MD1",
+          "name": "Piti",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Team Sport Renault Formula Three Team",
       "engine": "CEO: Neon | Renault & McLaren CEO",
       "color": "#ffa400",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "55",
+          "code": "MD1",
+          "name": "Rice",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "34",
+          "code": "MD2",
+          "name": "Simple",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Vanguard Sabre Motorsport F3",
@@ -179,13 +432,63 @@
       "name": "GlitchGP F3 Team",
       "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
       "color": "#71368a",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "20",
+          "code": "MD1",
+          "name": "SCKIBLES",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "24",
+          "code": "MD2",
+          "name": "Kanzure",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "33",
+          "code": "RD1",
+          "name": "Chicken_Bake",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "37",
+          "code": "RD2",
+          "name": "Pxul",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "HitechGP F3 Team",
-      "engine": "CEO: Lucas | Oscar Mayer Cadillac · Director: SMUDGE2 | Hitech TD/HQ Designer",
+      "engine": "CEO: Lucas | OMC Owner · Director: SMUDGE2 | Hitech TD/HQ Designer",
       "color": "#7f7f7f",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "Jaydenboyyyy5",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "47",
+          "code": "MD2",
+          "name": "Kashin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Tarigy's Motorsport F3 Team",
@@ -207,9 +510,18 @@
     },
     {
       "name": "BMW Sauber F3 Team",
-      "engine": "CEO: Jamie | BMW Sauber CEO · Director: G spot | of BMW",
+      "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "28",
+          "code": "MD1",
+          "name": "Bartos",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Carti Racing Association F3",
@@ -221,7 +533,32 @@
       "name": "Nissan Nismo F3",
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | Nissan Director",
       "color": "#111111",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "15",
+          "code": "MD1",
+          "name": "Vittorioso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "headsaf51",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "93",
+          "code": "RD1",
+          "name": "Avia",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Salvo Racing F3",
