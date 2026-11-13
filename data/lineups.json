@@ -29,9 +29,9 @@
       "color": "#ffa400",
       "drivers": [
         {
-          "num": "17",
+          "num": "9",
           "code": "MD1",
-          "name": "Theo",
+          "name": "Lory",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -40,6 +40,14 @@
           "num": "5",
           "code": "MD2",
           "name": "Clamzy",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "69",
+          "code": "RD1",
+          "name": "Theo",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -151,11 +159,20 @@
       "name": "Tarigy's Motosport F1 Team",
       "engine": "CEO: Flande | Tarigy's CEO",
       "color": "#888888",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "26",
+          "code": "MD1",
+          "name": "ShadowRex",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
-      "name": "Tohago Mobile Oracle Racing F1",
-      "engine": "CEO: Anti | Tohago CEO",
+      "name": "Tuhago Mobile Oracle Racing F1",
+      "engine": "CEO: Anti | Tuhago CEO",
       "color": "#070c73",
       "drivers": []
     },
@@ -169,7 +186,24 @@
       "name": "BMW Sauber F1 Team",
       "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "48",
+          "code": "MD1",
+          "name": "Sly",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "34",
+          "code": "MD2",
+          "name": "syxe",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Carti Racing Association F1 Team",
@@ -187,7 +221,40 @@
       "name": "Acura Factory Team",
       "engine": "CEO: yake | Porsche CEO",
       "color": "#ffffff",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "15",
+          "code": "MD1",
+          "name": "Sun_Rise",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "MD2",
+          "name": "Diego",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "luddster (@luddestuttar)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "56",
+          "code": "RD2",
+          "name": "Igorexe",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     }
   ],
   "f2": [
@@ -523,9 +590,9 @@
           "pods": 0
         },
         {
-          "num": "47",
+          "num": "—",
           "code": "MD2",
-          "name": "Kashin",
+          "name": "Bronny James",
           "pts": 0,
           "wins": 0,
           "pods": 0
