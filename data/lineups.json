@@ -46,7 +46,7 @@
     },
     {
       "name": "GlitchGP F1 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
       "color": "#71368a",
       "drivers": [
         {
@@ -221,12 +221,28 @@
     },
     {
       "name": "GlitchGP F2 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
       "color": "#71368a",
       "drivers": [
         {
           "num": "—",
           "code": "MD1",
+          "name": "Nick",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "21",
+          "code": "MD2",
+          "name": "Rox",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
           "name": "FTL",
           "pts": 0,
           "wins": 0,
@@ -234,24 +250,8 @@
         },
         {
           "num": "77",
-          "code": "MD2",
-          "name": "Bence",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "41",
-          "code": "RD1",
-          "name": "RuTa",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "19",
           "code": "RD2",
-          "name": "Hakeman",
+          "name": "Bence",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -373,7 +373,7 @@
           "pods": 0
         },
         {
-          "num": "8",
+          "num": "25",
           "code": "MD2",
           "name": "Matt",
           "pts": 0,
@@ -426,11 +426,20 @@
       "name": "Vanguard Sabre Motorsport F3",
       "engine": "CEO: NightS_Alloy-BRE · Director: Ajp | Vanguard F3 Director",
       "color": "#7b0000",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "81",
+          "code": "MD1",
+          "name": "Infinity",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "GlitchGP F3 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | glitchgp director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
       "color": "#71368a",
       "drivers": [
         {
