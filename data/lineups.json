@@ -12,6 +12,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "4",
+          "code": "MD2",
+          "name": "Jamie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -42,7 +50,24 @@
       "name": "Vanguard Sabre Motorsport F1",
       "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
       "color": "#7b0000",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "36",
+          "code": "MD1",
+          "name": "Jimmy",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "16",
+          "code": "MD2",
+          "name": "Sharrl",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "GlitchGP F1 Team",
@@ -144,16 +169,7 @@
       "name": "BMW Sauber F1 Team",
       "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
-      "drivers": [
-        {
-          "num": "—",
-          "code": "MD1",
-          "name": "Jamie",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        }
-      ]
+      "drivers": []
     },
     {
       "name": "Carti Racing Association F1 Team",
@@ -217,7 +233,24 @@
       "name": "Vanguard Sabre Motorsport F2",
       "engine": "CEO: NightS_Alloy-BRE · Director: Gearhead | Vanguard Director",
       "color": "#7b0000",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "27",
+          "code": "MD1",
+          "name": "Lewis",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "97",
+          "code": "RD1",
+          "name": "Nahim",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "GlitchGP F2 Team",
@@ -225,7 +258,7 @@
       "color": "#71368a",
       "drivers": [
         {
-          "num": "—",
+          "num": "3",
           "code": "MD1",
           "name": "Nick",
           "pts": 0,
