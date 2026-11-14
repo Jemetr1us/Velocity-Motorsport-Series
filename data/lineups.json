@@ -43,14 +43,6 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
-        },
-        {
-          "num": "69",
-          "code": "RD1",
-          "name": "Theo",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
         }
       ]
     },
@@ -70,7 +62,7 @@
         {
           "num": "16",
           "code": "MD2",
-          "name": "Sharrl",
+          "name": "Sharles",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -167,6 +159,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "19",
+          "code": "MD2",
+          "name": "Peters",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -209,11 +209,20 @@
       "name": "Carti Racing Association F1 Team",
       "engine": "CEO: Tiyu | Carti CEO",
       "color": "#909090",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "26",
+          "code": "MD1",
+          "name": "Crocs",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Ducati Minardi Formula One Team",
-      "engine": "CEO: Maldonado",
+      "engine": "",
       "color": "#33348e",
       "drivers": []
     },
@@ -389,12 +398,12 @@
     },
     {
       "name": "Ducati Minardi Formula Two Team",
-      "engine": "CEO: Maldonado",
+      "engine": "CEO: unknown-user",
       "color": "#33348e",
       "drivers": []
     },
     {
-      "name": "Lotus Racing F2",
+      "name": "Lotus Ford Apex Racing F2",
       "engine": "CEO: Flekzy | Lotus Team Owner",
       "color": "#ddc400",
       "drivers": [
@@ -412,13 +421,31 @@
       "name": "BMW Sauber F2 Team",
       "engine": "CEO: G spot | of BMW",
       "color": "#00ffee",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "13",
+          "code": "MD1",
+          "name": "AO",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Carti Racing Association F2",
       "engine": "CEO: Tiyu | Carti CEO",
       "color": "#909090",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "3",
+          "code": "MD1",
+          "name": "Ukkiett",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Nissan Nismo F2",
@@ -496,6 +523,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "2",
+          "code": "MD2",
+          "name": "Vitality",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -513,8 +548,16 @@
           "pods": 0
         },
         {
-          "num": "34",
+          "num": "69",
           "code": "MD2",
+          "name": "Theo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "34",
+          "code": "RD1",
           "name": "Simple",
           "pts": 0,
           "wins": 0,
@@ -528,7 +571,7 @@
       "color": "#7b0000",
       "drivers": [
         {
-          "num": "81",
+          "num": "3",
           "code": "MD1",
           "name": "Infinity",
           "pts": 0,
@@ -606,16 +649,25 @@
       "drivers": []
     },
     {
-      "name": "Ducati Minardi Formula Three Team",
-      "engine": "CEO: Maldonado",
-      "color": "#33348e",
+      "name": "Kogun Technologies F3 Team",
+      "engine": "CEO: Altin | Kogun CEO",
+      "color": "#006994",
       "drivers": []
     },
     {
-      "name": "Lotus Racing F3",
+      "name": "Lotus Ford Apex Racing F3",
       "engine": "CEO: Flekzy | Lotus Team Owner",
       "color": "#ddc400",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "KJH",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "BMW Sauber F3 Team",
@@ -629,6 +681,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "88",
+          "code": "MD2",
+          "name": "Maslo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -636,7 +696,16 @@
       "name": "Carti Racing Association F3",
       "engine": "CEO: Tiyu | Carti CEO",
       "color": "#909090",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "1",
+          "code": "MD1",
+          "name": "Slicx",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Nissan Nismo F3",
@@ -663,6 +732,14 @@
           "num": "93",
           "code": "RD1",
           "name": "Avia",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "21",
+          "code": "RD2",
+          "name": "haroon",
           "pts": 0,
           "wins": 0,
           "pods": 0
