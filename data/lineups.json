@@ -211,7 +211,7 @@
       "color": "#909090",
       "drivers": [
         {
-          "num": "26",
+          "num": "11",
           "code": "MD1",
           "name": "Crocs",
           "pts": 0,
@@ -221,14 +221,39 @@
       ]
     },
     {
-      "name": "Ducati Minardi Formula One Team",
-      "engine": "",
-      "color": "#33348e",
-      "drivers": []
+      "name": "Nissan Nismo F1",
+      "engine": "CEO: Ford | Nissan CEO",
+      "color": "#111111",
+      "drivers": [
+        {
+          "num": "23",
+          "code": "MD1",
+          "name": "Gamrin",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "15",
+          "code": "MD2",
+          "name": "Vittorioso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "95",
+          "code": "RD1",
+          "name": "Alien",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Acura Factory Team",
-      "engine": "CEO: yake | Porsche CEO",
+      "engine": "CEO: yake | Acura CEO",
       "color": "#ffffff",
       "drivers": [
         {
@@ -319,6 +344,14 @@
           "pods": 0
         },
         {
+          "num": "—",
+          "code": "MD2",
+          "name": "FTL",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
           "num": "97",
           "code": "RD1",
           "name": "Nahim",
@@ -345,14 +378,6 @@
           "num": "21",
           "code": "MD2",
           "name": "Rox",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "—",
-          "code": "RD1",
-          "name": "FTL",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -387,6 +412,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD1",
+          "name": "Calcium",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -398,7 +431,7 @@
     },
     {
       "name": "Ducati Minardi Formula Two Team",
-      "engine": "CEO: unknown-user",
+      "engine": "CEO: maldonado0529",
       "color": "#33348e",
       "drivers": []
     },
@@ -652,7 +685,24 @@
       "name": "Kogun Technologies F3 Team",
       "engine": "CEO: Altin | Kogun CEO",
       "color": "#006994",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "21",
+          "code": "MD1",
+          "name": "Tta",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "81",
+          "code": "MD2",
+          "name": "Bleh",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Lotus Ford Apex Racing F3",
@@ -660,9 +710,9 @@
       "color": "#ddc400",
       "drivers": [
         {
-          "num": "—",
+          "num": "74",
           "code": "MD1",
-          "name": "KJH",
+          "name": "Kjh",
           "pts": 0,
           "wins": 0,
           "pods": 0
