@@ -431,9 +431,18 @@
     },
     {
       "name": "Elite Carbon Motorsports F2",
-      "engine": "CEO: maldonado0529",
+      "engine": "CEO: Diktator Kitkat | ECM CEO",
       "color": "#888888",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "45",
+          "code": "MD1",
+          "name": "Newbie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Lotus Ford Apex Racing F2",
@@ -485,14 +494,6 @@
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | Nissan Director",
       "color": "#111111",
       "drivers": [
-        {
-          "num": "23",
-          "code": "MD1",
-          "name": "Gamrin",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
         {
           "num": "95",
           "code": "MD2",
@@ -679,7 +680,16 @@
       "name": "Tarigy's Motorsport F3 Team",
       "engine": "CEO: Flande | Tarigy's CEO",
       "color": "#888888",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "27",
+          "code": "MD1",
+          "name": "Lancelot",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Kogun Technologies F3 Team",
@@ -713,6 +723,14 @@
           "num": "74",
           "code": "MD1",
           "name": "Kjh",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "7",
+          "code": "MD2",
+          "name": "ZAYN",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -762,14 +780,6 @@
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | Nissan Director",
       "color": "#111111",
       "drivers": [
-        {
-          "num": "15",
-          "code": "MD1",
-          "name": "Vittorioso",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
         {
           "num": "—",
           "code": "MD2",
