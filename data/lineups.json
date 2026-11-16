@@ -313,6 +313,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "MD2",
+          "name": "Chind_50 (@chind_50)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -436,7 +444,40 @@
       "name": "Tarigy's Motorsport F2 Team",
       "engine": "CEO: Flande | Tarigy's CEO",
       "color": "#888888",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "11",
+          "code": "MD1",
+          "name": "Fabián",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "22",
+          "code": "MD2",
+          "name": "dante",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "0",
+          "code": "RD1",
+          "name": "Octi (despacito)",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "27",
+          "code": "RD2",
+          "name": "Lancelot",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Elite Carbon Motorsports F2",
@@ -447,6 +488,14 @@
           "num": "45",
           "code": "MD1",
           "name": "Newbie",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "16",
+          "code": "MD2",
+          "name": "Dex",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -543,9 +592,9 @@
       "color": "#fdfeff",
       "drivers": [
         {
-          "num": "27",
+          "num": "—",
           "code": "MD1",
-          "name": "Patrykowski",
+          "name": "Achoo my shoe bigger than ur dih",
           "pts": 0,
           "wins": 0,
           "pods": 0
