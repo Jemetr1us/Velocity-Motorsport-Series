@@ -186,9 +186,9 @@
       ]
     },
     {
-      "name": "Expensify APXGP Mercedes",
-      "engine": "CEO: seo | APXGP Executive Officer",
-      "color": "#d9b176",
+      "name": "Lamborghini Motorsport",
+      "engine": "CEO: Zak | Lambo CEO",
+      "color": "#888888",
       "drivers": []
     },
     {
@@ -458,6 +458,14 @@
       "engine": "CEO: Flekzy | Lotus Team Owner",
       "color": "#ddc400",
       "drivers": [
+        {
+          "num": "7",
+          "code": "MD1",
+          "name": "ZAYN",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
         {
           "num": "—",
           "code": "MD3",
@@ -732,14 +740,6 @@
           "num": "74",
           "code": "MD1",
           "name": "Kjh",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "7",
-          "code": "MD2",
-          "name": "ZAYN",
           "pts": 0,
           "wins": 0,
           "pods": 0
