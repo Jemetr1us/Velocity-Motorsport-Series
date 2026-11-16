@@ -174,7 +174,16 @@
       "name": "Tuhago Mobile Oracle Racing F1",
       "engine": "CEO: Anti | Tuhago CEO",
       "color": "#070c73",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "3",
+          "code": "MD1",
+          "name": "Leo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Expensify APXGP Mercedes",
