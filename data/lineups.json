@@ -754,6 +754,30 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "10",
+          "code": "MD2",
+          "name": "ELIAN",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "29",
+          "code": "RD1",
+          "name": "Vettel",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "43",
+          "code": "RD2",
+          "name": "Ferchu",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
