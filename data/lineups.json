@@ -85,7 +85,7 @@
         {
           "num": "83",
           "code": "MD2",
-          "name": "Alonso",
+          "name": "Schrub",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -176,7 +176,7 @@
       "color": "#070c73",
       "drivers": [
         {
-          "num": "3",
+          "num": "12",
           "code": "MD1",
           "name": "Leo",
           "pts": 0,
@@ -315,9 +315,9 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "41",
           "code": "MD2",
-          "name": "Chind_50 (@chind_50)",
+          "name": "Jardin (Da Igbo)",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -446,7 +446,7 @@
       "color": "#888888",
       "drivers": [
         {
-          "num": "11",
+          "num": "8",
           "code": "MD1",
           "name": "Fabián",
           "pts": 0,
@@ -865,9 +865,9 @@
       ]
     },
     {
-      "name": "Salvo Racing F3",
+      "name": "Elite Carbon Motorsports F3",
       "engine": "CEO: CryoFleet",
-      "color": "#063152",
+      "color": "#888888",
       "drivers": []
     }
   ]
