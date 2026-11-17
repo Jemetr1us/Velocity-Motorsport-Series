@@ -361,7 +361,7 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "12",
           "code": "MD2",
           "name": "FTL",
           "pts": 0,
@@ -392,7 +392,7 @@
           "pods": 0
         },
         {
-          "num": "21",
+          "num": "56",
           "code": "MD2",
           "name": "Rox",
           "pts": 0,
@@ -846,16 +846,7 @@
       "name": "Carti Racing Association F3 [🇮🇹",
       "engine": "CEO: Tiyu | Carti CEO",
       "color": "#909090",
-      "drivers": [
-        {
-          "num": "99",
-          "code": "MD1",
-          "name": "Slicx",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        }
-      ]
+      "drivers": []
     },
     {
       "name": "Nissan Nismo F3",
@@ -890,9 +881,18 @@
     },
     {
       "name": "Elite Carbon Motorsports F3",
-      "engine": "CEO: CryoFleet",
+      "engine": "CEO: Diktator Kitkat | ECM CEO",
       "color": "#888888",
-      "drivers": []
+      "drivers": [
+        {
+          "num": "99",
+          "code": "MD1",
+          "name": "Slicx",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     }
   ]
 }
