@@ -16,7 +16,7 @@
         {
           "num": "4",
           "code": "MD2",
-          "name": "Jamie",
+          "name": "Big J",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -340,7 +340,7 @@
         {
           "num": "—",
           "code": "MD2",
-          "name": "miami (@Soapsmellsgood999)",
+          "name": "Soap<3(localfemboy)",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -606,6 +606,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "23",
+          "code": "RD1",
+          "name": "Kimi",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     }
@@ -674,6 +682,14 @@
           "num": "3",
           "code": "MD1",
           "name": "Infinity",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "41",
+          "code": "MD2",
+          "name": "Penguin",
           "pts": 0,
           "wins": 0,
           "pods": 0
