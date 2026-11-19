@@ -212,6 +212,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "21",
+          "code": "MD2",
+          "name": "Exclast",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
