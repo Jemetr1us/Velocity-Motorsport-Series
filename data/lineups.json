@@ -566,9 +566,9 @@
       ]
     },
     {
-      "name": "Carti Racing Association F2 [🇮🇹",
+      "name": "Carti Racing Association F2",
       "engine": "CEO: Tiyu | Carti CEO",
-      "color": "#909090",
+      "color": "#888888",
       "drivers": [
         {
           "num": "3",
@@ -842,6 +842,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "96",
+          "code": "RD1",
+          "name": "Avda",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -884,10 +892,19 @@
       ]
     },
     {
-      "name": "Carti Racing Association F3 [🇮🇹",
+      "name": "Carti Racing Association F3",
       "engine": "CEO: Tiyu | Carti CEO",
-      "color": "#909090",
-      "drivers": []
+      "color": "#888888",
+      "drivers": [
+        {
+          "num": "95",
+          "code": "MD1",
+          "name": "Thart",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        }
+      ]
     },
     {
       "name": "Nissan Nismo F3",
