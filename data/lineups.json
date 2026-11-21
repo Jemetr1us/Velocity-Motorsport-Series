@@ -571,7 +571,7 @@
       "color": "#888888",
       "drivers": [
         {
-          "num": "3",
+          "num": "33",
           "code": "MD1",
           "name": "Ukkiett",
           "pts": 0,
@@ -585,6 +585,14 @@
       "engine": "CEO: Ford | Nissan CEO · Director: Alone | Nissan Director",
       "color": "#111111",
       "drivers": [
+        {
+          "num": "—",
+          "code": "MD1",
+          "name": "yktomms.com",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
         {
           "num": "95",
           "code": "MD2",
@@ -727,9 +735,9 @@
       "color": "#71368a",
       "drivers": [
         {
-          "num": "22",
+          "num": "41",
           "code": "MD1",
-          "name": "Yuki",
+          "name": "RuTa",
           "pts": 0,
           "wins": 0,
           "pods": 0
