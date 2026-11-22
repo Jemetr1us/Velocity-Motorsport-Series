@@ -71,7 +71,7 @@
     },
     {
       "name": "GlitchGP F1 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director | media",
       "color": "#71368a",
       "drivers": [
         {
@@ -299,9 +299,9 @@
       "color": "#ffffff",
       "drivers": [
         {
-          "num": "15",
+          "num": "33",
           "code": "MD1",
-          "name": "Sun_Rise",
+          "name": "Sun",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -421,7 +421,7 @@
     },
     {
       "name": "GlitchGP F2 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director | media",
       "color": "#71368a",
       "drivers": [
         {
@@ -779,7 +779,7 @@
     },
     {
       "name": "GlitchGP F3 Team",
-      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director",
+      "engine": "CEO: LeYeetBoi | GlitchGP CEO · Director: CJ | GlitchGP director | media",
       "color": "#71368a",
       "drivers": [
         {
@@ -822,9 +822,9 @@
       "color": "#7f7f7f",
       "drivers": [
         {
-          "num": "—",
+          "num": "79",
           "code": "MD1",
-          "name": "Jaydenboyyyy5",
+          "name": "Jayden",
           "pts": 0,
           "wins": 0,
           "pods": 0
