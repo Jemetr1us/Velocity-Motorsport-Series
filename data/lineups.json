@@ -253,7 +253,7 @@
           "pods": 0
         },
         {
-          "num": "34",
+          "num": "2",
           "code": "MD2",
           "name": "syxe the sauce",
           "pts": 0,
@@ -534,9 +534,9 @@
       "color": "#888888",
       "drivers": [
         {
-          "num": "45",
+          "num": "44",
           "code": "MD1",
-          "name": "Newbie",
+          "name": "Elijah",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -553,6 +553,14 @@
           "num": "31",
           "code": "RD1",
           "name": "haroon",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "45",
+          "code": "RD2",
+          "name": "Newbie",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -573,9 +581,9 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "6",
           "code": "MD2",
-          "name": "MessiplaysF1",
+          "name": "AJ",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -592,6 +600,14 @@
           "num": "72",
           "code": "RD1",
           "name": "Tomms",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "—",
+          "code": "RD2",
+          "name": "MessiplaysF1",
           "pts": 0,
           "wins": 0,
           "pods": 0
