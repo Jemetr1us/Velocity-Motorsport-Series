@@ -175,6 +175,14 @@
           "pts": 0,
           "wins": 0,
           "pods": 0
+        },
+        {
+          "num": "43",
+          "code": "RD2",
+          "name": "yokesecapo",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
         }
       ]
     },
@@ -410,9 +418,9 @@
           "pods": 0
         },
         {
-          "num": "10",
+          "num": "—",
           "code": "RD2",
-          "name": "Elf",
+          "name": "unknown-user",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -464,9 +472,9 @@
       "color": "#7f7f7f",
       "drivers": [
         {
-          "num": "43",
+          "num": "77",
           "code": "MD1",
-          "name": "yokesecapo",
+          "name": "Bence",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -599,7 +607,7 @@
         {
           "num": "72",
           "code": "RD1",
-          "name": "Tomms",
+          "name": "ykTommsnando",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -941,7 +949,7 @@
         {
           "num": "72",
           "code": "MD2",
-          "name": "Tomms",
+          "name": "ykTommsnando",
           "pts": 0,
           "wins": 0,
           "pods": 0
