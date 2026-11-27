@@ -161,17 +161,17 @@
           "pods": 0
         },
         {
-          "num": "19",
+          "num": "22",
           "code": "MD2",
-          "name": "Peters",
+          "name": "dante",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "8",
+          "num": "19",
           "code": "RD1",
-          "name": "Fabián",
+          "name": "Peters",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -418,9 +418,9 @@
           "pods": 0
         },
         {
-          "num": "—",
+          "num": "3",
           "code": "RD2",
-          "name": "unknown-user",
+          "name": "Infinity",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -503,33 +503,33 @@
       "color": "#888888",
       "drivers": [
         {
-          "num": "8",
+          "num": "19",
           "code": "MD1",
-          "name": "Fabián",
+          "name": "Peters",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "22",
+          "num": "29",
           "code": "MD2",
-          "name": "dante",
+          "name": "Vettel",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "0",
+          "num": "10",
           "code": "RD1",
-          "name": "Octi (despacito)",
+          "name": "ELIAN",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
-          "num": "27",
+          "num": "8",
           "code": "RD2",
-          "name": "Lancelot",
+          "name": "Fabián",
           "pts": 0,
           "wins": 0,
           "pods": 0
@@ -885,24 +885,16 @@
           "pods": 0
         },
         {
-          "num": "10",
+          "num": "8",
           "code": "MD2",
-          "name": "ELIAN",
-          "pts": 0,
-          "wins": 0,
-          "pods": 0
-        },
-        {
-          "num": "29",
-          "code": "RD1",
-          "name": "Vettel",
+          "name": "Fabián",
           "pts": 0,
           "wins": 0,
           "pods": 0
         },
         {
           "num": "43",
-          "code": "RD2",
+          "code": "RD1",
           "name": "Ferchu",
           "pts": 0,
           "wins": 0,
@@ -958,6 +950,14 @@
           "num": "72",
           "code": "MD2",
           "name": "ykTommsnando Alonso",
+          "pts": 0,
+          "wins": 0,
+          "pods": 0
+        },
+        {
+          "num": "14",
+          "code": "RD1",
+          "name": "BJ",
           "pts": 0,
           "wins": 0,
           "pods": 0
