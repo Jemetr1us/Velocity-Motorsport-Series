@@ -99,7 +99,7 @@ fetch('data/lineups.json',{cache:'no-store'}).then(function(r){if(!r.ok)throw ne
   return standingsImg;
 }).then(function(S){
   window.VMS_STANDINGS=(S&&typeof S==='object'&&!Array.isArray(S))?S:{};
-  var s=document.createElement('script');s.src='app.js?v=4';document.body.appendChild(s);
+  var s=document.createElement('script');s.src='app.js?v=5';document.body.appendChild(s);
 }).catch(function(){
   document.body.insertAdjacentHTML('afterbegin','<div style="padding:18px;margin:12px;background:#2a0e10;border:1px solid #e5484d;color:#fff;font:14px Arial">Couldn\'t load <b>data/lineups.json</b>. Open the site through a web server (GitHub Pages, or <code>npx serve</code> locally), not by double-clicking index.html.</div>');
 });
