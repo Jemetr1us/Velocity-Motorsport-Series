@@ -1078,27 +1078,90 @@ function renderStandings(){
   $('ptsInfo').innerHTML=`<b>${esc(FULL[st.series])} points</b>${pt.map((p,i)=>`P${i+1}: ${p}`).join(' · ')}${(b1||b2)?`<br><b>Bonuses</b>${b1?`Fastest lap +${b1}`:''}${b1&&b2?' · ':''}${b2?`Pole +${b2}`:''}`:''}`;
 }
 
-/* ───────── calendar ───────── */
+/* ───────── official 2026–27 calendars ───────── */
+const OFFICIAL_CALENDARS = {
+  f1: [
+    {rnd:1,flag:'🇮🇹',name:"Italian GP / Gran Premio d'Italia",circuit:'Monza',date:'13 December 2026'},
+    {rnd:2,flag:'🇹🇷',name:'Turkish GP',circuit:'Istanbul Park',date:'18–20 December 2026',sprint:true},
+    {type:'break',name:'Festive Break',detail:'2 weeks'},
+    {rnd:3,flag:'🇸🇬',name:'Singapore GP',circuit:'Marina Bay Street Circuit',date:'10 January 2027'},
+    {rnd:4,flag:'🇮🇹',name:'Emilia Romagna GP / Gran Premio dell’Emilia Romagna',circuit:'Autodromo Internazionale Enzo e Dino Ferrari (Imola)',date:'17 January 2027'},
+    {rnd:5,flag:'🇲🇾',name:'Malaysian GP',circuit:'Sepang International Circuit',date:'22–24 January 2027',sprint:true},
+    {rnd:6,flag:'🇶🇦',name:'Qatar GP',circuit:'Lusail International Circuit',date:'31 January 2027'},
+    {rnd:7,flag:'🇨🇦',name:'Canadian GP / Grand Prix du Canada',circuit:'Circuit de Gilles Villeneuve',date:'7 February 2027'},
+    {rnd:8,flag:'🇦🇺',name:'Australian GP',circuit:'Albert Park Circuit',date:'14 February 2027'},
+    {type:'break',name:'Mid-Season Break',detail:'1 week'},
+    {rnd:9,flag:'🇧🇭',name:'Bahrain GP',circuit:'Bahrain International Circuit',date:'28 February 2027'},
+    {rnd:10,flag:'🇧🇪',name:'Belgian GP',circuit:'Circuit de Spa-Francorchamps',date:'7 March 2027'},
+    {rnd:11,flag:'🇬🇧',name:'British GP',circuit:'Silverstone Circuit',date:'12–14 March 2027',sprint:true},
+    {rnd:12,flag:'🇺🇸',name:'United States GP',circuit:'Circuit of the Americas',date:'21 March 2027'},
+    {rnd:13,flag:'🇦🇹',name:'Austrian GP / Österreichischer Grand Prix',circuit:'Red Bull Ring',date:'28 March 2027'},
+    {rnd:14,flag:'🇺🇸',name:'Las Vegas GP',circuit:'Las Vegas Strip Circuit',date:'2–4 April 2027',sprint:true},
+    {rnd:15,flag:'🇲🇽',name:'Mexico City GP / Gran Premio de la Ciudad de México',circuit:'Autódromo Hermanos Rodríguez',date:'11 April 2027'},
+    {rnd:16,flag:'🇧🇷',name:'Brazilian GP / Grande Prêmio do Brasil',circuit:'Autódromo José Carlos Pace (Interlagos)',date:'16–18 April 2027',sprint:true},
+    {rnd:17,flag:'🇦🇪',name:'Abu Dhabi GP',circuit:'Yas Marina Circuit',date:'25 April 2027'}
+  ],
+  f2: [
+    {rnd:1,flag:'🇮🇹',name:"Italian GP / Gran Premio d'Italia",circuit:'Monza',date:'12 December 2026'},
+    {rnd:2,flag:'🇹🇷',name:'Turkish GP',circuit:'Istanbul Park',date:'18–19 December 2026',sprint:true},
+    {type:'break',name:'Festive Break',detail:'2 weeks'},
+    {rnd:3,flag:'🇸🇬',name:'Singapore GP',circuit:'Marina Bay Street Circuit',date:'9 January 2027'},
+    {rnd:4,flag:'🇮🇹',name:'Emilia Romagna GP / Gran Premio dell’Emilia Romagna',circuit:'Autodromo Internazionale Enzo e Dino Ferrari (Imola)',date:'16 January 2027'},
+    {rnd:5,flag:'🇲🇾',name:'Malaysian GP',circuit:'Sepang International Circuit',date:'23 January 2027'},
+    {rnd:6,flag:'🇶🇦',name:'Qatar GP',circuit:'Lusail International Circuit',date:'30 January 2027'},
+    {rnd:7,flag:'🇨🇦',name:'Canadian GP / Grand Prix du Canada',circuit:'Circuit de Gilles Villeneuve',date:'6 February 2027'},
+    {type:'gap',name:'Gap Week',detail:'13 February 2027'},
+    {type:'break',name:'Mid-Season Break',detail:'1 week'},
+    {rnd:8,flag:'🇧🇭',name:'Bahrain GP',circuit:'Bahrain International Circuit',date:'27 February 2027'},
+    {rnd:9,flag:'🇧🇪',name:'Belgian GP',circuit:'Circuit de Spa-Francorchamps',date:'6 March 2027'},
+    {rnd:10,flag:'🇬🇧',name:'British GP',circuit:'Silverstone Circuit',date:'12 March 2027'},
+    {rnd:11,flag:'🇺🇸',name:'United States GP',circuit:'Circuit of the Americas',date:'19–20 March 2027',sprint:true},
+    {type:'gap',name:'Gap Week',detail:'27 March 2027'},
+    {rnd:12,flag:'🇺🇸',name:'Las Vegas GP',circuit:'Las Vegas Strip Circuit',date:'2 April 2027'},
+    {rnd:13,flag:'🇲🇽',name:'Mexico City GP / Gran Premio de la Ciudad de México',circuit:'Autódromo Hermanos Rodríguez',date:'9–10 April 2027',sprint:true},
+    {rnd:14,flag:'🇧🇷',name:'Brazilian GP / Grande Prêmio do Brasil',circuit:'Autódromo José Carlos Pace (Interlagos)',date:'17 April 2027'},
+    {rnd:15,flag:'🇦🇪',name:'Abu Dhabi GP',circuit:'Yas Marina Circuit',date:'24 April 2027'}
+  ],
+  f3: [
+    {rnd:1,flag:'🇮🇹',name:"Italian GP / Gran Premio d'Italia",circuit:'Monza',date:'12 December 2026'},
+    {rnd:2,flag:'🇹🇷',name:'Turkish GP',circuit:'Istanbul Park',date:'18–19 December 2026',sprint:true},
+    {type:'break',name:'Festive Break',detail:'2 weeks'},
+    {type:'gap',name:'Gap Week',detail:'9 January 2027'},
+    {rnd:3,flag:'🇮🇹',name:'Emilia Romagna GP / Gran Premio dell’Emilia Romagna',circuit:'Autodromo Internazionale Enzo e Dino Ferrari (Imola)',date:'16 January 2027',sprint:true},
+    {rnd:4,flag:'🇲🇾',name:'Malaysian GP',circuit:'Sepang International Circuit',date:'23 January 2027'},
+    {rnd:5,flag:'🇶🇦',name:'Qatar GP',circuit:'Lusail International Circuit',date:'30 January 2027'},
+    {rnd:6,flag:'🇨🇦',name:'Canadian GP / Grand Prix du Canada',circuit:'Circuit de Gilles Villeneuve',date:'6 February 2027'},
+    {type:'gap',name:'Gap Week',detail:'13 February 2027'},
+    {type:'break',name:'Mid-Season Break',detail:'1 week'},
+    {rnd:7,flag:'🇧🇭',name:'Bahrain GP',circuit:'Bahrain International Circuit',date:'27 February 2027'},
+    {rnd:8,flag:'🇧🇪',name:'Belgian GP',circuit:'Circuit de Spa-Francorchamps',date:'6 March 2027'},
+    {rnd:9,flag:'🇬🇧',name:'British GP',circuit:'Silverstone Circuit',date:'12 March 2027',sprint:true},
+    {rnd:10,flag:'🇺🇸',name:'United States GP',circuit:'Circuit of the Americas',date:'19–20 March 2027'},
+    {type:'gap',name:'Gap Week',detail:'27 March 2027'},
+    {rnd:11,flag:'🇺🇸',name:'Las Vegas GP',circuit:'Las Vegas Strip Circuit',date:'2 April 2027'},
+    {rnd:12,flag:'🇲🇽',name:'Mexico City GP / Gran Premio de la Ciudad de México',circuit:'Autódromo Hermanos Rodríguez',date:'9–10 April 2027'},
+    {rnd:13,flag:'🇧🇷',name:'Brazilian GP / Grande Prêmio do Brasil',circuit:'Autódromo José Carlos Pace (Interlagos)',date:'17 April 2027',sprint:true},
+    {rnd:14,flag:'🇦🇪',name:'Abu Dhabi GP',circuit:'Yas Marina Circuit',date:'24 April 2027'}
+  ]
+};
+let calendarSeries = 'f1';
 function renderCalendar(){
-  if(!$('calGrid')) return;
-  const nx=nextRace(), done=real.filter(r=>r.status==='completed').length;
-  $('calSub').textContent=`${done} of ${real.length} rounds completed`;
-  $('calGrid').innerHTML=D.races.map(r=>{
-    if(r.status==='break') return `<div class="round break"><b>MID-SEASON</b><h3>${esc(r.name)}</h3></div>`;
-    const isNext=nx&&nx.rnd===r.rnd, isDone=r.status==='completed'&&!isNext;
-    const has=SERIES.some(s=>D.results[rkey(r,s)]);
-    const label=isNext?(isLive(r)?'Live':'Next Race'):isDone?'Completed':'Upcoming';
-    return `<div class="round ${isNext?'next':isDone?'done':''} ${has?'link':''}" ${has?`data-rnd="${esc(r.rnd)}"`:''}>
-    <span class="flag">${esc(r.flag)}</span><b>ROUND ${esc(r.rnd)}</b><h3>${esc(r.name)}</h3><span class="circ">${esc(r.circuit)}</span>
-    <span>${esc(dates(r))}</span><br><span class="st">${label}</span>
-    <div class="chips">${(r.series||[]).map(s=>s.toUpperCase()).join(' · ')}${has?' · results ›':''}</div></div>`;
-  }).join('');
-  $('calGrid').onclick=e=>{
-    const c=e.target.closest('.round[data-rnd]'); if(!c) return;
-    const r=real.find(x=>x.rnd===c.dataset.rnd); if(!r) return;
-    const s=SERIES.find(x=>D.results[rkey(r,x)]);
-    rs.series=s; rs.rnd=r.rnd; renderResults(); go('results');
-  };
+  const grid=$('calGrid'); if(!grid) return;
+  const labels={f1:'VWS F1',f2:'VWS F2',f3:'VWS F3'};
+  const list=OFFICIAL_CALENDARS[calendarSeries]||OFFICIAL_CALENDARS.f1;
+  const rounds=list.filter(x=>x.rnd).length;
+  $('calSub').textContent=`2026–2027 Official Calendar · ${rounds} rounds`;
+  let tabsHtml=SERIES.map(s=>`<button type="button" class="cal-series-tab${s===calendarSeries?' on':''}" data-cal-series="${s}" aria-pressed="${s===calendarSeries}">${labels[s]}</button>`).join('');
+  grid.innerHTML=`<div class="official-cal-head"><div class="official-cal-tabs">${tabsHtml}</div><div class="official-cal-season">2026 <span>—</span> 2027 SEASON</div></div><div class="official-cal-list">${list.map(r=>{
+    if(r.type==='break'||r.type==='gap') return `<div class="official-cal-break ${r.type}"><span class="cal-break-mark">${r.type==='gap'?'—':'✦'}</span><div><b>${esc(r.name)}</b><small>${esc(r.detail)}</small></div></div>`;
+    return `<article class="official-round${r.sprint?' sprint':''}"><div class="official-round-number">${String(r.rnd).padStart(2,'0')}</div><div class="official-round-flag">${r.flag}</div><div class="official-round-main"><div class="official-round-title">${esc(r.name)}${r.sprint?'<span class="official-sprint">SPRINT</span>':''}</div><div class="official-round-circuit">${esc(r.circuit)}</div></div><div class="official-round-date">${esc(r.date)}</div></article>`;
+  }).join('')}</div>`;
+  grid.querySelectorAll('[data-cal-series]').forEach(btn=>btn.addEventListener('click',()=>{calendarSeries=btn.dataset.calSeries;renderCalendar();}));
+}
+if(!$('official-cal-css')){
+  const style=document.createElement('style');style.id='official-cal-css';style.textContent=`
+  #calGrid{display:block}.official-cal-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:0 0 22px}.official-cal-tabs{display:flex;gap:8px;flex-wrap:wrap}.cal-series-tab{border:1px solid #343434;background:#111;color:#aaa;padding:12px 22px;font:800 12px Arial,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}.cal-series-tab:hover,.cal-series-tab.on{background:#e8186d;border-color:#e8186d;color:#fff}.official-cal-season{font:800 11px Arial,sans-serif;letter-spacing:2px;color:#777}.official-cal-season span{color:#e8186d}.official-cal-list{display:grid;gap:9px}.official-round{display:grid;grid-template-columns:54px 42px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:14px;padding:18px 20px;background:linear-gradient(110deg,rgba(255,255,255,.045),rgba(255,255,255,.018));border:1px solid #292929;border-left:3px solid #3a3a3a;transition:border-color .2s,transform .2s}.official-round:hover{border-left-color:#e8186d;transform:translateX(3px)}.official-round.sprint{border-left-color:#ff6b00}.official-round-number{font:900 21px Arial,sans-serif;color:#e8186d}.official-round-flag{font-size:25px;line-height:1}.official-round-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#fff;font:800 14px Arial,sans-serif;letter-spacing:.2px}.official-round-circuit{margin-top:6px;color:#888;font:12px Arial,sans-serif;line-height:1.4}.official-round-date{color:#ddd;text-align:right;font:700 12px Arial,sans-serif;white-space:nowrap}.official-sprint{padding:4px 7px;background:rgba(255,107,0,.14);border:1px solid rgba(255,107,0,.5);color:#ff9a45;font:900 9px Arial,sans-serif;letter-spacing:1px}.official-cal-break{display:flex;align-items:center;gap:14px;padding:15px 20px;border:1px dashed #484848;background:rgba(255,255,255,.018);color:#aaa}.official-cal-break>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.official-cal-break b{font:900 11px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#ddd}.official-cal-break small{font:11px Arial,sans-serif;color:#888}.cal-break-mark{width:54px;text-align:center;color:#e8186d;font-size:17px}.official-cal-break.gap{border-style:solid;border-color:#303030;background:transparent}.official-cal-break.gap .cal-break-mark{font-size:22px;color:#777}@media(max-width:640px){.official-round{grid-template-columns:34px 30px minmax(0,1fr);gap:9px;padding:14px 12px}.official-round-number{font-size:16px}.official-round-flag{font-size:21px}.official-round-title{font-size:12px}.official-round-circuit{font-size:11px}.official-round-date{grid-column:3;text-align:left;font-size:11px;margin-top:-3px}.official-cal-season{width:100%}.cal-series-tab{padding:10px 15px;font-size:10px}}
+  `;document.head.appendChild(style);
 }
 
 /* ───────── results ───────── */
@@ -1791,6 +1854,7 @@ async function loadNews(force){
 
   /* calendar page: toolbar + per-round times */
   function decorateCalendar(){
+    return; // The official 2026–2027 calendars are date-only and differ by series.
     const grid=$('calGrid'); if(!grid) return;
     if(!$('calTools')){
       grid.insertAdjacentHTML('beforebegin','<div id="calTools" class="vx-bar"><span>🕒 Session times shown in <b>'+esc(tzNice)+'</b></span><button type="button" class="vx-btn" id="icsAll">📅 Download full season (.ics)</button><button type="button" class="vx-btn ghost" id="icsLeft">Remaining rounds only</button></div>');
