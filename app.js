@@ -1146,48 +1146,43 @@ const OFFICIAL_CALENDARS = {
 };
 let calendarSeries = 'f1';
 
-/* Circuit facts used by the clickable calendar cards. Lengths/turn counts refer to the
-   commonly used Grand Prix layout; a circuit may use a different configuration in other series. */
+/* Circuit guide popup for the official F1/F2/F3 calendars. */
 const CIRCUIT_INFO = [
   {match:['monza'],location:'Monza, Italy',length:'5.793 km',turns:'11',about:'A historic high-speed circuit known for long straights, heavy braking zones and the famous Parabolica (Curva Alboreto).'},
   {match:['istanbul'],location:'Istanbul, Türkiye',length:'5.338 km',turns:'14',about:'A flowing circuit with dramatic elevation changes and the demanding multi-apex Turn 8.'},
-  {match:['marina bay'],location:'Marina Bay, Singapore',length:'4.940 km',turns:'19',about:'A demanding street circuit set around the Marina Bay waterfront, with tight corners and walls close to the racing line.'},
-  {match:['imola','enzo e dino ferrari'],location:'Imola, Italy',length:'4.909 km',turns:'19',about:'A fast, narrow and technical circuit with famous sections such as Tamburello, Acque Minerali and Rivazza.'},
+  {match:['marina bay'],location:'Marina Bay, Singapore',length:'4.940 km',turns:'19',about:'A demanding street circuit around the Marina Bay waterfront, with tight corners and walls close to the racing line.'},
+  {match:['imola','enzo e dino ferrari'],location:'Imola, Italy',length:'4.909 km',turns:'19',about:'A fast, narrow and technical circuit featuring Tamburello, Acque Minerali and Rivazza.'},
   {match:['sepang'],location:'Sepang, Malaysia',length:'5.543 km',turns:'15',about:'A wide, flowing circuit featuring two long straights and a mix of fast and slow corners.'},
   {match:['lusail'],location:'Lusail, Qatar',length:'5.419 km',turns:'16',about:'A fast circuit with a flowing sequence of medium- and high-speed corners.'},
   {match:['gilles villeneuve'],location:'Montreal, Canada',length:'4.361 km',turns:'14',about:'A semi-permanent circuit on Île Notre-Dame, known for its chicanes and the Wall of Champions.'},
   {match:['albert park'],location:'Melbourne, Australia',length:'5.278 km',turns:'14',about:'A fast temporary circuit around Albert Park Lake, combining public roads with purpose-built sections.'},
-  {match:['bahrain'],location:'Sakhir, Bahrain',length:'5.412 km',turns:'15',about:'A desert circuit with long straights, heavy braking zones and several good overtaking opportunities.'},
+  {match:['bahrain'],location:'Sakhir, Bahrain',length:'5.412 km',turns:'15',about:'A desert circuit with long straights, heavy braking zones and several overtaking opportunities.'},
   {match:['spa-francorchamps','spa francorchamps'],location:'Stavelot, Belgium',length:'7.004 km',turns:'19',about:'A legendary, flowing circuit set in the Ardennes, featuring Eau Rouge and Raidillon.'},
   {match:['silverstone'],location:'Silverstone, United Kingdom',length:'5.891 km',turns:'18',about:'A former airfield circuit famous for fast corners including Maggotts, Becketts and Copse.'},
   {match:['circuit of the americas'],location:'Austin, Texas, United States',length:'5.513 km',turns:'20',about:'A modern circuit with a dramatic uphill approach to Turn 1 and a varied mix of corner types.'},
   {match:['red bull ring'],location:'Spielberg, Austria',length:'4.318 km',turns:'10',about:'A short, high-altitude circuit with steep elevation changes, long straights and heavy braking zones.'},
-  {match:['las vegas'],location:'Las Vegas, Nevada, United States',length:'6.201 km',turns:'17',about:'A fast street circuit running along the Las Vegas Strip, with long full-throttle sections and tight corners.'},
+  {match:['las vegas'],location:'Las Vegas, Nevada, United States',length:'6.201 km',turns:'17',about:'A fast street circuit along the Las Vegas Strip, with long full-throttle sections and tight corners.'},
   {match:['hermanos rodriguez'],location:'Mexico City, Mexico',length:'4.304 km',turns:'17',about:'A high-altitude circuit featuring a long main straight and the stadium section through the Foro Sol.'},
   {match:['interlagos','jose carlos pace'],location:'São Paulo, Brazil',length:'4.309 km',turns:'15',about:'A compact, anti-clockwise circuit with elevation changes and a flowing final sector.'},
   {match:['yas marina'],location:'Abu Dhabi, United Arab Emirates',length:'5.281 km',turns:'16',about:'A modern circuit around Yas Marina, with a long back straight and a technical final sector.'}
 ];
-function circuitInfoFor(r){
-  const circuit=String(r.circuit||'').toLowerCase();
-  return CIRCUIT_INFO.find(info=>info.match.some(term=>circuit.includes(term)))||{location:'See circuit location',length:'—',turns:'—',about:'Explore this circuit and its layout before race weekend.'};
-}
 function openCircuitInfo(r){
-  const info=circuitInfoFor(r);
+  const c=String(r.circuit||'').toLowerCase();
+  const info=CIRCUIT_INFO.find(x=>x.match.some(term=>c.includes(term)))||{location:'See circuit location',length:'Specifications unavailable',turns:'—',about:'Explore this circuit and its layout before race weekend.'};
   const mapQuery=encodeURIComponent(r.circuit+' circuit layout map');
-  $('modalBox').innerHTML=`<button class="modal-x" aria-label="Close" onclick="closeModal()">×</button>
+  const box=$('modalBox'), modal=$('modal');
+  if(!box || !modal) return;
+  box.innerHTML=`<button class="modal-x" aria-label="Close" onclick="closeModal()">×</button>
     <div class="kicker">VWS CIRCUIT GUIDE · ROUND ${String(r.rnd).padStart(2,'0')}</div>
     <h2>${esc(r.name)}</h2>
     <div class="m-sub">${esc(r.flag||'')} ${esc(info.location)} · ${esc(r.circuit)}</div>
-    <div class="circuit-info-stats">
-      <div><strong>${esc(info.length)}</strong><span>Track length</span></div>
-      <div><strong>${esc(info.turns)}</strong><span>Turns</span></div>
-      <div><strong>${esc(r.date)}</strong><span>VWS race date</span></div>
-    </div>
+    <div class="circuit-info-stats"><div><strong>${esc(info.length)}</strong><span>Track length</span></div><div><strong>${esc(info.turns)}</strong><span>Turns</span></div><div><strong>${esc(r.date)}</strong><span>VWS race date</span></div></div>
     <div class="circuit-info-about"><h3>ABOUT THE CIRCUIT</h3><p>${esc(info.about)}</p></div>
     <div class="circuit-info-actions"><a class="btn" href="https://www.google.com/search?tbm=isch&q=${mapQuery}" target="_blank" rel="noopener">View Track Layout</a><span>${r.sprint?'<b class="official-sprint">SPRINT WEEKEND</b>':'GRAND PRIX WEEKEND'}</span></div>
     <p class="circuit-info-note">Track specifications refer to the commonly used Grand Prix layout and may vary by series or configuration.</p>`;
-  const m=$('modal');m.classList.add('open');m.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';
+  modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden';
 }
+
 function renderCalendar(){
   const grid=$('calGrid'); if(!grid) return;
   const labels={f1:'VWS F1',f2:'VWS F2',f3:'VWS F3'};
@@ -1197,19 +1192,28 @@ function renderCalendar(){
   let tabsHtml=SERIES.map(s=>`<button type="button" class="cal-series-tab${s===calendarSeries?' on':''}" data-cal-series="${s}" aria-pressed="${s===calendarSeries}">${labels[s]}</button>`).join('');
   grid.innerHTML=`<div class="official-cal-head"><div class="official-cal-tabs">${tabsHtml}</div><div class="official-cal-season">2026 <span>—</span> 2027 SEASON</div></div><div class="official-cal-list">${list.map(r=>{
     if(r.type==='break'||r.type==='gap') return `<div class="official-cal-break ${r.type}"><span class="cal-break-mark">${r.type==='gap'?'—':'✦'}</span><div><b>${esc(r.name)}</b><small>${esc(r.detail)}</small></div></div>`;
-    return `<article class="official-round${r.sprint?' sprint':''}" data-track-round="${esc(r.rnd)}" tabindex="0" role="button" aria-label="View circuit information for ${esc(r.circuit)}"><div class="official-round-number">${String(r.rnd).padStart(2,'0')}</div><div class="official-round-flag">${r.flag}</div><div class="official-round-main"><div class="official-round-title">${esc(r.name)}${r.sprint?'<span class="official-sprint">SPRINT</span>':''}</div><div class="official-round-circuit">${esc(r.circuit)} <span class="track-click-hint">· VIEW CIRCUIT INFO ↗</span></div></div><div class="official-round-date">${esc(r.date)}</div></article>`;
+    return `<article class="official-round${r.sprint?' sprint':''}" data-track-round="${esc(r.rnd)}" tabindex="0" role="button" aria-label="View circuit information for ${esc(r.circuit)}"><div class="official-round-number">${String(r.rnd).padStart(2,'0')}</div><div class="official-round-flag">${r.flag}</div><div class="official-round-main"><div class="official-round-title">${esc(r.name)}${r.sprint?'<span class="official-sprint">SPRINT</span>':''}</div><div class="official-round-circuit">${esc(r.circuit)} <span class="track-click-hint">· CLICK FOR CIRCUIT INFO ↗</span></div></div><div class="official-round-date">${esc(r.date)}</div></article>`;
   }).join('')}</div>`;
   grid.querySelectorAll('[data-cal-series]').forEach(btn=>btn.addEventListener('click',()=>{calendarSeries=btn.dataset.calSeries;renderCalendar();}));
-  grid.querySelectorAll('[data-track-round]').forEach(card=>{
-    const open=()=>{const race=list.find(x=>String(x.rnd)===card.dataset.trackRound);if(race)openCircuitInfo(race);};
-    card.addEventListener('click',open);
-    card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open();}});
-  });
+  // Delegated handlers keep every round clickable after changing series tabs.
+  grid.onclick=e=>{
+    const card=e.target.closest('[data-track-round]');
+    if(!card || !grid.contains(card)) return;
+    const race=list.find(x=>String(x.rnd)===card.dataset.trackRound);
+    if(race) openCircuitInfo(race);
+  };
+  grid.onkeydown=e=>{
+    const card=e.target.closest('[data-track-round]');
+    if(!card || !grid.contains(card) || (e.key!=='Enter' && e.key!==' ')) return;
+    e.preventDefault();
+    const race=list.find(x=>String(x.rnd)===card.dataset.trackRound);
+    if(race) openCircuitInfo(race);
+  };
 }
 if(!$('official-cal-css')){
   const style=document.createElement('style');style.id='official-cal-css';style.textContent=`
-  #calGrid{display:block}.official-cal-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:0 0 22px}.official-cal-tabs{display:flex;gap:8px;flex-wrap:wrap}.cal-series-tab{border:1px solid #343434;background:#111;color:#aaa;padding:12px 22px;font:800 12px Arial,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}.cal-series-tab:hover,.cal-series-tab.on{background:#e8186d;border-color:#e8186d;color:#fff}.official-cal-season{font:800 11px Arial,sans-serif;letter-spacing:2px;color:#777}.official-cal-season span{color:#e8186d}.official-cal-list{display:grid;gap:9px}.official-round{display:grid;grid-template-columns:54px 42px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:14px;padding:18px 20px;background:linear-gradient(110deg,rgba(255,255,255,.045),rgba(255,255,255,.018));border:1px solid #292929;border-left:3px solid #3a3a3a;transition:border-color .2s,transform .2s}.official-round:hover{border-left-color:#e8186d;transform:translateX(3px)}.official-round[role=button]{cursor:pointer}.official-round:focus-visible{outline:2px solid #e8186d;outline-offset:3px}.track-click-hint{color:#e8186d;font:800 9px Arial,sans-serif;letter-spacing:.7px;opacity:0;transition:opacity .2s}.official-round:hover .track-click-hint,.official-round:focus-visible .track-click-hint{opacity:1}.official-round.sprint{border-left-color:#ff6b00}.official-round-number{font:900 21px Arial,sans-serif;color:#e8186d}.official-round-flag{font-size:25px;line-height:1}.official-round-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#fff;font:800 14px Arial,sans-serif;letter-spacing:.2px}.official-round-circuit{margin-top:6px;color:#888;font:12px Arial,sans-serif;line-height:1.4}.official-round-date{color:#ddd;text-align:right;font:700 12px Arial,sans-serif;white-space:nowrap}.official-sprint{padding:4px 7px;background:rgba(255,107,0,.14);border:1px solid rgba(255,107,0,.5);color:#ff9a45;font:900 9px Arial,sans-serif;letter-spacing:1px}.official-cal-break{display:flex;align-items:center;gap:14px;padding:15px 20px;border:1px dashed #484848;background:rgba(255,255,255,.018);color:#aaa}.official-cal-break>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.official-cal-break b{font:900 11px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#ddd}.official-cal-break small{font:11px Arial,sans-serif;color:#888}.cal-break-mark{width:54px;text-align:center;color:#e8186d;font-size:17px}.official-cal-break.gap{border-style:solid;border-color:#303030;background:transparent}.official-cal-break.gap .cal-break-mark{font-size:22px;color:#777}@media(max-width:640px){.official-round{grid-template-columns:34px 30px minmax(0,1fr);gap:9px;padding:14px 12px}.official-round-number{font-size:16px}.official-round-flag{font-size:21px}.official-round-title{font-size:12px}.official-round-circuit{font-size:11px}.official-round-date{grid-column:3;text-align:left;font-size:11px;margin-top:-3px}.official-cal-season{width:100%}.cal-series-tab{padding:10px 15px;font-size:10px}}
-  .circuit-info-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:22px 0}.circuit-info-stats>div{padding:16px 12px;background:#171717;border:1px solid #303030;border-radius:8px;min-width:0}.circuit-info-stats strong{display:block;color:#fff;font:900 20px Arial,sans-serif;overflow-wrap:anywhere}.circuit-info-stats span{display:block;margin-top:7px;color:#999;font:10px Arial,sans-serif;text-transform:uppercase;letter-spacing:1px}.circuit-info-about{padding:18px 0;border-top:1px solid #303030}.circuit-info-about h3{margin:0 0 9px;color:#e8186d;font:900 10px Arial,sans-serif;letter-spacing:1.5px}.circuit-info-about p{margin:0;color:#bbb;font:13px/1.7 Arial,sans-serif}.circuit-info-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.circuit-info-actions>span{color:#888;font:800 10px Arial,sans-serif;letter-spacing:1px}.circuit-info-note{margin:16px 0 0;color:#777;font:10px/1.5 Arial,sans-serif}@media(max-width:520px){.circuit-info-stats{grid-template-columns:1fr 1fr}.circuit-info-stats>div:last-child{grid-column:1/-1}.track-click-hint{opacity:1}}
+  .official-round[role=button]{cursor:pointer}.official-round:focus-visible{outline:2px solid #e8186d;outline-offset:3px}.track-click-hint{color:#e8186d;font:800 9px Arial,sans-serif;letter-spacing:.6px;opacity:1}.circuit-info-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:22px 0}.circuit-info-stats>div{padding:16px 12px;background:#171717;border:1px solid #303030;border-radius:8px;min-width:0}.circuit-info-stats strong{display:block;color:#fff;font:900 20px Arial,sans-serif;overflow-wrap:anywhere}.circuit-info-stats span{display:block;margin-top:7px;color:#999;font:10px Arial,sans-serif;text-transform:uppercase;letter-spacing:1px}.circuit-info-about{padding:18px 0;border-top:1px solid #303030}.circuit-info-about h3{margin:0 0 9px;color:#e8186d;font:900 10px Arial,sans-serif;letter-spacing:1.5px}.circuit-info-about p{margin:0;color:#bbb;font:13px/1.7 Arial,sans-serif}.circuit-info-actions{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.circuit-info-actions>span{color:#888;font:800 10px Arial,sans-serif;letter-spacing:1px}.circuit-info-note{margin:16px 0 0;color:#777;font:10px/1.5 Arial,sans-serif}@media(max-width:520px){.circuit-info-stats{grid-template-columns:1fr 1fr}.circuit-info-stats>div:last-child{grid-column:1/-1}}
+  #calGrid{display:block}.official-cal-head{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:0 0 22px}.official-cal-tabs{display:flex;gap:8px;flex-wrap:wrap}.cal-series-tab{border:1px solid #343434;background:#111;color:#aaa;padding:12px 22px;font:800 12px Arial,sans-serif;letter-spacing:1.2px;text-transform:uppercase;cursor:pointer;transition:.2s}.cal-series-tab:hover,.cal-series-tab.on{background:#e8186d;border-color:#e8186d;color:#fff}.official-cal-season{font:800 11px Arial,sans-serif;letter-spacing:2px;color:#777}.official-cal-season span{color:#e8186d}.official-cal-list{display:grid;gap:9px}.official-round{display:grid;grid-template-columns:54px 42px minmax(0,1fr) minmax(150px,auto);align-items:center;gap:14px;padding:18px 20px;background:linear-gradient(110deg,rgba(255,255,255,.045),rgba(255,255,255,.018));border:1px solid #292929;border-left:3px solid #3a3a3a;transition:border-color .2s,transform .2s}.official-round:hover{border-left-color:#e8186d;transform:translateX(3px)}.official-round.sprint{border-left-color:#ff6b00}.official-round-number{font:900 21px Arial,sans-serif;color:#e8186d}.official-round-flag{font-size:25px;line-height:1}.official-round-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#fff;font:800 14px Arial,sans-serif;letter-spacing:.2px}.official-round-circuit{margin-top:6px;color:#888;font:12px Arial,sans-serif;line-height:1.4}.official-round-date{color:#ddd;text-align:right;font:700 12px Arial,sans-serif;white-space:nowrap}.official-sprint{padding:4px 7px;background:rgba(255,107,0,.14);border:1px solid rgba(255,107,0,.5);color:#ff9a45;font:900 9px Arial,sans-serif;letter-spacing:1px}.official-cal-break{display:flex;align-items:center;gap:14px;padding:15px 20px;border:1px dashed #484848;background:rgba(255,255,255,.018);color:#aaa}.official-cal-break>div{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.official-cal-break b{font:900 11px Arial,sans-serif;letter-spacing:1.5px;text-transform:uppercase;color:#ddd}.official-cal-break small{font:11px Arial,sans-serif;color:#888}.cal-break-mark{width:54px;text-align:center;color:#e8186d;font-size:17px}.official-cal-break.gap{border-style:solid;border-color:#303030;background:transparent}.official-cal-break.gap .cal-break-mark{font-size:22px;color:#777}@media(max-width:640px){.official-round{grid-template-columns:34px 30px minmax(0,1fr);gap:9px;padding:14px 12px}.official-round-number{font-size:16px}.official-round-flag{font-size:21px}.official-round-title{font-size:12px}.official-round-circuit{font-size:11px}.official-round-date{grid-column:3;text-align:left;font-size:11px;margin-top:-3px}.official-cal-season{width:100%}.cal-series-tab{padding:10px 15px;font-size:10px}}
   `;document.head.appendChild(style);
 }
 
